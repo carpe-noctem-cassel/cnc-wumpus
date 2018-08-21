@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="MyTurn.pml#1534836698773"/>
+    <value xPos="183" yPos="192" width="82" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="MyTurn.pml#1534836685239"/>
+    <value width="832" height="542"/>
+  </extensions>
+  <extensions>
+    <key href="MyTurn.pml#1534836698774"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="MyTurn.pml#1534836725909"/>
+    <value xPos="510" yPos="223"/>
+  </extensions>
+  <extensions>
+    <key href="MyTurn.pml#1534836736600"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/PerformAction.beh#1534836780649"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

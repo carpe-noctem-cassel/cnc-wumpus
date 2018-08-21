@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="WumpusMaster.pml#1534835261528"/>
+    <value xPos="128" yPos="188" width="82" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534835261527"/>
+    <value width="729" height="525"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534835261530"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836316488"/>
+    <value xPos="353" yPos="193"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836323236"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836405246"/>
+    <value xPos="473" yPos="174" width="118" height="32"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836414368"/>
+    <value>
+      <bendpoints xPos="601" yPos="229"/>
+    </value>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836429671"/>
+    <value xPos="409" yPos="149"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1534836446000"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/SpawnAgent.beh#1534835358495"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

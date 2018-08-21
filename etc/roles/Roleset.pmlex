@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="rolesDefinition.rdefset#1534757834932"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Roleset.graph#//@nodes.0"/>
+    <value xPos="147" yPos="89" width="15" height="15"/>
+  </extensions>
+  <extensions>
+    <key href="Roleset.graph#//@nodes.1"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

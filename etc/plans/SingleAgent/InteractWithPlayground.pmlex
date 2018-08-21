@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836538909"/>
+    <value xPos="184" yPos="219" width="82" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836538908"/>
+    <value width="862" height="593"/>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836538910"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/WaitForTurn.beh#1534835374750"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836578485"/>
+    <value xPos="495" yPos="225" width="66" height="67"/>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836594030"/>
+    <value>
+      <bendpoints xPos="500" yPos="246"/>
+    </value>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836627481"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="MyTurn.pml#1534836685239"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>
