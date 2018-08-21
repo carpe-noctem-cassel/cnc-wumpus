@@ -22,18 +22,14 @@ namespace alica
     void SpawnAgent::run(void* msg)
     {
         /*PROTECTED REGION ID(run1534835348868) ENABLED START*/ //Add additional options here
-
-    	wumpus_simulator::InitialPoseRequest req;
-    	req.agentId = this->sc->getOwnRobotID();
-    	cout << "SpawnAgent: Own AgentId is: " << req.agentId;
-    	send(req);
-
+        wumpus_simulator::InitialPoseRequest req;
+        req.agentId = this->sc->getOwnRobotID();
+        send(req);
         /*PROTECTED REGION END*/
     }
     void SpawnAgent::initialiseParameters()
     {
         /*PROTECTED REGION ID(initialiseParameters1534835348868) ENABLED START*/ //Add additional options here
-    	cout << "hello" << endl;
         /*PROTECTED REGION END*/
     }
 /*PROTECTED REGION ID(methods1534835348868) ENABLED START*/ //Add additional methods here

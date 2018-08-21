@@ -26,6 +26,17 @@ namespace alica
     void PerformAction::initialiseParameters()
     {
         /*PROTECTED REGION ID(initialiseParameters1534836764921) ENABLED START*/ //Add additional options here
+
+    	wumpus_simulator::ActionRequest actionRequest;
+    	actionRequest.agentId = this->sc->getOwnRobotID();
+
+    	//TODO: query solver for action to perform
+
+
+
+
+    	send(actionRequest);
+
         /*PROTECTED REGION END*/
     }
 /*PROTECTED REGION ID(methods1534836764921) ENABLED START*/ //Add additional methods here

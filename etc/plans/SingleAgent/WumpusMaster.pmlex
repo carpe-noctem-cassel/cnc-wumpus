@@ -14,7 +14,7 @@
   </extensions>
   <extensions>
     <key href="WumpusMaster.pml#1534836316488"/>
-    <value xPos="353" yPos="193"/>
+    <value xPos="353" yPos="193" collapsed="false"/>
   </extensions>
   <extensions>
     <key href="WumpusMaster.pml#1534836323236"/>
@@ -40,6 +40,10 @@
   </extensions>
   <extensions>
     <key href="Behaviours/SpawnAgent.beh#1534835358495"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="InteractWithPlayground.pml#1534836538908"/>
     <value/>
   </extensions>
 </uiextensionmodel:PmlUiExtensionMap>

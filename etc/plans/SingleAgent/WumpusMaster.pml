@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="ASCII"?>
-<alica:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:alica="http:///de.uni_kassel.vs.cn" id="1534835261527" name="WumpusMaster" comment="" masterPlan="true" utilityFunction="" utilityThreshold="0.1" destinationPath="" priority="0.0" minCardinality="0" maxCardinality="2147483647">
+<alica:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:alica="http:///de.uni_kassel.vs.cn" id="1534835261527" name="WumpusMaster" comment="" masterPlan="true" utilityFunction="" utilityThreshold="0.1" destinationPath="Plans/SingleAgent" priority="0.0" minCardinality="0" maxCardinality="2147483647">
   <states id="1534835261528" name="Stop" comment="" entryPoint="1534835261530">
     <plans xsi:type="alica:BehaviourConfiguration">Behaviours/SpawnAgent.beh#1534835358495</plans>
     <outTransitions>#1534836323236</outTransitions>
   </states>
   <states id="1534836316488" name="Play" comment="">
+    <plans xsi:type="alica:Plan">InteractWithPlayground.pml#1534836538908</plans>
     <inTransitions>#1534836323236</inTransitions>
     <outTransitions>#1534836414368</outTransitions>
     <outTransitions>#1534836446000</outTransitions>
