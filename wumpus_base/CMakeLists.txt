@@ -24,10 +24,9 @@ find_package(catkin REQUIRED COMPONENTS
   robot_control 
   tf 
   
-  #TODO Lisa fix symrock
-  #asp_commons
-  #asp_solver_wrapper
-  #asp_solver
+  asp_commons
+  asp_solver_wrapper
+  asp_solver
 )
 
 ###################################

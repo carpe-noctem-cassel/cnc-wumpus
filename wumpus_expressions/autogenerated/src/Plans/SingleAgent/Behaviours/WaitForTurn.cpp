@@ -21,10 +21,7 @@ namespace alica
     void WaitForTurn::run(void* msg)
     {
         /*PROTECTED REGION ID(run1534835364093) ENABLED START*/ //Add additional options here
-
-    	// nothing to do here yet
-
-
+        // nothing to do here yet
         /*PROTECTED REGION END*/
     }
     void WaitForTurn::initialiseParameters()

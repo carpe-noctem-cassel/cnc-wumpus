@@ -26,6 +26,14 @@ namespace alica
         switch (constraintConfId)
         {
 
+            case 1536063740426:
+                return make_shared<Constraint1536063740426>();
+                break;
+
+            case 1534925376501:
+                return make_shared<Constraint1534925376501>();
+                break;
+
             default:
                 cerr << "ConstraintCreator: Unknown constraint requested: " << constraintConfId << endl;
                 throw new exception();

@@ -22,6 +22,8 @@ namespace alica
 		void send(wumpus_simulator::InitialPoseRequest& msg);
 		void send(wumpus_simulator::ActionRequest& msg);
 
+		wumpus::WumpusWorldModel* wm;
+
 	protected:
 		supplementary::SystemConfig* sc;
 

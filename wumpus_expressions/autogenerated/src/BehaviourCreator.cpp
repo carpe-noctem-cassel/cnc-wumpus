@@ -3,6 +3,8 @@ using namespace std;
 #include "BehaviourCreator.h"
 #include "engine/BasicBehaviour.h"
 
+#include  "Plans/SingleAgent/Behaviours/InitASPModel.h"
+
 #include  "Plans/SingleAgent/Behaviours/SpawnAgent.h"
 
 #include  "Plans/SingleAgent/Behaviours/WaitForTurn.h"
@@ -24,6 +26,11 @@ namespace alica
     {
         switch (behaviourConfId)
         {
+
+            case 1536061762657:
+
+                return make_shared<InitASPModel>();
+                break;
 
             case 1534835358495:
 

@@ -31,8 +31,6 @@ class Communication
     ros::NodeHandle n;
     ros::AsyncSpinner *spinner;
 
-    alica::AlicaTime timeLastSimMsgReceived;
-
     ros::Subscriber initialPoseResponseSub;
     ros::Subscriber actionResponseSub;
 };

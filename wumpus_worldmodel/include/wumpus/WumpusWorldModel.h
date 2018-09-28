@@ -1,11 +1,13 @@
 #pragma once
 
-#include "wm/WumpusSimData.h"
 #include "wm/Communication.h"
+#include "wm/Playground.h"
+#include "wm/KnowledgeManager.h"
+#include "wm/WumpusSimData.h"
 #include <SystemConfig.h>
 #include <supplementary/EventTrigger.h>
-#include <supplementary/WorldModel.h>
 #include <supplementary/InformationElement.h>
+#include <supplementary/WorldModel.h>
 namespace supplementary
 {
 class SystemConfig;
@@ -19,8 +21,12 @@ class AlicaClock;
 
 namespace wumpus
 {
-namespace wm {
+namespace wm
+{
+class WumpusAgent;
+class Playground;
 class WumpusSimData;
+class KnowledgeManager;
 class Communication;
 }
 
@@ -35,7 +41,10 @@ class WumpusWorldModel : public supplementary::WorldModel
 
     // Public Data Access Classes
     wm::WumpusSimData wumpusSimData;
-    wm::Communication* communication;
+    wm::Playground playground;
+    wm::KnowledgeManager knowledgeManager;
+    wm::Communication *communication;
+
 
   private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
@@ -43,4 +52,3 @@ class WumpusWorldModel : public supplementary::WorldModel
 };
 
 } /* namespace wumpus */
-

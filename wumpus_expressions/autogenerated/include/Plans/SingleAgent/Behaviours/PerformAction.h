@@ -20,6 +20,7 @@ namespace alica
         /*PROTECTED REGION END*/
     private:
         /*PROTECTED REGION ID(prv1534836764921) ENABLED START*/ //Add additional private methods here
+        std::vector<WumpusEnums::actions> result;
         /*PROTECTED REGION END*/};
 } /* namespace alica */
 

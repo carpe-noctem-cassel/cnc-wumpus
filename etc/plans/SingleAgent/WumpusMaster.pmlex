@@ -17,10 +17,6 @@
     <value xPos="353" yPos="193" collapsed="false"/>
   </extensions>
   <extensions>
-    <key href="WumpusMaster.pml#1534836323236"/>
-    <value/>
-  </extensions>
-  <extensions>
     <key href="WumpusMaster.pml#1534836405246"/>
     <value xPos="473" yPos="174" width="118" height="32"/>
   </extensions>
@@ -44,6 +40,18 @@
   </extensions>
   <extensions>
     <key href="InteractWithPlayground.pml#1534836538908"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/InitASPModel.beh#1536061762657"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1536063740426"/>
+    <value xPos="221" yPos="432"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1537958014769"/>
     <value/>
   </extensions>
 </uiextensionmodel:PmlUiExtensionMap>

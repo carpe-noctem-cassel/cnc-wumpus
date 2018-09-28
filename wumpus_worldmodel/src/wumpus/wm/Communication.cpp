@@ -12,7 +12,6 @@ namespace wm {
 
 Communication::Communication(wumpus::WumpusWorldModel *wm) :
 		wm(wm) {
-	this->timeLastSimMsgReceived = alica::AlicaTime::zero();
 	auto sc = wm->getSystemConfig();
 	// SET ROS STUFF
 	string topic;

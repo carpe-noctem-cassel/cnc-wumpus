@@ -14,6 +14,8 @@ WumpusWorldModel *WumpusWorldModel::getInstance()
 WumpusWorldModel::WumpusWorldModel() :
 		WorldModel()
     , wumpusSimData(this)
+	, knowledgeManager(this)
+	, playground(this)
 	, communication(nullptr)
 {
 	this->agentName = sc->getHostname();

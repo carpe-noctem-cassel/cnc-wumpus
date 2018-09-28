@@ -24,6 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
     alica_engine 
     wumpus_worldmodel 
     system_util
+    asp_commons
+    asp_solver_wrapper
 )
 
 
@@ -38,6 +40,8 @@ catkin_package(
     alica_engine 
     wumpus_worldmodel 
     system_util
+    asp_commons
+    asp_solver_wrapper
   DEPENDS
 )
 

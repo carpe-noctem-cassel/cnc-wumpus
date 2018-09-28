@@ -7,6 +7,7 @@ namespace alica
 	DomainBehaviour::DomainBehaviour(std::string name) :
 			BasicBehaviour(name)
 	{
+		wm = wumpus::WumpusWorldModel::getInstance();
 		sc = supplementary::SystemConfig::getInstance();
 		ros::NodeHandle n;
 
