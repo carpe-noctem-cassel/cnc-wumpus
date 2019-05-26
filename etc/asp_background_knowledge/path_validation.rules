@@ -1,0 +1,9 @@
+pathValid :- agent(A), not invalid(X,Y) : holds(on(X,Y),T).
+invalid(X,Y) :- glitter(X,Y), not goal(X,Y), not haveGold(A), agent(A).
+invalid(X,Y) :- initial(X,Y), not goal(X,Y), haveGold(A), agent(A).
+invalid(X,Y) :- dangerous(X,Y).
+invalid(X,Y) :- blacklist(X,Y).
+invalid(X,Y) :- on(X,Y), goal(X,Y).
+dangerous(X,Y) :- wumpus(X,Y).
+dangerous(X,Y) :- trap(X,Y).
+

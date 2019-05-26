@@ -22,6 +22,10 @@ namespace alica
     void SpawnAgent::run(void* msg)
     {
         /*PROTECTED REGION ID(run1534835348868) ENABLED START*/ //Add additional options here
+        if (this->wm->localAgentDied)
+        {
+            return;
+        }
         wumpus_simulator::InitialPoseRequest req;
         req.agentId = this->sc->getOwnRobotID();
         send(req);

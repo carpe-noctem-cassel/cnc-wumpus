@@ -4,7 +4,6 @@
 #include "DomainBehaviour.h"
 /*PROTECTED REGION ID(inc1536061745720) ENABLED START*/ //Add additional includes here
 #include <engine/constraintmodul/Query.h>
-#include <asp_commons/AnnotatedValVec.h>
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -23,7 +22,7 @@ namespace alica
     private:
         /*PROTECTED REGION ID(prv1536061745720) ENABLED START*/ //Add additional private methods here
         shared_ptr<alica::Query> query;
-        std::vector<::reasoner::AnnotatedValVec> result;
+        std::vector<void*> result;
         /*PROTECTED REGION END*/};
 } /* namespace alica */
 

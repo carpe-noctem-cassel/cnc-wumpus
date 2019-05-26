@@ -1,0 +1,14 @@
+fieldAhead(X-1,Y,t-1) :- field(X,Y), field(X-1,Y), holds(heading(0),t-1), holds(on(X,Y),t-1).
+fieldAhead(X+1,Y,t-1) :- field(X,Y), field(X+1,Y), holds(heading(2),t-1), holds(on(X,Y),t-1).
+fieldAhead(X,Y+1,t-1) :- field(X,Y), field(X,Y+1), holds(heading(3),t-1), holds(on(X,Y),t-1).
+fieldAhead(X,Y-1,t-1) :- field(X,Y), field(X,Y-1), holds(heading(1),t-1), holds(on(X,Y),t-1).
+
+holds(on(X,Y),t) :- occurs(move,t-1), fieldAhead(X,Y,t-1).
+holds(on(X,Y),t) :- holds(on(X,Y),t-1), not occurs(move,t-1).
+holds(heading(X),t) :- holds(heading(X),t-1), not occurs(turnLeft,t-1), not occurs(turnRight,t-1).
+holds(heading((X+1)\4),t) :- holds(heading(X),t-1), occurs(turnLeft,t-1).
+holds(heading((X+3)\4),t) :- holds(heading(X),t-1), occurs(turnRight,t-1).
+
+:- not holds(on(_,_),t).
+
+

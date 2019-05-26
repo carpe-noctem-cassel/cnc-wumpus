@@ -2,15 +2,6 @@
 using namespace std;
 using namespace alica;
 /*PROTECTED REGION ID(ch1534836685239) ENABLED START*/
-#include <asp_solver_wrapper/ASPTerm.h>
-#include <asp_solver_wrapper/ASPTermPtr.h>
-#include <asp_solver_wrapper/ASPTermHolder.h>
-#include <asp_commons/IASPSolver.h>
-#include <asp_commons/ASPQueryType.h>
-#include <asp_solver_wrapper/ASPSolverWrapper.h>
-#include <engine/AlicaEngine.h>
-#include <engine/constraintmodul/ProblemDescriptor.h>
-#include <wumpus/WumpusWorldModel.h>
 //Add additional using directives here
 /*PROTECTED REGION END*/
 

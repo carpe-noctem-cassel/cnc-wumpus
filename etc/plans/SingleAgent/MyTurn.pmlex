@@ -28,4 +28,8 @@
     <key href="MyTurn.pml#1534925376501"/>
     <value xPos="310" yPos="378"/>
   </extensions>
+  <extensions>
+    <key href="Planning.pml#1551262808911"/>
+    <value/>
+  </extensions>
 </uiextensionmodel:PmlUiExtensionMap>

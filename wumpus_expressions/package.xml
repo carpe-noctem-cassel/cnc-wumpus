@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>wumpus_expressions</name>
   <version>0.0.0</version>
   <description>The wumpus_expressions package</description>
@@ -10,23 +10,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <build_depend>roscpp</build_depend>
-  <build_depend>wumpus_worldmodel</build_depend>
-  <build_depend>alica_engine</build_depend>
-  <build_depend>system_config</build_depend>
-  <build_depend>autodiff</build_depend>
-  <build_depend>system_util</build_depend>
-  <build_depend>asp_commons</build_depend>
-  <build_depend>asp_solver_wrapper</build_depend>
+  <depend>roscpp</depend>
+  <depend>wumpus_worldmodel</depend>
+  <depend>wumpus_msgs</depend>
+  <depend>alica_engine</depend>
+  <depend>system_config</depend>
+  <depend>system_util</depend>
+  <depend>asp_solver_wrapper</depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>wumpus_worldmodel</run_depend>
-  <run_depend>alica_engine</run_depend>
-  <run_depend>system_config</run_depend>
-  <run_depend>autodiff</run_depend>
-  <run_depend>system_util</run_depend>
-  <run_depend>asp_commons</run_depend>
-  <run_depend>asp_solver_wrapper</run_depend>
   <export>
   </export>
 </package>

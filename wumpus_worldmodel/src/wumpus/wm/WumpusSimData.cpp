@@ -1,8 +1,9 @@
 #include "wumpus/wm/WumpusSimData.h"
 
 #include "wumpus/WumpusWorldModel.h"
-#include "wumpus/wm/ASPKnowledgeBase.h"
-#include "wumpus/wm/Field.h"
+#include "wumpus/model/Agent.h"
+#include "wumpus/model/Field.h"
+#include "wumpus/wm/PlanningModule.h"
 #include <WumpusEnums.h>
 
 #include <SystemConfig.h>
@@ -14,144 +15,180 @@
 #include <memory>
 #include <utility>
 
-using supplementary::InformationElement;
-using supplementary::InfoBuffer;
-using std::make_shared;
-using std::shared_ptr;
-
 namespace wumpus
 {
 namespace wm
 {
 
-WumpusSimData::WumpusSimData(WumpusWorldModel *wm)
+WumpusSimData::WumpusSimData(WumpusWorldModel* wm)
 {
     this->wm = wm;
     auto sc = this->wm->getSystemConfig();
 
     // data buffers
-
-    this->initialPoseResponseValidityDuration =
-        alica::AlicaTime::nanoseconds((*sc)["WumpusWorldModel"]->get<int>("Data.InitialPoseResponse.ValidityDuration", NULL));
-    this->initialPoseResponseBuffer =
-        new InfoBuffer<wumpus_simulator::InitialPoseResponse>((*sc)["WumpusWorldModel"]->get<int>("Data.InitialPoseResponse.BufferLength", NULL));
-
     this->actionResponseValidityDuration = alica::AlicaTime::nanoseconds((*sc)["WumpusWorldModel"]->get<int>("Data.ActionResponse.ValidityDuration", NULL));
     this->actionResponseBuffer =
-        new InfoBuffer<wumpus_simulator::ActionResponse>((*sc)["WumpusWorldModel"]->get<int>("Data.ActionResponse.BufferLength", NULL));
+            new supplementary::InfoBuffer<wumpus_simulator::ActionResponse>((*sc)["WumpusWorldModel"]->get<int>("Data.ActionResponse.BufferLength", NULL));
     this->turnInfoValidityDuration = alica::AlicaTime::nanoseconds((*sc)["WumpusWorldModel"]->get<int>("Data.TurnInfo.ValidityDuration", NULL));
-    this->turnInfoBuffer = new InfoBuffer<TurnInfo>((*sc)["WumpusWorldModel"]->get<int>("Data.TurnInfo.BufferLength", NULL));
+    this->isMyTurnBuffer = new supplementary::InfoBuffer<bool>((*sc)["WumpusWorldModel"]->get<int>("Data.TurnInfo.BufferLength", NULL));
+    this->integratedFromSimulator = false;
+
 }
 
-WumpusSimData::~WumpusSimData()
-{
-}
+WumpusSimData::~WumpusSimData() = default;
 
 /**
- * Adds new agent to list of known agents
- * Sets Playground size if necessary
- */
+* Adds new agent to list of known agents
+* Sets Playground size if necessary
+*/
 void WumpusSimData::processInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse)
 {
-    this->wm->playground.initializePlayground(initialPoseResponse->fieldSize);
-    auto agent = std::make_shared<wumpus::wm::WumpusAgent>(initialPoseResponse->agentId, initialPoseResponse->x, initialPoseResponse->y,
-                                                           initialPoseResponse->heading, initialPoseResponse->hasArrow);
-    this->wm->playground.addAgent(agent);
-    stringstream ss;
-    ss << "fieldSize(" << initialPoseResponse->fieldSize << ").";
-    this->wm->knowledgeManager.updateKnowledgeBase(ss.str());
+
+    //avoid inconsistencies in knowledgebase and crashing of clingo
+    if(this->wm->localAgentDied) {
+        return;
+    }
+
+    auto id = initialPoseResponse->agentId;
+
+    this->wm->playground->initializePlayground(initialPoseResponse->fieldSize);
+    auto agent = this->wm->playground->getAgentById(id);
+    if (!agent) {
+        agent = std::make_shared<wumpus::model::Agent>(this->wm->changeHandler, initialPoseResponse->agentId);
+        this->wm->playground->addAgent(agent);
+        agent->registerAgent(id == essentials::SystemConfig::getInstance()->getOwnRobotID());
+    }
+
+    // any other info should come from the agent itself
+    if (initialPoseResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
+        return;
+    }
+
+    auto field = this->wm->playground->getField(initialPoseResponse->x, initialPoseResponse->y);
+    field->updateVisited(true);
+
+    agent->updatePosition(field);
+    agent->updateInitialPosition(field);
+    agent->updateHeading(initialPoseResponse->heading);
+    agent->updateArrow(initialPoseResponse->hasArrow);
 }
 
-/**
- *
- */
+void WumpusSimData::setIntegratedFromSimulator(bool integrated)
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    this->integratedFromSimulator = integrated;
+}
+
+bool WumpusSimData::getIntegratedFromSimulator()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    return this->integratedFromSimulator;
+}
+
 void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse)
 {
 
-    wumpus::wm::Coordinates coords(actionResponse->x, actionResponse->y);
-    auto field = this->wm->playground.getField(coords);
-    if(!field) {
-    	std::cout << "No field with given coordinates (" << coords.x << ", " << coords.y << ") exists (yet)!" << std::endl;
-    	return;
-    }
-    // TurnInfo
-    TurnInfo t;
-    t.isMyTurn = false;
-    if (actionResponse->agentId == this->wm->getSystemConfig()->getOwnRobotID())
-    {
-
-        // check turn info
-        if (std::find(actionResponse->responses.begin(), actionResponse->responses.end(), WumpusEnums::yourTurn) != actionResponse->responses.end())
-        {
-            t.isMyTurn = true;
-        }
-
-        auto me = this->wm->playground.getAgentById(this->wm->getSystemConfig()->getOwnRobotID());
-        me->currentPosition = field;
-        me->currentHeading = actionResponse->heading;
-    }
-    auto turnInfo = std::make_shared<InformationElement<TurnInfo>>(t, wm->getTime(), this->turnInfoValidityDuration, 1.0);
-    this->turnInfoBuffer->add(turnInfo);
-
-    // FieldInfo
-    if (responsesContain(actionResponse->responses, WumpusEnums::drafty))
-    {
-        field->perceptions.push_back("drafty");
+    // reject msgs which aren't meant for me
+    if (actionResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
+        return;
     }
 
-    if (responsesContain(actionResponse->responses, WumpusEnums::stinky))
-    {
-        field->perceptions.push_back("stinky");
-    }
-
-    if (responsesContain(actionResponse->responses, WumpusEnums::shiny))
-    {
-        field->perceptions.push_back("shiny");
-    }
-
-    if (responsesContain(actionResponse->responses, WumpusEnums::otherAgent))
-    {
-        field->perceptions.push_back("otherAgent");
-    }
-
-
-
-    // update own position TODO track turn number?
-    stringstream position;
-    //TODO associate with Agent
-    position << "on" << "(" << coords.x << ", " << coords.y << ").";
-    field->perceptions.push_back(position.str());
-
-    stringstream heading;
-    heading << "heading(" << actionResponse->heading << ").";
-    field->perceptions.push_back(heading.str());
-
-    this->wm->knowledgeManager.updateKnowledgeBase(field);
-
-    // Global Info
-
-    // TODO
-    // Add info Element to raw Buffer
-
-    auto actionResponseInfo = std::make_shared<InformationElement<wumpus_simulator::ActionResponse>>(*(actionResponse.get()), wm->getTime(),
-                                                                                                     this->actionResponseValidityDuration, 1.0);
-
+    // Add info Element to Buffer
+    auto actionResponseInfo = std::make_shared<supplementary::InformationElement<wumpus_simulator::ActionResponse>>(
+            *(actionResponse.get()), wm->getTime(), this->actionResponseValidityDuration, 1.0);
     actionResponseBuffer->add(actionResponseInfo);
+
+    //avoid inconsistencies in knowledgebase and crashing of clingo
+    if(responsesContain(actionResponse->responses,WumpusEnums::dead)) {
+        this->wm->localAgentDied = true;
+        return;
+    }
+
+    auto field = this->wm->playground->getField(actionResponse->x, actionResponse->y);
+    auto agent = this->wm->playground->getAgentById(actionResponse->agentId);
+
+    if (!agent) {
+        agent = std::make_shared<wumpus::model::Agent>(this->wm->changeHandler, actionResponse->agentId);
+        this->wm->playground->addAgent(agent);
+        agent->updateArrow(true);
+    }
+    agent->updatePosition(field);
+    agent->updateHeading(actionResponse->heading);
+    agent->updateHaveGold(responsesContain(actionResponse->responses, WumpusEnums::goldFound));
+
+    field->updateDrafty(responsesContain(actionResponse->responses, WumpusEnums::drafty));
+    field->updateShiny(responsesContain(actionResponse->responses, WumpusEnums::shiny));
+    field->updateStinky(responsesContain(actionResponse->responses, WumpusEnums::stinky));
+    field->updateVisited(true);
+
+    if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
+        this->wm->playground->handleSilence();
+    }
+
+    if (responsesContain(actionResponse->responses, WumpusEnums::scream)) {
+        this->wm->playground->handleScream();
+    }
+
+    auto turnInfo = std::make_shared<supplementary::InformationElement<bool>>(
+            actionResponse->agentId == essentials::SystemConfig::getOwnRobotID() && responsesContain(actionResponse->responses, WumpusEnums::yourTurn),
+            wm->getTime(), this->turnInfoValidityDuration, 1.0);
+
+    this->isMyTurnBuffer->add(turnInfo);
+
+    //yourTurn message is the last message the Simulator sends
+    if (actionResponse->agentId == essentials::SystemConfig::getOwnRobotID() && responsesContain(actionResponse->responses, WumpusEnums::yourTurn)) {
+        this->integratedFromSimulator = true;
+
+    }
+
+    if(responsesContain(actionResponse->responses, WumpusEnums::exited)) {
+        this->wm->localAgentExited = true;
+    }
+
+
 }
 
-const supplementary::InfoBuffer<wumpus_simulator::InitialPoseResponse> *WumpusSimData::getInitialPoseResponseBuffer()
+void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception)
 {
-    return this->initialPoseResponseBuffer;
+    auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
+    if (!agent) {
+        agent = std::make_shared<wumpus::model::Agent>(this->wm->changeHandler, agentPerception->senderID);
+        this->wm->playground->addAgent(agent);
+    }
+
+    auto field = this->wm->playground->getField(agentPerception->position.x, agentPerception->position.y);
+    field->updateDrafty(agentPerception->drafty);
+    field->updateShiny(agentPerception->glitter);
+    field->updateStinky(agentPerception->stinky);
+    field->updateVisited(true);
+    if(this->integratedFromAgents.find(agentPerception->senderID) == this->integratedFromAgents.end()) {
+        this->integratedFromAgents.emplace(agentPerception->senderID,true);
+    } else {
+        this->integratedFromAgents.at(agentPerception->senderID) = true;
+    }
 }
 
-const supplementary::InfoBuffer<wumpus_simulator::ActionResponse> *WumpusSimData::getActionResponseBuffer()
+/**
+ * Clear buffers to be able to start a new Base from a running program (evaluation scenario)
+ */
+void WumpusSimData::clearBuffers() {
+    this->actionResponseBuffer->clear(true);
+    this->isMyTurnBuffer->clear(true);
+}
+
+const supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* WumpusSimData::getActionResponseBuffer()
 {
     return this->actionResponseBuffer;
 }
-
-const supplementary::InfoBuffer<TurnInfo> *WumpusSimData::getTurnInfoBuffer()
+const supplementary::InfoBuffer<bool>* WumpusSimData::getIsMyTurnBuffer()
 {
-    return this->turnInfoBuffer;
+    return this->isMyTurnBuffer;
+}
+
+void WumpusSimData::resetIntegratedFromAgents() {
+    for(auto& entry : this->integratedFromAgents) {
+        entry.second = false;
+    }
 }
 }
 } /* namespace wumpus */

@@ -1,14 +1,15 @@
 #pragma once
 
+#include "model/Playground.h"
 #include "wm/Communication.h"
-#include "wm/Playground.h"
-#include "wm/KnowledgeManager.h"
 #include "wm/WumpusSimData.h"
 #include <SystemConfig.h>
-#include <supplementary/EventTrigger.h>
+#include <essentials/EventTrigger.h>
 #include <supplementary/InformationElement.h>
 #include <supplementary/WorldModel.h>
-namespace supplementary
+#include <wumpus/wm/PlanningModule.h>
+
+namespace essentials
 {
 class SystemConfig;
 }
@@ -18,35 +19,48 @@ namespace alica
 class AlicaEngine;
 class AlicaClock;
 }
-
 namespace wumpus
 {
+namespace model
+{
+class Agent;
+class Playground;
+}
 namespace wm
 {
-class WumpusAgent;
-class Playground;
+
 class WumpusSimData;
-class KnowledgeManager;
 class Communication;
+class PlanningModule;
+class ChangeHandler;
 }
 
 class WumpusWorldModel : public supplementary::WorldModel
 {
-  public:
-    static WumpusWorldModel *getInstance(); /**< Singleton Getter */
+public:
+    static WumpusWorldModel* getInstance(); /**< Singleton Getter */
 
     virtual ~WumpusWorldModel();
     void init();
+
     std::string getAgentName();
+    int getPresetAgentCount();
 
     // Public Data Access Classes
     wm::WumpusSimData wumpusSimData;
-    wm::Playground playground;
-    wm::KnowledgeManager knowledgeManager;
-    wm::Communication *communication;
+    model::Playground* playground;
+    wumpus::wm::ChangeHandler* changeHandler;
+    wumpus::wm::PlanningModule* planningModule;
+    wm::Communication* communication;
 
+    int agentCount;
 
-  private:
+    //TODO remove, used to make evaluation easier
+    void clear();
+    bool localAgentExited;
+    bool localAgentDied;
+
+private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
     std::string agentName;
 };

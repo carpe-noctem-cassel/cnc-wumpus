@@ -1,14 +1,23 @@
 #pragma once
 
-#include "WumpusDefinitions.h"
+#include <WumpusEnums.h>
 #include <engine/AlicaClock.h>
 #include <supplementary/InfoBuffer.h>
 #include <supplementary/InformationElement.h>
 #include <wumpus_simulator/ActionResponse.h>
 #include <wumpus_simulator/InitialPoseResponse.h>
 
+#include <mutex>
 #include <vector>
+#include <wumpus_msgs/AgentPerception.h>
 
+#include <chrono>
+
+namespace wumpus_msgs
+{
+ROS_DECLARE_MESSAGE(AgentPerception)
+ROS_DECLARE_MESSAGE(Coordinates)
+}
 namespace wumpus_simulator
 {
 ROS_DECLARE_MESSAGE(InitialPoseResponse)
@@ -26,36 +35,45 @@ class WumpusWorldModel;
 
 namespace wm
 {
-class Coordinates;
 class WumpusSimData
 {
-  public:
-    WumpusSimData(WumpusWorldModel *wm);
+public:
+    WumpusSimData(WumpusWorldModel* wm);
     virtual ~WumpusSimData();
 
     // methods for processing ROS messages from Wumpus Sim
     void processInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse);
     void processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse);
+    void processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception);
 
     // data access through public buffers
-    const supplementary::InfoBuffer<wumpus_simulator::InitialPoseResponse> *getInitialPoseResponseBuffer();
-    const supplementary::InfoBuffer<wumpus_simulator::ActionResponse> *getActionResponseBuffer();
-    const supplementary::InfoBuffer<TurnInfo> *getTurnInfoBuffer();
+    const supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* getActionResponseBuffer();
+    // for Transition evaluation in Plans
+    const supplementary::InfoBuffer<bool>* getIsMyTurnBuffer();
+    void setIntegratedFromSimulator(bool integrated);
+    bool getIntegratedFromSimulator();
+    void setIntegratedFromAgent(int agentId);
+    void resetIntegratedFromAgents();
+    bool isIntegratedFromAllAgents();
 
-  private:
-    WumpusWorldModel *wm;
 
-    alica::AlicaTime initialPoseResponseValidityDuration;
+    //needed for evauation (restarting of Base)
+    void clearBuffers();
+
+private:
+    WumpusWorldModel* wm;
+
     alica::AlicaTime actionResponseValidityDuration;
     alica::AlicaTime turnInfoValidityDuration;
-    supplementary::InfoBuffer<wumpus_simulator::InitialPoseResponse> *initialPoseResponseBuffer;
-    supplementary::InfoBuffer<wumpus_simulator::ActionResponse> *actionResponseBuffer;
-    supplementary::InfoBuffer<TurnInfo> *turnInfoBuffer;
 
-    bool responsesContain(std::vector<int> responses, int element)
-    {
-        return (std::find(responses.begin(), responses.end(), element) != responses.end());
-    };
+    supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* actionResponseBuffer;
+    supplementary::InfoBuffer<bool>* isMyTurnBuffer;
+
+    std::mutex mtx;
+    bool integratedFromSimulator;
+    std::map<int,bool> integratedFromAgents;
+
+    bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };
 };
 } /* namespace wm */
 } /* namespace wumpus */

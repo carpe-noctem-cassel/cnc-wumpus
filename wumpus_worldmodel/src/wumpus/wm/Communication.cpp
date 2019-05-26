@@ -2,45 +2,53 @@
 
 #include "wumpus/WumpusWorldModel.h"
 
-#include <supplementary/AgentID.h>
-#include <supplementary/BroadcastID.h>
+#include <essentials/AgentID.h>
+#include <essentials/BroadcastID.h>
 
-using std::string;
+namespace wumpus
+{
+namespace wm
+{
 
-namespace wumpus {
-namespace wm {
+Communication::Communication(wumpus::WumpusWorldModel* wm)
+        : wm(wm)
+{
+    auto sc = wm->getSystemConfig();
+    // SET ROS STUFF
+    std::string topic;
 
-Communication::Communication(wumpus::WumpusWorldModel *wm) :
-		wm(wm) {
-	auto sc = wm->getSystemConfig();
-	// SET ROS STUFF
-	string topic;
+    topic = (*sc)["WumpusWorldModel"]->get<std::string>("Data.InitialPoseResponse.Topic", NULL);
+    initialPoseResponseSub = n.subscribe(topic, 10, &Communication::onInitialPoseResponse, (Communication*) this);
 
-	topic = (*sc)["WumpusWorldModel"]->get < string
-			> ("Data.InitialPoseResponse.Topic", NULL);
-	initialPoseResponseSub = n.subscribe(topic, 10, &Communication::onInitialPoseResponse,
-			(Communication *) this);
+    topic = (*sc)["WumpusWorldModel"]->get<std::string>("Data.ActionResponse.Topic", NULL);
+    actionResponseSub = n.subscribe(topic, 10, &Communication::onActionResponse, (Communication*) this);
 
-	topic = (*sc)["WumpusWorldModel"]->get < string
-			> ("Data.ActionResponse.Topic", NULL);
-	actionResponseSub = n.subscribe(topic, 10, &Communication::onActionResponse,
-			(Communication *) this);
+    topic = (*sc)["WumpusWorldModel"]->get<std::string>("Data.AgentPerception.Topic", NULL);
+    agentPerceptionSub = n.subscribe(topic, 10, &Communication::onAgentPerception, (Communication*) this);
 
-	spinner = new ros::AsyncSpinner(4);
-	spinner->start();
+    spinner = new ros::AsyncSpinner(4);
+    spinner->start();
 }
 
-Communication::~Communication() {
-	spinner->stop();
-	delete spinner;
+Communication::~Communication()
+{
+    spinner->stop();
+    delete spinner;
 }
 
-void Communication::onInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse) {
-	this->wm->wumpusSimData.processInitialPoseResponse(initialPoseResponse);
+void Communication::onInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse)
+{
+    this->wm->wumpusSimData.processInitialPoseResponse(initialPoseResponse);
 }
 
-void Communication::onActionResponse(wumpus_simulator::ActionResponsePtr actionResponse) {
-	this->wm->wumpusSimData.processActionResponse(actionResponse);
+void Communication::onActionResponse(wumpus_simulator::ActionResponsePtr actionResponse)
+{
+    this->wm->wumpusSimData.processActionResponse(actionResponse);
+}
+
+void Communication::onAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception) {
+    this->wm->wumpusSimData.processAgentPerception(agentPerception);
+
 }
 } /* namespace wm */
 } /* namespace wumpus */

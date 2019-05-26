@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>wumpus_worldmodel</name>
   <version>0.0.0</version>
   <description>The wumpus_worldmodel package</description>
@@ -12,27 +12,17 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <build_depend>message_generation</build_depend>
-  <build_depend>system_config</build_depend>
-  <build_depend>alica_engine</build_depend>
-  <build_depend>event_handling</build_depend>
-  <build_depend>world_model</build_depend>
-  <build_depend>wumpus_simulator</build_depend>
-  <build_depend>asp_solver_wrapper</build_depend>
-  <build_depend>asp_solver</build_depend>
-  <build_depend>asp_commons</build_depend>
-  
-  <run_depend>message_runtime</run_depend>
-  <run_depend>system_config</run_depend>
-  <run_depend>alica_engine</run_depend>
-  <run_depend>event_handling</run_depend>
-  <run_depend>world_model</run_depend>
-  <run_depend>wumpus_simulator</run_depend>
-  <run_depend>asp_solver_wrapper</run_depend>
-  <run_depend>asp_solver</run_depend>
-  <run_depend>asp_commons</run_depend>
-  
-  <test_depend>gtest</test_depend>
+  <depend>message_generation</depend>
+  <depend>system_config</depend>
+  <depend>alica_engine</depend>
+  <depend>event_handling</depend>
+  <depend>world_model</depend>
+  <depend>wumpus_simulator</depend>
+  <depend>wumpus_msgs</depend>
+  <depend>asp_solver_wrapper</depend>
+  <depend>asp_solver</depend>
+
+  <!-- <test_depend>gtest</test_depend>-->
 
   <export>
   </export>

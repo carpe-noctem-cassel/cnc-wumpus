@@ -1,0 +1,11 @@
+{suggestedGoal(X,Y) : field(X,Y), not visited(X,Y)} = 1 :- not definitiveGoal(_,_).
+definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A).
+definitiveGoal(X,Y) :- glitter(X,Y), not haveGold(A), agent(A), me(A).
+suggestedGoal(X,Y) :- definitiveGoal(X,Y).
+
+:~ not suggestedGoal(X,Y) : goal(X,Y). [1@2]
+:~ suggestedGoal(X,Y) : wumpus(X,Y). [5@1]
+:~ suggestedGoal(X,Y) : trap(X,Y). [5@1]
+
+
+

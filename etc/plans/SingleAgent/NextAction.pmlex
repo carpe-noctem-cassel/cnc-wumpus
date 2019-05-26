@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="NextAction.pml#1554202530132"/>
+    <value xPos="89" yPos="257" width="251" height="86" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554202530131"/>
+    <value width="878" height="669"/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554202530133"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/DetermineObjective.beh#1554202577790"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554202945017"/>
+    <value xPos="456" yPos="264" width="128" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554202959483"/>
+    <value xPos="599" yPos="194"/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554202970601"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/PerformNextAction.beh#1551695161214"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="NextAction.pml#1554203053575"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/PerformAction.beh#1534836780649"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

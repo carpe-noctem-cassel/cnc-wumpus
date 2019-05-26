@@ -9,7 +9,7 @@ namespace alica
     {
 
     	this->wm = wumpus::WumpusWorldModel::getInstance();
-    	this->sc = supplementary::SystemConfig::getInstance();
+    	this->sc = essentials::SystemConfig::getInstance();
     }
 
     DomainCondition::~DomainCondition()

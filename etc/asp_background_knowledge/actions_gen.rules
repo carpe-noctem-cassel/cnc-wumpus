@@ -1,0 +1,53 @@
+holds(on(X,Y),0) :- on(X,Y).
+holds(heading(X),0) :- heading(X).
+
+timestep(0..n).
+
+availableAction(move).
+availableAction(turnLeft).
+availableAction(turnRight).
+availableAction(shoot).
+availableAction(pickup).
+
+fieldAhead(X-1,Y,T) :- field(X,Y), field(X-1,Y), holds(heading(0),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X+1,Y,T) :- field(X,Y), field(X+1,Y), holds(heading(2),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X,Y+1,T) :- field(X,Y), field(X,Y+1), holds(heading(3),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X,Y-1,T) :- field(X,Y), field(X,Y-1), holds(heading(1),T), holds(on(X,Y),T), timestep(T).
+
+holds(on(X,Y),T) :- occurs(move,T-1), fieldAhead(X,Y,T-1), timestep(T).
+holds(on(X,Y),T) :- holds(on(X,Y),T-1), not occurs(move,T-1), timestep(T).
+holds(heading(X),T) :- holds(heading(X),T-1), not occurs(turnLeft,T-1), not occurs(turnRight,T-1), timestep(T).
+holds(heading((X+1)\4),T) :- holds(heading(X),T-1), occurs(turnLeft,T-1).
+holds(heading((X+3)\4),T) :- holds(heading(X),T-1), occurs(turnRight,T-1).
+
+{occurs(A,T) : availableAction(A), timestep(T)} = n :- not occurs(shoot,0), not occurs(pickup,0).
+
+:- occurs(A,T), occurs(B,T), B!=A.
+:- not occurs(_,T), not goal(_,_), timestep(T), T!=n.
+:- occurs(_,T), T=n.
+
+notMoved :- holds(on(A,B),n) , on(A,B).
+:- not goal(_,_), notMoved.
+
+:- not holds(on(_,_),T) , timestep(T).
+
+movedInDanger(A) :- wumpus(X,Y) , holds(on(X,Y),_), agent(A).
+movedInDanger(A) :- trap(X,Y) , holds(on(X,Y),_), agent(A).
+:- not unsafeMovesAllowed, movedInDanger(A), me(A).
+
+endsOnVisited :- visited(X,Y), holds(on(X,Y),n).
+:- not goal(_,_), endsOnVisited.
+
+wrongHeading :- goalHeading(A), holds(heading(B),n), A!=B.
+:- wrongHeading.
+
+notEndsOnGoal :- goal(X,Y), not holds(on(X,Y),n).
+:- notEndsOnGoal.
+
+occurs(shoot,0) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A).
+occurs(pickup,0) :- on(X,Y), glitter(X,Y), me(A).
+
+:- occurs(shoot, T), T>0.
+:- occurs(pickup,T), T>0.
+
+

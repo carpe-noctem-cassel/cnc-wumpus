@@ -27,14 +27,6 @@
     </value>
   </extensions>
   <extensions>
-    <key href="WumpusMaster.pml#1534836429671"/>
-    <value xPos="409" yPos="149"/>
-  </extensions>
-  <extensions>
-    <key href="WumpusMaster.pml#1534836446000"/>
-    <value/>
-  </extensions>
-  <extensions>
     <key href="Behaviours/SpawnAgent.beh#1534835358495"/>
     <value/>
   </extensions>

@@ -6,7 +6,7 @@
     <outTransitions>#1534836594030</outTransitions>
   </states>
   <states id="1534836578485" name="MyTurn" comment="">
-    <plans xsi:type="alica:Plan">MyTurn.pml#1534836685239</plans>
+    <plans xsi:type="alica:Plan">NextAction.pml#1554202530131</plans>
     <inTransitions>#1534836594030</inTransitions>
     <outTransitions>#1534836627481</outTransitions>
   </states>
@@ -20,7 +20,7 @@
     <inState>#1534836578485</inState>
     <outState>#1534836538909</outState>
   </transitions>
-  <entryPoints id="1534836538910" name="MISSING_NAME" comment="" successRequired="true" minCardinality="1" maxCardinality="1">
+  <entryPoints id="1534836538910" name="MISSING_NAME" comment="" successRequired="true" minCardinality="1" maxCardinality="2147483647">
     <task>../../Misc/taskrepository.tsk#1414681164704</task>
     <state>#1534836538909</state>
   </entryPoints>

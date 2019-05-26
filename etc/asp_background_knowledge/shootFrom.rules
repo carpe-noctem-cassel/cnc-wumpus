@@ -1,0 +1,16 @@
+fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,0), Y=B, X < A.
+fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,1), X=A, Y < B.
+fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,2), Y=B, X > A.
+fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,3), X=A, Y > B.
+
+wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpus(X,Y)
+
+blockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not visited(A,B).
+wumpusUtil(N) :- N = #count{1,X,Y : wumpusAhead(X,Y); K,C,D : wumpusAhead(X,Y), blockingWumpus(C,D), fieldSize(K)}.
+{target(X,Y,D) : field(X,Y), visited(X,Y), not wumpus(X,Y), not trap(X,Y), direction(D)} = 1.
+
+#maximize{N@1 : wumpusUtil(N)}.
+
+targetPos(X,Y) :- target(X,Y,_).
+targetHeading(D) :- target(_,_,D).
+

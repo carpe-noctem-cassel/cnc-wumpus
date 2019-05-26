@@ -5,8 +5,9 @@
 #include "wumpus/WumpusWorldModel.h"
 #include "wumpus_simulator/ActionRequest.h"
 #include "wumpus_simulator/InitialPoseRequest.h"
+#include <wumpus_msgs/AgentPerception.h>
 
-namespace supplementary
+namespace essentials
 {
 	class SystemConfig;
 }
@@ -21,18 +22,21 @@ namespace alica
 
 		void send(wumpus_simulator::InitialPoseRequest& msg);
 		void send(wumpus_simulator::ActionRequest& msg);
+        void send(wumpus_msgs::AgentPerception& msg);
 
 		wumpus::WumpusWorldModel* wm;
 
 	protected:
-		supplementary::SystemConfig* sc;
+		essentials::SystemConfig* sc;
 
 	private:
 		std::string wumpusActionRequestTopic;
 		std::string wumpusPoseRequestTopic;
+        std::string agentPerceptionTopic;
 
 		ros::Publisher wumpusActionPublisher;
 		ros::Publisher wumpusPosePublisher;
+        ros::Publisher agentPerceptionPublisher;
 
 	};
 } /* namespace alica */

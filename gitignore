@@ -1,0 +1,7 @@
+
+#ignoring temp files from vim
+*~
+*.swp
+*.swo
+**/.idea
+**/cmake-build-debug

@@ -8,14 +8,16 @@ namespace alica
 			BasicBehaviour(name)
 	{
 		wm = wumpus::WumpusWorldModel::getInstance();
-		sc = supplementary::SystemConfig::getInstance();
+		sc = essentials::SystemConfig::getInstance();
 		ros::NodeHandle n;
 
 		wumpusActionRequestTopic = (*sc)["WumpusWorldModel"]->get < string > ("Send.ActionRequest", NULL);
 		wumpusPoseRequestTopic = (*sc)["WumpusWorldModel"]->get < string > ("Send.SpawnAgentRequest", NULL);
+        agentPerceptionTopic = (*sc)["WumpusWorldModel"]->get < string > ("Send.AgentPerception", NULL);
 
 		wumpusActionPublisher = n.advertise < wumpus_simulator::ActionRequest > (wumpusActionRequestTopic, 10);
 		wumpusPosePublisher = n.advertise < wumpus_simulator::InitialPoseRequest > (wumpusPoseRequestTopic, 10);
+        agentPerceptionPublisher = n.advertise < wumpus_msgs::AgentPerception > (agentPerceptionTopic, 10);
 
 	}
 
@@ -28,6 +30,10 @@ namespace alica
 	{
 		wumpusActionPublisher.publish(msg);
 }
+    void DomainBehaviour::send(wumpus_msgs::AgentPerception& msg)
+    {
+        agentPerceptionPublisher.publish(msg);
+    }
 
 	DomainBehaviour::~DomainBehaviour()
 	{

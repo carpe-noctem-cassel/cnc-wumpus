@@ -1,0 +1,3 @@
+holds(on(X,Y),0) :- on(X,Y).
+holds(heading(H),0) :- heading(H).
+

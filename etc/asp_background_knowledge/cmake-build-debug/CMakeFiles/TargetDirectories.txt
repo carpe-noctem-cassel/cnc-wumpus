@@ -1,0 +1,3 @@
+/home/lisa/wumpusws/src/cnc-wumpus/etc/asp_background_knowledge/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/lisa/wumpusws/src/cnc-wumpus/etc/asp_background_knowledge/cmake-build-debug/CMakeFiles/asp_background_knowledge.dir
+/home/lisa/wumpusws/src/cnc-wumpus/etc/asp_background_knowledge/cmake-build-debug/CMakeFiles/edit_cache.dir

@@ -6,7 +6,7 @@
 namespace wumpus {
 	class WumpusWorldModel;
 }
-namespace supplementary {
+namespace essentials {
 	class SystemConfig;
 }
 namespace alica
@@ -18,7 +18,7 @@ namespace alica
         virtual ~DomainCondition();
 
         wumpus::WumpusWorldModel* wm;
-        supplementary::SystemConfig* sc;
+        essentials::SystemConfig* sc;
     };
 } /* namespace alica */
 

@@ -1,0 +1,40 @@
+{maxTimestep(0..(N*N)) : fieldSize(N)} = 1.
+{occurs(A,T) : action(A)} = 1 :- timestep(T), not occurs(pickup,0), not occurs(leave,0).
+occurs(pickup,0) :- on(X,Y), glitter(X,Y), not haveGold(A), agent(A).
+occurs(leave,0) :- on(X,Y), initial(X,Y), haveGold(A), agent(A).
+#minimize {2*T@2 : maxTimestep(T)}.
+:~ not goalReachable. [10@1]
+goalReachable :- safe(X,Y) : holds(on(X,Y),T). 
+success :- #count{1,X,Y : holds(on(X,Y),_) , goal(X,Y)} = 1.
+success :- on(X,Y), initial(X,Y), haveGold(A), agent(A).
+holds(on(X,Y),0) :- on(X,Y).
+holds(heading(X),0) :- heading(X).
+timestep(0..X) :- maxTimestep(X).
+holds(on(X,Y),T+1) :- occurs(move,T), fieldAhead(X,Y,T), timestep(T). 
+fieldAhead(X-1,Y,T) :- field(X,Y), field(X-1,Y), holds(heading(0),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X+1,Y,T) :- field(X,Y), field(X+1,Y), holds(heading(2),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X,Y+1,T) :- field(X,Y), field(X,Y+1), holds(heading(3),T), holds(on(X,Y),T), timestep(T).
+fieldAhead(X,Y-1,T) :- field(X,Y), field(X,Y-1), holds(heading(1),T), holds(on(X,Y),T), timestep(T).
+holds(heading((X+1)\4),T+1) :- holds(heading(X),T), occurs(turnLeft,T).
+holds(heading((X+3)\4),T+1) :- holds(heading(X),T), occurs(turnRight,T).
+holds(on(X,Y),T+1) :- holds(on(X,Y),T), not occurs(move,T), timestep(T+1).
+holds(heading(X),T+1) :- holds(heading(X),T), not occurs(turnLeft,T), not occurs(turnRight,T), timestep(T+1).
+:- not success.
+leftOfMe(X,Y+1) :- field(X,Y), field(X,Y+1), heading(2), on(X,Y).
+leftOfMe(X,Y-1) :- field(X,Y), field(X,Y-1), heading(0), on(X,Y).
+leftOfMe(X+1,Y) :- field(X,Y), field(X+1,Y), heading(1), on(X,Y).
+leftOfMe(X-1,Y) :- field(X,Y), field(X-1,Y), heading(3), on(X,Y).
+rightOfMe(X,Y+1) :- field(X,Y), field(X,Y+1), heading(0), on(X,Y).
+rightOfMe(X,Y-1) :- field(X,Y), field(X,Y-1), heading(2), on(X,Y).
+rightOfMe(X+1,Y) :- field(X,Y), field(X+1,Y), heading(3), on(X,Y).
+rightOfMe(X-1,Y) :- field(X,Y), field(X-1,Y), heading(1), on(X,Y).
+safe(X,Y) :- field(X,Y), not danger(X,Y).
+danger(X,Y) :- wumpus(X,Y).
+danger(X,Y) :- trap(X,Y).
+
+
+
+
+
+
+

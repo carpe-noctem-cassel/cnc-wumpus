@@ -12,7 +12,7 @@ namespace alica
     public:
         virtual ~UtilityFunctionCreator();
         UtilityFunctionCreator();
-        std::shared_ptr<BasicUtilityFunction> createUtility(long utilityfunctionConfId);
+        shared_ptr<BasicUtilityFunction> createUtility(long utilityfunctionConfId);
     };
 
 } /* namespace alica */
