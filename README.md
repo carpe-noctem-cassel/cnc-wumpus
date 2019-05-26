@@ -1,7 +1,7 @@
 # Wumpus AI 
 
 ----
-## System Configuration
+## Known working system configuration for running 
 * Ubuntu 16.04
 * ROS Kinetic
 * alica [master], last commit 26abe4a4fb13ffdcc3cea075c3fcef13f8fe4649
@@ -15,12 +15,12 @@
 ## Running a simulation
 
 * Start roscore
-* Start the Wumpus Simulator 
+* Start the wumpus simulator 
 <!-- -->
 
     rosrun wumpus_simulator wumpus_simulator
 
-* Create a new world or load an existing one (examples are in 'worlds' folder
+* Create a new world or load an existing one
 
 * Set the number of agents to be spawned in etc/WumpusWorldModel.conf (default 1)
 
@@ -41,7 +41,7 @@ Start roscore.
 ### With config values:
 
 * Open and edit etc/WWFGenerator.conf 
-* Run wwf\_generator without Command Line arguments
+* Run wwf\_generator without command line arguments
 
 <!-- -->
     rosrun wwf_generator wwf_generator
