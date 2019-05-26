@@ -4,12 +4,12 @@
 ## System Configuration
 * Ubuntu 16.04
 * ROS Kinetic
-* alica [master], last commit 26abe4a4fb13ffdcc3cea075c3fcef13f8fe4649]
-* essentials [ttb_dev], last commit 31d3f37f4dde6da70a088f4a3eb7bd85fc6839b0]
-* alica-supplementary [master], last commit ad09b58492a38eb4eba4fc19044a51a155b2f97c]
-* aspsuite  [wumpus_dev], most recent]
-* wumpus_simulator [wumpus\_dev], most recent]
-* wumpus_ai [master], most recent]
+* alica [master], last commit 26abe4a4fb13ffdcc3cea075c3fcef13f8fe4649
+* essentials [ttb_dev], last commit 31d3f37f4dde6da70a088f4a3eb7bd85fc6839b0
+* alica-supplementary [master], last commit ad09b58492a38eb4eba4fc19044a51a155b2f97c
+* aspsuite  [wumpus_dev], most recent
+* wumpus_simulator [wumpus\_dev], most recent
+* wumpus_ai [master], most recent
 
 ----
 ## Running a simulation
