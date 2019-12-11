@@ -1039,33 +1039,6 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/wumpus_evaluation.dir/build.make CMakeFiles/wumpus_evaluation.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-sim/src/EvalBase.o: sim/src/EvalBase.cpp.o
-
-.PHONY : sim/src/EvalBase.o
-
-# target to build an object file
-sim/src/EvalBase.cpp.o:
-	$(MAKE) -f CMakeFiles/wumpus_evaluation.dir/build.make CMakeFiles/wumpus_evaluation.dir/sim/src/EvalBase.cpp.o
-.PHONY : sim/src/EvalBase.cpp.o
-
-sim/src/EvalBase.i: sim/src/EvalBase.cpp.i
-
-.PHONY : sim/src/EvalBase.i
-
-# target to preprocess a source file
-sim/src/EvalBase.cpp.i:
-	$(MAKE) -f CMakeFiles/wumpus_evaluation.dir/build.make CMakeFiles/wumpus_evaluation.dir/sim/src/EvalBase.cpp.i
-.PHONY : sim/src/EvalBase.cpp.i
-
-sim/src/EvalBase.s: sim/src/EvalBase.cpp.s
-
-.PHONY : sim/src/EvalBase.s
-
-# target to generate assembly for a file
-sim/src/EvalBase.cpp.s:
-	$(MAKE) -f CMakeFiles/wumpus_evaluation.dir/build.make CMakeFiles/wumpus_evaluation.dir/sim/src/EvalBase.cpp.s
-.PHONY : sim/src/EvalBase.cpp.s
-
 sim/src/WumpusSimulatorHeadless.o: sim/src/WumpusSimulatorHeadless.cpp.o
 
 .PHONY : sim/src/WumpusSimulatorHeadless.o
@@ -1174,9 +1147,6 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... sim/src/EvalBase.o"
-	@echo "... sim/src/EvalBase.i"
-	@echo "... sim/src/EvalBase.s"
 	@echo "... sim/src/WumpusSimulatorHeadless.o"
 	@echo "... sim/src/WumpusSimulatorHeadless.i"
 	@echo "... sim/src/WumpusSimulatorHeadless.s"

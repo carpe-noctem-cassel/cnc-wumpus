@@ -24,12 +24,16 @@ public:
     std::shared_ptr<Field> moveGoal;
     Objective objective;
     int currentHeading;
+    int turn;
     bool hasArrow;
     bool hasGold;
+    bool exited;
+    bool died;
     bool replanNecessary;
     int id;
 
     void registerAgent(bool me);
+    void unregisterAgent();
     void updateCurrentMoveGoal(std::shared_ptr<Field> goal);
     void updatePosition(std::shared_ptr<Field> field);
     void updateInitialPosition(std::shared_ptr<Field> field);
@@ -37,6 +41,9 @@ public:
     void updateHeading(int heading);
     void updateArrow(bool arrow);
     void updateHaveGold(bool gold);
+
+    void setExited();
+    void setDead();
 
 private:
     bool registered;

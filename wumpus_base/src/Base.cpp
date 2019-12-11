@@ -44,6 +44,7 @@ Base::Base(std::string roleSetName, std::string masterPlanName, std::string role
     wm->init();
 
     ae->init(bc, cc, uc, crc);
+
 }
 
 void Base::start()

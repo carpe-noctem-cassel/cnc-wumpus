@@ -1,4 +1,5 @@
 int32 senderID
+int32 turn
 Coordinates initialPosition
 Coordinates position
 int32 heading
@@ -6,3 +7,5 @@ bool drafty
 bool stinky
 bool glitter
 bool arrow
+bool exited
+bool died

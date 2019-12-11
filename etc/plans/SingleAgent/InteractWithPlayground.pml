@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<alica:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:alica="http:///de.uni_kassel.vs.cn" id="1534836538908" name="InteractWithPlayground" comment="" masterPlan="false" utilityFunction="" utilityThreshold="0.1" destinationPath="Plans/SingleAgent" priority="0.0" minCardinality="1" maxCardinality="1">
+<alica:Plan xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:alica="http:///de.uni_kassel.vs.cn" id="1534836538908" name="InteractWithPlayground" comment="" masterPlan="false" utilityFunction="" utilityThreshold="0.1" destinationPath="Plans/SingleAgent" priority="0.0" minCardinality="1" maxCardinality="2147483647">
   <states id="1534836538909" name="Wait" comment="" entryPoint="1534836538910">
     <plans xsi:type="alica:BehaviourConfiguration">Behaviours/WaitForTurn.beh#1534835374750</plans>
     <inTransitions>#1534836627481</inTransitions>
@@ -20,7 +20,7 @@
     <inState>#1534836578485</inState>
     <outState>#1534836538909</outState>
   </transitions>
-  <entryPoints id="1534836538910" name="MISSING_NAME" comment="" successRequired="true" minCardinality="1" maxCardinality="2147483647">
+  <entryPoints id="1534836538910" name="MISSING_NAME" comment="" successRequired="false" minCardinality="1" maxCardinality="2147483647">
     <task>../../Misc/taskrepository.tsk#1414681164704</task>
     <state>#1534836538909</state>
   </entryPoints>

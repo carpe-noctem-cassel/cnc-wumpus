@@ -21,7 +21,7 @@ namespace wumpus
     class EvalBase
     {
     public:
-        EvalBase(std::string roleSetName, std::string masterPlanName, std::string roleSetDir);
+        EvalBase(std::string roleSetName, std::string masterPlanName, std::string roleSetDir, std::string worldName, int startX, int startY);
         virtual ~EvalBase();
 
         void start();

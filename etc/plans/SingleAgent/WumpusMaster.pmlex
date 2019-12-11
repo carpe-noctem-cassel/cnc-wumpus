@@ -2,7 +2,7 @@
 <uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
   <extensions>
     <key href="WumpusMaster.pml#1534835261528"/>
-    <value xPos="128" yPos="188" width="82" height="67" collapsed="false"/>
+    <value xPos="82" yPos="91" width="200" height="86" collapsed="false"/>
   </extensions>
   <extensions>
     <key href="WumpusMaster.pml#1534835261527"/>
@@ -14,17 +14,7 @@
   </extensions>
   <extensions>
     <key href="WumpusMaster.pml#1534836316488"/>
-    <value xPos="353" yPos="193" collapsed="false"/>
-  </extensions>
-  <extensions>
-    <key href="WumpusMaster.pml#1534836405246"/>
-    <value xPos="473" yPos="174" width="118" height="32"/>
-  </extensions>
-  <extensions>
-    <key href="WumpusMaster.pml#1534836414368"/>
-    <value>
-      <bendpoints xPos="601" yPos="229"/>
-    </value>
+    <value xPos="357" yPos="92" width="226" height="86" collapsed="false"/>
   </extensions>
   <extensions>
     <key href="Behaviours/SpawnAgent.beh#1534835358495"/>
@@ -44,6 +34,58 @@
   </extensions>
   <extensions>
     <key href="WumpusMaster.pml#1537958014769"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1571748599471"/>
+    <value xPos="-18" yPos="369"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1571748613432"/>
+    <value xPos="67" yPos="217" width="110" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/WaitForTurn.beh#1534835374750"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1572431590132"/>
+    <value xPos="350" yPos="225" width="226" height="86" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1572431679710"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="../Reset.beh#1572878624935"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574259961919"/>
+    <value xPos="221" yPos="3" width="65" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574259968198"/>
+    <value xPos="227" yPos="341" width="65" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574259996673"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574259998646"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574259999778"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMaster.pml#1574260001687"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="Behaviours/LogPreviousResults.beh#1575467908745"/>
     <value/>
   </extensions>
 </uiextensionmodel:PmlUiExtensionMap>

@@ -8,16 +8,19 @@
 #include <supplementary/InformationElement.h>
 #include <supplementary/WorldModel.h>
 #include <wumpus/wm/PlanningModule.h>
+#include <eval/Experiment.h>
 
+namespace alica
+{
+    class AlicaEngine;
+    class AlicaClock;
+}
 namespace essentials
 {
 class SystemConfig;
 }
-
-namespace alica
-{
-class AlicaEngine;
-class AlicaClock;
+namespace eval {
+    class Experiment;
 }
 namespace wumpus
 {
@@ -44,7 +47,6 @@ public:
     void init();
 
     std::string getAgentName();
-    int getPresetAgentCount();
 
     // Public Data Access Classes
     wm::WumpusSimData wumpusSimData;
@@ -52,17 +54,20 @@ public:
     wumpus::wm::ChangeHandler* changeHandler;
     wumpus::wm::PlanningModule* planningModule;
     wm::Communication* communication;
-
-    int agentCount;
-
-    //TODO remove, used to make evaluation easier
-    void clear();
+    eval::Experiment* experiment;
+    void reset();
+    std::vector<std::pair<std::string, std::string>> getShotAtFields();
+    std::vector<int> getAgentIDsForExperiment(); //TODO move?
+    int getPresetAgentCount();
     bool localAgentExited;
     bool localAgentDied;
+
 
 private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
     std::string agentName;
+    int agentCount;
+    std::vector<int> agentIDs;
 };
 
 } /* namespace wumpus */

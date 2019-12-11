@@ -10,7 +10,7 @@ withoutWumpus(X,Y) :- fieldAdjacent(A,B,X,Y), visited(A,B), not stinky(A,B).
 withoutWumpus(X,Y) :- visited(X,Y).
 
 %field is without wumpus, when it was shot at
-withoutWumpus(X,Y) :- shotAt(X,Y).
+withoutWumpus(X,Y) :- shotAt(X,Y), me(A), not arrow(A).
 
 %wumpus blocks safe moves 
 

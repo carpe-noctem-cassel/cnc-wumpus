@@ -3,7 +3,7 @@ notMoved(t) :- incquery(holds(on(A,B),t)) , incquery(holds(on(A,B),0)).
 
 movedInDanger(t) :- wumpus(X,Y) , incquery(holds(on(X,Y),t)).
 movedInDanger(t) :- trap(X,Y) , incquery(holds(on(X,Y),t)).
-:- not unsafeMovesAllowed, movedInDanger(t).
+:- movedInDanger(t), not unsafeMovesAllowed.
 
 endsOnVisited(t) :- visited(X,Y), incquery(holds(on(X,Y),t)).
 :- not goal(_,_), endsOnVisited(t).
@@ -12,5 +12,5 @@ wrongHeading(t) :- goalHeading(A), incquery(holds(heading(B),t)), A!=B.
 :- wrongHeading(t).
 
 notEndsOnGoal(t) :- goal(X,Y), not incquery(holds(on(X,Y),t)).
-:- notEndsOnGoal(t).
+:- notEndsOnGoal(t), wumpusBlocksMoves.
 

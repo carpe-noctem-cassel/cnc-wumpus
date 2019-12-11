@@ -1,4 +1,3 @@
-#pragma once
 #include "Strategy.h"
 #include "TermManager.h"
 #include <asp_solver_wrapper/ASPSolverWrapper.h>
@@ -17,7 +16,7 @@ public:
 
     virtual ~Integrator() = default;
 
-    bool integrateInformationAsExternal(const std::string& value, const std::string& identifier, aspkb::Strategy strategy);
+    bool integrateInformationAsExternal(std::string value, const std::string& identifier, bool truthValue, aspkb::Strategy strategy);
 
     void integrateAsTermWithProgramSection(
             const std::string& programSection, const std::pair<std::vector<std::string>, std::vector<std::string>>& programSectionParameters);

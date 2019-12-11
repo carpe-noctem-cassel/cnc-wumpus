@@ -52,12 +52,16 @@ public:
     const supplementary::InfoBuffer<bool>* getIsMyTurnBuffer();
     void setIntegratedFromSimulator(bool integrated);
     bool getIntegratedFromSimulator();
-    void setIntegratedFromAgent(int agentId);
+
     void resetIntegratedFromAgents();
     bool isIntegratedFromAllAgents();
 
+    //should be called when action was performed
+    void raiseTurnCouter();
+    std::map<int, bool> integratedFromOtherAgentsForTurnNr; // FIXME
 
-    //needed for evauation (restarting of Base)
+
+    // needed for evauation (restarting of Base)
     void clearBuffers();
 
 private:
@@ -69,9 +73,10 @@ private:
     supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* actionResponseBuffer;
     supplementary::InfoBuffer<bool>* isMyTurnBuffer;
 
+    int turn;
+
     std::mutex mtx;
-    bool integratedFromSimulator;
-    std::map<int,bool> integratedFromAgents;
+    bool integratedFromSimulatorForTurnNumber;
 
     bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };
 };

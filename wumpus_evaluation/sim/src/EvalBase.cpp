@@ -15,7 +15,7 @@
 namespace wumpus
 {
 
-EvalBase::EvalBase(std::string roleSetName, std::string masterPlanName, std::string roleSetDir)
+EvalBase::EvalBase(std::string roleSetName, std::string masterPlanName, std::string roleSetDir, std::string worldName, int startX, int startY)
 {
     ae = new alica::AlicaEngine(new essentials::AgentIDManager(new essentials::AgentIDFactory()), roleSetName, masterPlanName, false);
     bc = new alica::BehaviourCreator();

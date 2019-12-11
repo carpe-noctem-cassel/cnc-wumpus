@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1571827339499"/>
+    <value xPos="123" yPos="179" width="169" height="103" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1571827339498"/>
+    <value width="797" height="497"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1571827339500"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="SingleAgent/WumpusMaster.pml#1534835261527"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1571832997210"/>
+    <value xPos="401" yPos="182" width="82" height="67" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1571833037764"/>
+    <value>
+      <bendpoints xPos="433" yPos="205"/>
+    </value>
+  </extensions>
+  <extensions>
+    <key href="Reset.beh#1572878624935"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1574260058143"/>
+    <value xPos="658" yPos="323"/>
+  </extensions>
+  <extensions>
+    <key href="WumpusMasterMaster.pml#1574260067168"/>
+    <value/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

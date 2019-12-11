@@ -1,5 +1,5 @@
 #program wumpus_draftPerception. 
-#external drafty(X,Y) : field(X,Y).
+%#external drafty(X,Y) : field(X,Y).
 
 %%traps, analog to wumpus
 %%when a field is drafty, a trap can be at the neighbor fields

@@ -20,11 +20,18 @@ WumpusWorldModel::WumpusWorldModel()
         , planningModule(nullptr)
         , playground(nullptr)
         , communication(nullptr)
+        , experiment(nullptr)
         , localAgentExited(false)
         , localAgentDied(false)
+
 {
+    auto sc = essentials::SystemConfig::getInstance();
     this->agentName = essentials::SystemConfig::getHostname();
     this->agentCount = (*sc)["WumpusWorldModel"]->get<int>("Agents.number", NULL);
+    this->agentIDs = (*sc)["WumpusWorldModel"]->getList<int>("Agents.ids", NULL);
+    if(this->agentIDs.size() != this->agentCount) {
+        throw std::runtime_error("WumpusWorldModel.conf: Length of id list has to match defined number of agents");
+    }
 }
 
 WumpusWorldModel::~WumpusWorldModel()
@@ -33,6 +40,7 @@ WumpusWorldModel::~WumpusWorldModel()
     delete this->changeHandler;
     delete this->planningModule;
     delete this->playground;
+    delete this->experiment;
 }
 
 std::string WumpusWorldModel::getAgentName()
@@ -42,30 +50,51 @@ std::string WumpusWorldModel::getAgentName()
 
 void WumpusWorldModel::init()
 {
-    auto sc = essentials::SystemConfig::getInstance();
-
 
     this->changeHandler = new wumpus::wm::ChangeHandler(this);
     this->planningModule = new wumpus::wm::PlanningModule(this);
     this->playground = new model::Playground(this->changeHandler);
     this->communication = new wm::Communication(this);
+    this->experiment = new eval::Experiment();
 }
 
-void WumpusWorldModel::clear() {
-    delete this->communication;
-    delete this->changeHandler;
+//TODO why is this here?
+std::vector<std::pair<std::string, std::string>> WumpusWorldModel::getShotAtFields()
+{
+    return this->planningModule->shootingTargets;
+}
+
+// used in plans to check if all agents have been spawned, only then are actions available
+int WumpusWorldModel::getPresetAgentCount()
+{
+    return this->agentCount;
+}
+
+/**
+ * Returns pre-defined list of agent ids from config.
+ * This is only to make evaluation easier but doesn't make much sense
+ * for general usage since there is no validation/consistency checking in the
+ * simulator.
+ * @return list of agent ids which are going to participate in the experiment
+ */
+std::vector<int> WumpusWorldModel::getAgentIDsForExperiment() {
+    return this->agentIDs;
+}
+
+void WumpusWorldModel::reset()
+{
+    //delete this->communication;
+    delete this->changeHandler; //FIXME only clear state
     delete this->planningModule;
     delete this->playground;
     this->localAgentExited = false;
     this->localAgentDied = false;
     this->wumpusSimData.clearBuffers();
 
-}
 
-//used in plans to check if all agents have been spawned, only then are actions available
-int WumpusWorldModel::getPresetAgentCount() {
-    return this->agentCount;
-
+    this->changeHandler = new wumpus::wm::ChangeHandler(this);
+    this->planningModule = new wumpus::wm::PlanningModule(this);
+    this->playground = new model::Playground(this->changeHandler);
 }
 
 } /* namespace wumpus */

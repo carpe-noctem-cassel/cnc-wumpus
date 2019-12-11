@@ -52,20 +52,23 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 {
     int id = -1;
     if (this->reusableQueries.find(identifier) == this->reusableQueries.end()) {
+//        std::cout << "Creating term with identifier " << identifier << std::endl;
         auto term = new reasoner::asp::Term();
         id = solver->getQueryCounter();
-        term->setLifeTime(-1);
+        term->setLifeTime(1);
         term->setId(id);
         term->setQueryId(id);
+        term->setType(reasoner::asp::ReusableExtension);
         term->setExternals(std::make_shared<std::map<std::string, bool>>());
-        for(auto rule : rules) {
+        for (auto rule : rules) {
             term->addRule(rule);
         }
-        managedTerms.push_back(term);
+        this->managedTerms.push_back(term);
         auto query = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, term);
         this->solver->registerQuery(query);
-        this->reusableQueries.emplace(identifier,query.get());
+        this->reusableQueries.emplace(identifier, query);
     } else {
+//        std::cout << "Found identifier " << identifier << std::endl;
         auto query = this->reusableQueries.at(identifier);
         query->reactivate();
         id = query->getTerm()->getId();
@@ -73,16 +76,16 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     return id;
 }
 
+// TODO belongs somewhere else
 ::reasoner::asp::Term* TermManager::requestCheckTerm(int horizon)
 {
-
     auto checkTerm = new ::reasoner::asp::Term();
     auto id = solver->getQueryCounter();
     checkTerm->setId(id);
     checkTerm->setQueryId(id);
     checkTerm->setExternals(std::make_shared<std::map<std::string, bool>>());
-    managedTerms.push_back(checkTerm);
-    checkTerm->setLifeTime(1);
+    this->managedTerms.push_back(checkTerm);
+    checkTerm->setLifeTime(1); // TODO is this correct?
     checkTerm->setType(reasoner::asp::QueryType::Extension);
     checkTerm->addProgramSectionParameter("t", std::to_string(horizon));
     // for (const auto& str : checkRules) {
@@ -123,12 +126,14 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
     checkTerm->addRule(rule);
     rule = ":- notEndsOnGoal(t).";
+
     checkTerm->addRule(rule);
     checkTerm->addRule("randomQueryFact(t).");
     return checkTerm;
 }
 
-void TermManager::clear() {
+void TermManager::clear()
+{
     this->solver = nullptr;
     this->reusableQueries.clear();
     for (auto it = managedTerms.begin(); it < managedTerms.end(); ++it) {

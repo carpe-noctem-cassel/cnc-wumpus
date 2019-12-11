@@ -22,3 +22,14 @@
 %#show goal/2.
 %#show on/2.
 %#show glitter/2.
+
+
+#program glitterSection(n,m).
+#external glitter(n,m).
+
+#program stuff(n,m).
+#external is(n,m).
+
+%für n = 123123 und m = Stift oder Haus oder Maus -> endlos
+
+q(is(n,m)):-q(stuffFromConceptNet).

@@ -15,7 +15,7 @@ class Extractor
 public:
     Extractor();
 
-    virtual ~Extractor() = default;
+    ~Extractor();
 
     void initializeSolver(::reasoner::asp::Solver* solver);
 
@@ -30,7 +30,7 @@ public:
 private:
     ::reasoner::asp::Solver* solver;
 
-    std::map<std::string, ::reasoner::asp::ExtensionQuery*> programSectionQueryMap;
+    std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; //TODO make list and imply ordering by horizon?
 
     std::mutex mtx;
 

@@ -13,6 +13,11 @@
 -- Using Python nosetests: /usr/bin/nosetests-2.7
 -- catkin 0.7.14
 -- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
--- Configuring done
--- Generating done
--- Build files have been written to: /home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/cmake-build-debug
+CMake Error at CMakeLists.txt:72 (target_link_libraries):
+  Cannot specify link libraries for target "wumpus_evaluation" which is not
+  built by this project.
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/cmake-build-debug/CMakeFiles/CMakeError.log".

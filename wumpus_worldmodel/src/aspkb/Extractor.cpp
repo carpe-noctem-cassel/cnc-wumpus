@@ -15,6 +15,10 @@ Extractor::Extractor()
     this->baseRegistered = false;
 }
 
+Extractor::~Extractor() {
+    reasoner::asp::IncrementalExtensionQuery::clear();
+}
+
 std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& baseRules,
         const std::vector<std::string>& stepRules, const std::vector<std::string>& checkRules, int maxHorizon)
 {
@@ -43,7 +47,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     while (!sat && horizon <= maxHorizon) {
         attempts++;
         terms.clear();
-        if (!baseRegistered) {
+        if (!baseRegistered) { // fixme register in query by hand. make removable or not?
             terms.push_back(baseTerm);
             baseRegistered = true;
         }
@@ -65,8 +69,26 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         }
 
         // experimenting with check term
+        //todo make reusable
         auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
         terms.push_back(checkTerm);
+
+//        if(horizon > 1) { //TODO lifetime? whose responsibility is it to reactivate queries?
+//            this->checkQueries.at(horizon-1)->removeExternal();
+//        }
+
+//         if(this->checkQueries.find(horizon) != this->checkQueries.end()) {
+//            std::cout << "reactivating with id " << horizon << std::endl;
+//            this->checkQueries.at(horizon)->reactivate();
+//        } else {
+//            std::cout << "registering check term for horizon" << horizon << std::endl;
+//            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+//            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
+//            this->solver->registerQuery(checkQuery);
+//            this->checkQueries.emplace(horizon,checkQuery);
+//        }
+
+
 
         // Create Term belonging to a FilterQuery to be part of the terms in the getSolution call
 
@@ -87,9 +109,18 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         sat = this->solver->getSolution(vars, terms, results);
         //        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
+
+
     }
 
     reasoner::asp::IncrementalExtensionQuery::cleanUp();
+
+    //new run should start without active step queries
+//        if(sat) {
+//            for(auto query : this->checkQueries) {
+//                query.second->removeExternal();
+//            }
+//        }
 
     // TODO something is buggy here (way too many result entries)
 
@@ -99,13 +130,17 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 if (std::find(ret.begin(), ret.end(), elem) == ret.end()) {
                     //                        std::cout << "ADDING ELEMENT: " << elem << std::endl;
                     ret.push_back(elem);
+//                    std::cout << "ELEM: " << elem << std::endl;
                 }
             }
         }
     }
     return ret;
 }
-
+/*
+ * TODO what to do about reusable query (lifetime etc.)
+ * TODO time measurements
+ */
 std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         const std::vector<std::string>& inquiryPredicates, const std::string& queryIdentifier, const std::vector<std::string>& additionalRules)
 {
@@ -137,6 +172,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         for (auto& varQueryValue : res->variableQueryValues) {
             for (const auto& elem : varQueryValue) {
                 ret.push_back(elem);
+
             }
         }
     }

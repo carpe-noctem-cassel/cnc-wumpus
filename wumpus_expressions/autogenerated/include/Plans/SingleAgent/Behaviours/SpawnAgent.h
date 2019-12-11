@@ -3,6 +3,8 @@
 
 #include "DomainBehaviour.h"
 /*PROTECTED REGION ID(inc1534835348868) ENABLED START*/ //Add additional includes here
+#include <map>
+#include <wumpus_simulator/MultiInitialPoseResponse.h>
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -20,6 +22,16 @@ namespace alica
         /*PROTECTED REGION END*/
     private:
         /*PROTECTED REGION ID(prv1534835348868) ENABLED START*/ //Add additional private methods here
+        std::map<std::string, bool> spawnRequestSuccessful;
+        ros::Subscriber multiAgentSpawnResponseSub;
+        bool awaitingResponse;
+        void onMultiInitialPoseResponse(wumpus_simulator::MultiInitialPoseResponsePtr response);
+        void sendMultiInitialPoseRequest();
+        ros::NodeHandle n;
+        std::vector<std::shared_ptr<wumpus::model::Field>> nextStartPositions;
+        std::string currentWorld;
+        int loadedInitialWorld;
+        bool worldRequestSent;
         /*PROTECTED REGION END*/};
 } /* namespace alica */
 

@@ -23,6 +23,7 @@ class WumpusWorldModel;
 namespace model
 {
 class Agent;
+class Field;
 }
 namespace wm
 {
@@ -34,7 +35,7 @@ public:
 
     ~PlanningModule();
 
-    std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> processNextActionRequest(std::shared_ptr<wumpus::model::Agent> agent);
+    std::pair<int, std::vector<WumpusEnums::actions>> processNextActionRequest(std::shared_ptr<wumpus::model::Agent> agent);
 
     std::string determineGoal();
 
@@ -48,6 +49,8 @@ public:
     void determinePosToShootFrom();
 
     wumpus::model::Objective determineObjective();
+
+    std::vector<std::pair<std::string, std::string>> shootingTargets; //FIXME
 
 private:
     essentials::SystemConfig* sc;
@@ -73,6 +76,8 @@ private:
     std::vector<std::string> baseRules;
     std::vector<std::string> stepRules;
     std::vector<std::string> checkRules;
+
+
 };
 } /*namespace wm */
 } /*namespace wumpus*/

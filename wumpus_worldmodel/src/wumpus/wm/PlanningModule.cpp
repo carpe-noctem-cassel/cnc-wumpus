@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <wumpus/model/Agent.h>
+#include <wumpus/model/Field.h>
 
 namespace wumpus
 {
@@ -51,14 +52,14 @@ PlanningModule::~PlanningModule()
  * @param agent
  * @return
  */
-std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModule::processNextActionRequest(std::shared_ptr<wumpus::model::Agent> agent)
+std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextActionRequest(std::shared_ptr<wumpus::model::Agent> agent)
 {
 
     // TODO FIXME new logic broke this, quick fixed
 
     this->wm->wumpusSimData.setIntegratedFromSimulator(false);
 
-    auto actions = std::make_shared<std::vector<WumpusEnums::actions>>();
+    auto actions = std::vector<WumpusEnums::actions>();
     auto params = std::vector<std::string>();
     std::stringstream ss;
 
@@ -69,8 +70,11 @@ std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModul
     this->determineObjective();
     // determine actions
 
-    if (agent->objective == wumpus::model::Objective::EXPLORE) {
+    if (agent->objective == wumpus::model::Objective::EXPLORE || agent->objective == wumpus::model::Objective::MOVE_TO_GOLD_FIELD) {
 
+        if(agent->objective == wumpus::model::Objective::MOVE_TO_GOLD_FIELD) {
+            goal = this->determineGoal();
+        }
         fieldsActionsPair = this->determinePathAndActions({}, -1);
 
         // Incremental approach couldn't find a solution - try to shoot wumpus or allow unsafe moves
@@ -80,20 +84,20 @@ std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModul
 
                 if (this->determineWumpusBlocksSafeMoves()) {
 
-
+                    std::cout << "Wumpus blocks moves!" << std::endl;
                     this->wm->changeHandler->integrator->integrateInformationAsExternal(
-                            "wumpusBlocksMoves", "wumpusMoves", aspkb::Strategy::FALSIFY_OLD_VALUES);
+                            "wumpusBlocksMoves", "wumpusMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
                     this->determineObjective();
                     this->determinePosToShootFrom();
                     fieldsActionsPair = this->determinePathAndActions({}, -1);
                 } else { // no blocking wumpi found
                     this->wm->changeHandler->integrator->integrateInformationAsExternal(
-                            "unsafeMovesAllowed", "unsafeMoves", aspkb::Strategy::FALSIFY_OLD_VALUES);
+                            "unsafeMovesAllowed", "unsafeMoves",true,  aspkb::Strategy::FALSIFY_OLD_VALUES);
                     fieldsActionsPair = this->determinePathAndActions({}, -1);
                 }
             } else {
                 // TODO needs to be resetted after actions
-                this->wm->changeHandler->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", aspkb::Strategy::FALSIFY_OLD_VALUES);
+                this->wm->changeHandler->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves",true,  aspkb::Strategy::FALSIFY_OLD_VALUES);
                 fieldsActionsPair = this->determinePathAndActions({}, -1);
             }
         }
@@ -106,26 +110,26 @@ std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModul
 
         if (this->lastPathAndActions.second.size() > 0) {
             // minus first action (should have been performed)
-            //            std::cout << "REMOVING ACTION" << std::endl;
+//            std::cout << "REMOVING ACTION" << this->lastPathAndActions.second.at(0) << std::endl;
             this->lastPathAndActions.second.erase(this->lastPathAndActions.second.begin());
         }
 
         if (agent->replanNecessary) {
-            //            std::cout << "***********************CHOOSING NEW GOAL AND ACTIONS" << std::endl;
+//            std::cout << "***********************CHOOSING NEW GOAL AND ACTIONS" << std::endl;
             // choose a goal field and register it as external
             goal = this->determineGoal();
 
             // plan movement to goal, interesting aspects are the fields to be visited and the actual action sequence
             fieldsActionsPair = this->determinePathAndActions(this->actionsGenerationRules, -1);
         } else {
-            //            std::cout << "**************************REUSING GOAL AND ACTIONS" << std::endl;
+//            std::cout << "**************************REUSING GOAL AND ACTIONS" << std::endl;
 
             fieldsActionsPair = this->lastPathAndActions;
             goal = this->lastGoal;
         }
     }
 
-    this->determineObjective();
+    //this->determineObjective(); //TODO why is this here? gets agent stuck when trying to move to shooting position
     if (agent->objective == wumpus::model::Objective::COLLECT_GOLD || agent->objective == wumpus::model::Objective::SHOOT ||
             agent->objective == wumpus::model::Objective::LEAVE) {
         //        std::cout << "DETERMINE ACTIONS NO MOVEMENT) " << std::endl;
@@ -141,26 +145,23 @@ std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModul
         auto index = i;
 
         if (tmp.find("move") != std::string::npos) {
-            // std::cout << "MOVE!" << std::endl;
             actionArray[index] = WumpusEnums::move;
         } else if (tmp.find("turnRight") != std::string::npos) {
-            // std::cout << "RIGHT!" << std::endl;
             actionArray[index] = WumpusEnums::turnRight;
         } else if (tmp.find("turnLeft") != std::string::npos) {
-            // std::cout << "LEFT!" << std::endl;
             actionArray[index] = WumpusEnums::turnLeft;
         } else if (tmp.find("shoot") != std::string::npos) {
-            std::cout << "SHOOT!" << std::endl;
+//            std::cout << agent->currentPosition->x << ", " << agent->currentPosition->y << std::endl;
             actionArray[index] = WumpusEnums::shoot;
             // reset goal and goalHeading
+            // reset wumpus blocks safe moves TODO right place?
+            this->wm->changeHandler->integrator->integrateInformationAsExternal("", "wumpusMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
 
-            this->wm->changeHandler->integrator->integrateInformationAsExternal("", "goal", aspkb::Strategy::FALSIFY_OLD_VALUES);
-            this->wm->changeHandler->integrator->integrateInformationAsExternal("", "goalHeading", aspkb::Strategy::FALSIFY_OLD_VALUES);
+            this->wm->changeHandler->integrator->integrateInformationAsExternal("", "goal",true,  aspkb::Strategy::FALSIFY_OLD_VALUES);
+            this->wm->changeHandler->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
         } else if (tmp.find("pickup") != std::string::npos) {
-            std::cout << "PICKUP!" << std::endl;
             actionArray[index] = WumpusEnums::pickUpGold;
         } else if (tmp.find("leave") != std::string::npos) {
-            std::cout << "LEAVE!" << std::endl;
             actionArray[index] = WumpusEnums::leave;
         } else {
             std::cout << "KM: UNKNOWN ACTION! " << tmp << std::endl;
@@ -169,7 +170,7 @@ std::pair<int, std::shared_ptr<std::vector<WumpusEnums::actions>>> PlanningModul
         }
     }
     for (int i = 0; i < result.size(); ++i) {
-        actions->push_back(actionArray[i]);
+        actions.push_back(actionArray[i]);
     }
 
     // this->wm->changeHandler->integrator->integrateInformationAsExternal("", "blacklist", aspkb::Strategy::FALSIFY_OLD_VALUES);
@@ -193,7 +194,6 @@ std::string PlanningModule::determineGoal()
 
     // auto result = this->extractor->extractTemporaryQueryResult({goalQueryHeadValue}, this->goalGenerationRules, paramsPair);
     auto result = this->extractor->extractReusableTemporaryQueryResult({goalQueryHeadValue}, "goal", this->goalGenerationRules);
-
     if (!result.empty()) {
         if (result.size() > 1) {
             std::cerr << "More than one suggested goal found. Using first entry. " << std::endl;
@@ -203,7 +203,7 @@ std::string PlanningModule::determineGoal()
         goalRep << "goal(" << ext.first << ',' << ext.second << ')';
         auto goal = goalRep.str();
 
-        this->wm->changeHandler->integrator->integrateInformationAsExternal(goal, "goal", aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->wm->changeHandler->integrator->integrateInformationAsExternal(goal, "goal",true,  aspkb::Strategy::FALSIFY_OLD_VALUES);
 
         return goal;
     }
@@ -219,10 +219,17 @@ wumpus::model::Objective PlanningModule::determineObjective()
 {
 
     // auto sol = this->extractor->extractTemporaryQueryResult({"objective(wildcard)"}, objectiveRules, {});
-    auto sol = this->extractor->extractReusableTemporaryQueryResult({"objective(wildcard)"}, "objective", objectiveRules);
+    auto sol = this->extractor->extractReusableTemporaryQueryResult({"objective(wildcard)"}, "objective", this->objectiveRules);
+
+    if(sol.empty()) {
+        std::cout << "Determine Objective: No solution!" << std::endl;
+        return wumpus::model::Objective::EXPLORE;
+    }
     auto result = sol.at(0);
 
     wumpus::model::Objective obj = wumpus::model::Objective::UNDEFINED;
+
+//    std::cout << "DETERMINE OBJECTIVE RESULT: " << result << std::endl;
 
     if (result.find("explore") != std::string::npos) {
         obj = wumpus::model::Objective::EXPLORE;
@@ -233,13 +240,14 @@ wumpus::model::Objective PlanningModule::determineObjective()
     } else if (result.find("goHome") != std::string::npos) {
         obj = wumpus::model::Objective::GO_HOME;
     } else if (result.find("shoot") != std::string::npos) {
-        std::cout << "objective shoot" << std::endl;
         obj = wumpus::model::Objective::SHOOT;
     } else if (result.find("leave") != std::string::npos) {
         obj = wumpus::model::Objective::LEAVE;
     } else if (result.find("moveToGoldField") != std::string::npos) {
         obj = wumpus::model::Objective::MOVE_TO_GOLD_FIELD;
     }
+
+//    std::cout << "OBJECTIVE: " << obj << std::endl;
 
     this->wm->playground->getAgentById(essentials::SystemConfig::getInstance()->getOwnRobotID())->updateObjective(obj);
 
@@ -297,14 +305,14 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 bool PlanningModule::determineWumpusBlocksSafeMoves()
 {
     /*
+}
     auto paramsPair = std::make_pair<std::string, std::string>("", "");
     // std::lock_guard<std::mutex> lock(this->queryMtx);
-    auto ret = this->extractor->extractTemporaryQueryResult(
+    auto ret = this->extractor->extractReusableTemporaryQueryResult({"blockingWumpus(wildcard,wildcard)"}
             {("wumpusBlocksSafeMoves")}, {"wumpusBlocksSafeMoves :- wumpus(X,Y),fieldAdjacent(X,Y,A,B), not visited(A,B)"}, paramsPair);
     if (ret.size() == 0) {
         return false;
     }
-    return true;
      */
     return true;
 }
@@ -316,17 +324,13 @@ void PlanningModule::determinePosToShootFrom()
     auto shotAt = std::vector<std::pair<std::string, std::string>>();
     // auto result = this->extractor->extractTemporaryQueryResult(
     //      {"targetPos(wildcard,wildcard)", "targetHeading(wildcard)", "fieldIsAhead(wildcard,wildcard)"}, this->shootFromRules, paramsPair);
-    auto result = this->extractor->extractReusableTemporaryQueryResult(
-            {"targetPos(wildcard,wildcard)", "targetHeading(wildcard)", "fieldIsAhead(wildcard,wildcard)"}, "pos4Wumpus", this->shootFromRules);
+    auto result = this->extractor->extractReusableTemporaryQueryResult({"targetPos(wildcard,wildcard)", "targetHeading(wildcard)", "fieldIsAhead(wildcard,wildcard)"},"shootFrom", this->shootFromRules);
     if (!result.empty()) {
-
         for (const auto& res : result) {
             if (res.find("targetPos") != std::string::npos) {
                 position = this->extractBinaryPredicateParameters(res, "targetPos");
-                std::cout << "position is " << position.first << ", " << position.second << std::endl;
             } else if (res.find("targetHeading") != std::string::npos) {
                 heading = this->extractUnaryPredicateParameter(res);
-                std::cout << "target heading is " << heading << std::endl;
             } else if (res.find("fieldIsAhead") != std::string::npos) {
                 auto shotAtResult = this->extractBinaryPredicateParameters(res, "fieldIsAhead");
                 shotAt.push_back(std::make_pair(shotAtResult.first, shotAtResult.second));
@@ -335,20 +339,18 @@ void PlanningModule::determinePosToShootFrom()
 
         std::stringstream ss;
         ss << "goal(" << position.first << ", " << position.second << ")";
-        this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "goal", aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
         ss.str("");
         ss << "goalHeading(" << heading << ")";
-        this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "goalHeading", aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "goalHeading",true,  aspkb::Strategy::FALSIFY_OLD_VALUES);
         ss.str("");
         for (const auto& field : shotAt) {
+            this->shootingTargets.push_back(field);
             ss << "shotAt(" << field.first << "," << field.second << ")";
-            this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt", aspkb::Strategy::INSERT_TRUE);
+            this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt",true,  aspkb::Strategy::INSERT_TRUE);
             ss.str("");
         }
-        // reset wumpus blocks safe moves
-        this->wm->changeHandler->integrator->integrateInformationAsExternal("", "wumpusMoves", aspkb::Strategy::FALSIFY_OLD_VALUES);
-    } else {
-        // std::cout << "NO SOLUTION" << std::endl;
+
     }
 }
 

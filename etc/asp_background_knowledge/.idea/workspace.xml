@@ -10,66 +10,72 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed084f8c-c222-4bfe-8016-7af567dc7fbe" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Agent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Field.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/ChangeHandler.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/PlanningModule.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Agent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Field.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Playground.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/ChangeHandler.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/PlanningModule.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ASPSolver.conf" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../wumpus_evaluation/run_combinations.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Alica.conf" beforeDir="false" afterPath="$PROJECT_DIR$/../Alica.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Globals.conf" beforeDir="false" afterPath="$PROJECT_DIR$/../Globals.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Misc/taskrepository.tsk" beforeDir="false" afterPath="$PROJECT_DIR$/../Misc/taskrepository.tsk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WWFGenerator.conf" beforeDir="false" afterPath="$PROJECT_DIR$/../WWFGenerator.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../WumpusEval.conf" beforeDir="false" afterPath="$PROJECT_DIR$/../WumpusEval.conf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../WumpusWorldModel.conf" beforeDir="false" afterPath="$PROJECT_DIR$/../WumpusWorldModel.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wumpus.lp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/wumpus_new.lp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/wumpus_planning.lp" beforeDir="false" afterPath="$PROJECT_DIR$/wumpus_planning.lp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plans/SingleAgent/MyTurn.pmlex" beforeDir="false" afterPath="$PROJECT_DIR$/../plans/SingleAgent/MyTurn.pmlex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_base/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_base/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_base/include/Base.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_base/include/Base.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_base/package.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_base/package.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/actionsGenCheck" beforeDir="false" afterPath="$PROJECT_DIR$/actionsGenCheck" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wumpus_draftPerception.lp" beforeDir="false" afterPath="$PROJECT_DIR$/wumpus_draftPerception.lp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wumpus_externals.lp" beforeDir="false" afterPath="$PROJECT_DIR$/wumpus_externals.lp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wumpus_stenchPerception.lp" beforeDir="false" afterPath="$PROJECT_DIR$/wumpus_stenchPerception.lp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plans/SingleAgent/InteractWithPlayground.pml" beforeDir="false" afterPath="$PROJECT_DIR$/../plans/SingleAgent/InteractWithPlayground.pml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plans/SingleAgent/WumpusMaster.pml" beforeDir="false" afterPath="$PROJECT_DIR$/../plans/SingleAgent/WumpusMaster.pml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plans/SingleAgent/WumpusMaster.pmlex" beforeDir="false" afterPath="$PROJECT_DIR$/../plans/SingleAgent/WumpusMaster.pmlex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../roles/Roleset.graph" beforeDir="false" afterPath="$PROJECT_DIR$/../roles/Roleset.graph" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../roles/Roleset.pmlex" beforeDir="false" afterPath="$PROJECT_DIR$/../roles/Roleset.pmlex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../roles/Roleset.rset" beforeDir="false" afterPath="$PROJECT_DIR$/../roles/Roleset.rset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../roles/rolesDefinition.rdefset" beforeDir="false" afterPath="$PROJECT_DIR$/../roles/rolesDefinition.rdefset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_base/src/Base.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_base/src/Base.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/Makefile2" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/Makefile2" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/progress.marks" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/progress.marks" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/DependInfo.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/DependInfo.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/build.make" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/cmake_clean.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/cmake_clean.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/link.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/link.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/progress.make" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/CMakeFiles/wumpus_evaluation.dir/progress.make" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/wumpus_evaluation.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/cmake-build-debug/wumpus_evaluation.cbp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/sim/include/EvalBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/sim/include/EvalBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_evaluation/sim/src/EvalBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_evaluation/sim/src/EvalBase.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/DomainBehaviour.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/DomainBehaviour.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/DomainCondition.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/DomainCondition.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/InitASPModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/InitASPModel.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/PerformAction.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/PerformAction.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/UtilityFunctionCreator.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/UtilityFunctionCreator.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/SpawnAgent.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/Behaviours/SpawnAgent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/WumpusMaster1534835261527.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/include/Plans/SingleAgent/WumpusMaster1534835261527.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/BehaviourCreator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/BehaviourCreator.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/ConditionCreator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/ConditionCreator.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/ConstraintCreator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/ConstraintCreator.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/DomainBehaviour.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/DomainBehaviour.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/DomainCondition.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/DomainCondition.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/InitASPModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/InitASPModel.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/PerformAction.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/PerformAction.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/SpawnAgent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/SpawnAgent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/WaitForTurn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/Behaviours/WaitForTurn.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/InteractWithPlayground1534836538908.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/InteractWithPlayground1534836538908.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/MyTurn1534836685239.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/MyTurn1534836685239.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/WumpusMaster1534835261527.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/WumpusMaster1534835261527.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/constraints/MyTurn1534836685239Constraints.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/constraints/MyTurn1534836685239Constraints.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/constraints/WumpusMaster1534835261527Constraints.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/Plans/SingleAgent/constraints/WumpusMaster1534835261527Constraints.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/UtilityFunctionCreator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/autogenerated/src/UtilityFunctionCreator.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_expressions/package.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_expressions/package.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_msgs/msg/AgentPerception.msg" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_msgs/msg/AgentPerception.msg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/Extractor.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/Extractor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/Integrator.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/Integrator.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/TermManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/aspkb/TermManager.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/WumpusWorldModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/WumpusWorldModel.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/ASPKnowledgeBase.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/Communication.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/Communication.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/Coordinates.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/Field.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/KnowledgeManager.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/PerceptionContainer.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/Playground.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Playground.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/WumpusAgent.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/WumpusDefinitions.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Agent.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Agent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Playground.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/model/Playground.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/PlanningModule.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/PlanningModule.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/WumpusSimData.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/include/wumpus/wm/WumpusSimData.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/package.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/package.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/Extractor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/Extractor.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/Integrator.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/Integrator.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/TermManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/aspkb/TermManager.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/WumpusWorldModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/WumpusWorldModel.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/ASPKnowledgeBase.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/Communication.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/Communication.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/Coordinates.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/Field.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/KnowledgeManager.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/Playground.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/WumpusAgent.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Agent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Agent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Playground.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/model/Playground.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/ChangeHandler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/ChangeHandler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/PlanningModule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/PlanningModule.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/WumpusSimData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../wumpus_worldmodel/src/wumpus/wm/WumpusSimData.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -79,13 +85,16 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/actions_gen.lp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="645">
-              <caret line="43" selection-start-line="43" selection-end-line="43" selection-end-column="39" />
+            <state relative-caret-position="465">
+              <caret line="31" column="44" lean-forward="true" selection-start-line="31" selection-start-column="44" selection-end-line="31" selection-end-column="44" />
             </state>
           </provider>
         </entry>
@@ -93,28 +102,56 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/actions_gen.rules">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="30" column="28" selection-start-line="30" selection-start-column="28" selection-end-line="30" selection-end-column="28" />
+            <state relative-caret-position="375">
+              <caret line="25" column="41" lean-forward="true" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/path_validation.rules">
+        <entry file="file://$PROJECT_DIR$/wumpus_stenchPerception.lp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="270">
+              <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/objective.rules">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="225">
+              <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/actionsGenBase">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/actionsGenCheck">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/objective.lp">
+        <entry file="file://$PROJECT_DIR$/goal_generation.rules">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="11" selection-start-line="11" selection-end-line="11" />
+            <state relative-caret-position="15">
+              <caret line="1" column="10" selection-start-line="1" selection-start-column="10" selection-end-line="1" selection-end-column="10" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/wumpus_background.lp">
+        <entry file="file://$PROJECT_DIR$/actionsGenStep">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/path_validation.rules">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
@@ -132,6 +169,11 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>occ</find>
+      <find>notMoved</find>
+      <find>wumpusBlocksMoves :-</find>
+      <find>wumpusB</find>
+      <find>goal</find>
+      <find>goal(X,Y) :-</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -159,7 +201,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -171,10 +212,13 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -204,16 +248,18 @@
       <workItem from="1554192002877" duration="4843000" />
       <workItem from="1554198528915" duration="2588000" />
       <workItem from="1554203304759" duration="21000" />
+      <workItem from="1573119605651" duration="2576000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7948000" />
+    <option name="totallyTimeSpent" value="10524000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="64" y="-11" width="1857" height="1092" extended-state="6" />
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25815368" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26091763" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -227,7 +273,7 @@
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="10" />
-      <window_info anchor="bottom" id="CMake" order="11" visible="true" weight="0.13584118" />
+      <window_info anchor="bottom" id="CMake" order="11" visible="true" weight="0.13251784" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -239,24 +285,16 @@
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt" />
+    <entry file="file://$PROJECT_DIR$/wumpus_background.lp" />
+    <entry file="file://$PROJECT_DIR$/objective.lp" />
     <entry file="file://$PROJECT_DIR$/actions_gen.lp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="43" selection-start-line="43" selection-end-line="43" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/actions_gen.rules">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="30" column="28" selection-start-line="30" selection-start-column="28" selection-end-line="30" selection-end-column="28" />
+        <state relative-caret-position="465">
+          <caret line="31" column="44" lean-forward="true" selection-start-line="31" selection-start-column="44" selection-end-line="31" selection-end-column="44" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/path_validation.rules">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/wumpus_background.lp">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/wumpus_playground.lp">
@@ -266,10 +304,40 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/objective.lp">
+    <entry file="file://$PROJECT_DIR$/actions_gen.rules">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="11" selection-start-line="11" selection-end-line="11" />
+        <state relative-caret-position="375">
+          <caret line="25" column="41" lean-forward="true" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/wumpus_stenchPerception.lp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/objective.rules">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/actionsGenBase">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/actionsGenStep">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/actionsGenCheck">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/goal_generation.rules">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="10" selection-start-line="1" selection-start-column="10" selection-end-line="1" selection-end-column="10" />
         </state>
       </provider>
     </entry>

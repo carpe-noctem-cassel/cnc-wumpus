@@ -22,11 +22,27 @@ namespace alica
     {
         /*PROTECTED REGION ID(run1534835364093) ENABLED START*/ //Add additional options here
         // nothing to do here yet
+        //TODO experimental...
+        if (this->wm->localAgentDied || this->wm->localAgentExited)
+        {
+            wumpus_msgs::AgentPerception perception;
+            wumpus_msgs::Coordinates pos;
+            pos.x = -1;
+            pos.y = -1;
+            perception.initialPosition = pos;
+            perception.position = pos;
+            perception.senderID = sc->getOwnRobotID();
+            perception.died = this->wm->localAgentDied;
+            perception.exited = this->wm->localAgentExited;
+            send(perception);
+
+        }
         /*PROTECTED REGION END*/
     }
     void WaitForTurn::initialiseParameters()
     {
         /*PROTECTED REGION ID(initialiseParameters1534835364093) ENABLED START*/ //Add additional options here
+//        std::cout << "WaitForTurn: waiting for turn" << std::endl;
         /*PROTECTED REGION END*/
     }
 /*PROTECTED REGION ID(methods1534835364093) ENABLED START*/ //Add additional methods here

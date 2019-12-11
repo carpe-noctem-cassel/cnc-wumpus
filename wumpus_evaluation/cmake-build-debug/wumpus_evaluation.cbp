@@ -1029,9 +1029,6 @@
 		<Unit filename="/home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/main.cpp">
 			<Option target="wumpus_evaluation"/>
 		</Unit>
-		<Unit filename="/home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/sim/src/EvalBase.cpp">
-			<Option target="wumpus_evaluation"/>
-		</Unit>
 		<Unit filename="/home/lisa/wumpusws/src/cnc-wumpus/wumpus_evaluation/sim/src/WumpusSimulatorHeadless.cpp">
 			<Option target="wumpus_evaluation"/>
 		</Unit>

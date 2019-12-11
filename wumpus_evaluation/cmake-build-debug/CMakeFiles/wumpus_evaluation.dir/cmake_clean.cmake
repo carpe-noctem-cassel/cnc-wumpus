@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/wumpus_evaluation.dir/main.cpp.o"
   "CMakeFiles/wumpus_evaluation.dir/sim/src/WumpusSimulatorHeadless.cpp.o"
-  "CMakeFiles/wumpus_evaluation.dir/sim/src/EvalBase.cpp.o"
   "devel/lib/wumpus_evaluation/wumpus_evaluation.pdb"
   "devel/lib/wumpus_evaluation/wumpus_evaluation"
 )

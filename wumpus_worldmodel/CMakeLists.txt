@@ -32,6 +32,10 @@ add_library(wumpus_worldmodel
         src/aspkb/Extractor.cpp
         src/aspkb/TermManager.cpp
 
+        src/eval/Experiment.cpp
+        src/eval/Result.cpp
+        src/eval/Run.cpp
+
         )
 
 #add_dependencies(wumpus_worldmodel geometry_msgs_generate_messages_cpp robot_control_generate_messages_cpp) 

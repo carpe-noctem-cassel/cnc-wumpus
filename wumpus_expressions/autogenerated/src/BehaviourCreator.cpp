@@ -5,6 +5,8 @@ using namespace std;
 
 #include  "Plans/SingleAgent/Behaviours/InitASPModel.h"
 
+#include  "Plans/SingleAgent/Behaviours/LogPreviousResults.h"
+
 #include  "Plans/SingleAgent/Behaviours/EvaluateGoal.h"
 
 #include  "Plans/SingleAgent/Behaviours/GenerateActions.h"
@@ -18,6 +20,8 @@ using namespace std;
 #include  "Plans/SingleAgent/Behaviours/DetermineObjective.h"
 
 #include  "Plans/SingleAgent/Behaviours/PerformNextAction.h"
+
+#include  "Plans/Reset.h"
 
 #include  "Plans/SingleAgent/Behaviours/PerformAction.h"
 
@@ -42,6 +46,11 @@ namespace alica
             case 1536061762657:
 
                 return make_shared<InitASPModel>();
+                break;
+
+            case 1575467908745:
+
+                return make_shared<LogPreviousResults>();
                 break;
 
             case 1551695098593:
@@ -77,6 +86,11 @@ namespace alica
             case 1551695161214:
 
                 return make_shared<PerformNextAction>();
+                break;
+
+            case 1572878624935:
+
+                return make_shared<Reset>();
                 break;
 
             case 1534836780649:

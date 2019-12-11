@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ASCII"?>
+<uiextensionmodel:PmlUiExtensionMap xmlns:uiextensionmodel="http:///de.uni_kassel.vs.cn/planDesigner/pmlextension/uiextensionmodel">
+  <extensions>
+    <key href="rolesDefinition.rdefset#1534757834932"/>
+    <value/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.0"/>
+    <value xPos="476" yPos="31" width="15" height="15"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.0"/>
+    <value xPos="476" yPos="31" width="15" height="15" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.1"/>
+    <value xPos="476" yPos="81" width="116" height="34" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.2"/>
+    <value xPos="476" yPos="131" width="129" height="34" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.0"/>
+    <value xPos="476" yPos="31" width="15" height="15" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.1"/>
+    <value xPos="476" yPos="81" width="116" height="34" collapsed="false"/>
+  </extensions>
+  <extensions>
+    <key href="RolesetWumpus.graph#//@nodes.2"/>
+    <value xPos="476" yPos="131" width="129" height="34" collapsed="false"/>
+  </extensions>
+</uiextensionmodel:PmlUiExtensionMap>

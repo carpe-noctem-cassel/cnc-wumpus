@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
         wumpus_expressions
         wumpus_worldmodel
         robot_control
-
         asp_solver_wrapper
         asp_solver) #wumpus_base
 
@@ -65,9 +64,9 @@ catkin_package(
         CATKIN_DEPENDS wumpus_simulator
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} wumpus_simulator_INCLUDE_DIRECTORIES sim/include)
+include_directories(include ${catkin_INCLUDE_DIRS} wumpus_simulator_INCLUDE_DIRECTORIES) # sim/include)
 
-add_executable(${PROJECT_NAME} main.cpp sim/src/WumpusSimulatorHeadless.cpp sim/src/EvalBase.cpp)
+#add_executable(${PROJECT_NAME} main.cpp sim/src/WumpusSimulatorHeadless.cpp)
 
 #add_dependencies(${PROJECT_NAME} wumpus_simulator )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Qt5Core_location} clingo) #wumpus_simulator)

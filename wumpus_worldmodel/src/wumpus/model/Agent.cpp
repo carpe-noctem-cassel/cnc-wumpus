@@ -1,5 +1,6 @@
 #include "wumpus/model/Agent.h"
 #include <utility>
+#include <memory>
 #include <wumpus/WumpusWorldModel.h>
 
 namespace wumpus
@@ -16,12 +17,19 @@ Agent::Agent(wumpus::wm::ChangeHandler* ch, int agentId)
     this->currentPosition = nullptr;
     this->moveGoal = nullptr;
     this->currentHeading = -1;
+    this->turn = 1;
     this->hasArrow = false;
     this->hasGold = false;
     this->registered = false;
+    this->exited = false;
+    this->died = false;
     this->objective = Objective::UNDEFINED;
 }
 
+/**
+ * Adds knowledge of the existence of this agent to the knowledgebase, including whether this is the local agent.
+ * @param me
+ */
 void Agent::registerAgent(bool me)
 {
     if (!this->registered) {
@@ -29,6 +37,17 @@ void Agent::registerAgent(bool me)
         this->ch->registerNewAgent(this->id, me);
         this->registered = true;
     }
+}
+
+/**
+ * Agent should be unregistered as soon as it died or exited.
+ */
+void Agent::unregisterAgent() {
+
+    wumpus::WumpusWorldModel::getInstance()->playground->removeAgent(this->id);
+    //TODO necessary?
+    this->registered = false;
+
 }
 
 void Agent::updateCurrentMoveGoal(std::shared_ptr<wumpus::model::Field> goal)
@@ -88,10 +107,18 @@ void Agent::updateArrow(bool arrow)
 
 void Agent::updateObjective(Objective obj) {
     if(this->objective != obj) {
-        std::cout << "AGENT: obj changed" << std::endl;
+//        std::cout << "AGENT: obj changed" << std::endl;
         this->objective = obj;
         this->ch->handleChangedObjective(this->id, this->objective);
     }
+}
+
+void Agent::setDead() {
+    this->died = true;
+}
+
+void Agent::setExited() {
+    this->exited = true;
 }
 
 } /* namespace model */

@@ -6,6 +6,8 @@
 #include "wumpus_simulator/ActionRequest.h"
 #include "wumpus_simulator/InitialPoseRequest.h"
 #include <wumpus_msgs/AgentPerception.h>
+#include <wumpus_simulator/MultiInitialPoseRequest.h>
+#include <wumpus_simulator/LoadWorldRequest.h>
 
 namespace essentials
 {
@@ -23,6 +25,8 @@ namespace alica
 		void send(wumpus_simulator::InitialPoseRequest& msg);
 		void send(wumpus_simulator::ActionRequest& msg);
         void send(wumpus_msgs::AgentPerception& msg);
+        void send(wumpus_simulator::MultiInitialPoseRequest& msg);
+        void send(wumpus_simulator::LoadWorldRequest& msg);
 
 		wumpus::WumpusWorldModel* wm;
 
@@ -33,10 +37,14 @@ namespace alica
 		std::string wumpusActionRequestTopic;
 		std::string wumpusPoseRequestTopic;
         std::string agentPerceptionTopic;
+        std::string multiPoseRequestTopic;
+        std::string loadWorldRequestTopic;
 
 		ros::Publisher wumpusActionPublisher;
 		ros::Publisher wumpusPosePublisher;
         ros::Publisher agentPerceptionPublisher;
+        ros::Publisher multiAgentPoseRequestPublisher;
+        ros::Publisher loadWorldRequestPublisher;
 
 	};
 } /* namespace alica */
