@@ -2,8 +2,8 @@
 
 #include "wumpus/WumpusWorldModel.h"
 
-#include <essentials/AgentID.h>
-#include <essentials/BroadcastID.h>
+#include <essentials/IdentifierConstPtr.h>
+#include <essentials/WildcardID.h>
 
 namespace wumpus
 {

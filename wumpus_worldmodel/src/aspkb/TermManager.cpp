@@ -18,10 +18,9 @@ TermManager& TermManager::getInstance()
 ::reasoner::asp::Term* TermManager::requestTerm()
 {
     auto term = new ::reasoner::asp::Term();
-    auto id = solver->getQueryCounter();
+    auto id = solver->generateQueryID();
     term->setLifeTime(-1);
     term->setId(id);
-    term->setQueryId(id);
     term->setExternals(std::make_shared<std::map<std::string, bool>>());
     managedTerms.push_back(term);
     return term;
@@ -54,17 +53,16 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     if (this->reusableQueries.find(identifier) == this->reusableQueries.end()) {
 //        std::cout << "Creating term with identifier " << identifier << std::endl;
         auto term = new reasoner::asp::Term();
-        id = solver->getQueryCounter();
+        id = solver->generateQueryID();
         term->setLifeTime(1);
         term->setId(id);
-        term->setQueryId(id);
         term->setType(reasoner::asp::ReusableExtension);
         term->setExternals(std::make_shared<std::map<std::string, bool>>());
         for (auto rule : rules) {
             term->addRule(rule);
         }
         this->managedTerms.push_back(term);
-        auto query = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, term);
+        auto query = std::make_shared<reasoner::asp::ReusableExtensionQuery>(id, this->solver, term);
         this->solver->registerQuery(query);
         this->reusableQueries.emplace(identifier, query);
     } else {
@@ -80,9 +78,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 ::reasoner::asp::Term* TermManager::requestCheckTerm(int horizon)
 {
     auto checkTerm = new ::reasoner::asp::Term();
-    auto id = solver->getQueryCounter();
+    auto id = solver->generateQueryID();
     checkTerm->setId(id);
-    checkTerm->setQueryId(id);
     checkTerm->setExternals(std::make_shared<std::map<std::string, bool>>());
     this->managedTerms.push_back(checkTerm);
     checkTerm->setLifeTime(1); // TODO is this correct?

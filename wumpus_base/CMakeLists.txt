@@ -16,8 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   alica_ros_proxy 
   wumpus_expressions 
   wumpus_worldmodel
-  robot_control 
-
   asp_solver_wrapper
   asp_solver
 )

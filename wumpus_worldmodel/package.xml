@@ -21,6 +21,7 @@
   <depend>wumpus_msgs</depend>
   <depend>asp_solver_wrapper</depend>
   <depend>asp_solver</depend>
+  <depend>id_manager</depend>
 
   <!-- <test_depend>gtest</test_depend>-->
 

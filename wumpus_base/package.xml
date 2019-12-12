@@ -19,7 +19,6 @@
   <depend>wumpus_worldmodel</depend>
   <depend>message_generation</depend>
   <depend>alica_ros_proxy</depend>
-  <depend>robot_control</depend>
   <depend>asp_solver_wrapper</depend>
   <depend>asp_solver</depend>
 

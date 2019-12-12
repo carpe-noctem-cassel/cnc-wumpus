@@ -52,7 +52,7 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
             changed = true;
             externals->emplace(value, true);
         }
-        auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
+        auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(term->getId(), solver, term);
         this->solver->registerQuery(query);
         this->identifierQueryMap.emplace(identifier, query.get());
     }
@@ -72,7 +72,7 @@ void Integrator::integrateAsTermWithProgramSection(
         for (auto param : programSectionParameters.second)
             term->addProgramSectionParameter(representation, param);
     }
-    auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
+    auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(term->getId(), solver, term);
     this->solver->registerQuery(query);
 }
 

@@ -8,8 +8,6 @@
 
 #include <aspkb/TermManager.h>
 
-#include <SigFault.h>
-
 #include <ros/ros.h>
 
 #include <chrono>
@@ -21,7 +19,7 @@ namespace wumpus
 
 Base::Base(std::string roleSetName, std::string masterPlanName, std::string roleSetDir)
 {
-    ae = new alica::AlicaEngine(new essentials::AgentIDManager(new essentials::AgentIDFactory()), roleSetName, masterPlanName, false);
+    ae = new alica::AlicaEngine(new essentials::IDManager(), roleSetName, masterPlanName, false);
     bc = new alica::BehaviourCreator();
     cc = new alica::ConditionCreator();
     crc = new alica::ConstraintCreator();
@@ -81,9 +79,6 @@ int main(int argc, char** argv)
     std::cout << "Initialising ROS" << std::endl;
 
     ros::init(argc, argv, essentials::SystemConfig::getInstance()->getHostname() + "_Base");
-
-    // This makes segfaults to exceptions
-    segfaultdebug::init_segfault_exceptions();
 
     std::cout << "Parsing command line parameters:" << std::endl;
 
