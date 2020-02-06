@@ -8,12 +8,12 @@
 #external glitter(X,Y) : field(X,Y).
 #external drafty(X,Y) : field(X,Y).
 #external stinky(X,Y) : field(X,Y).
-#external blacklist(X,Y) : field(X,Y).
 #external shotAt(X,Y) : field(X,Y).
-#external heading(0..3).
-#external goalHeading(0..3).
+#external heading(X) : direction(X).
+#external goalHeading(X) : direction(X).
 #external wumpusBlocksMoves.
 #external unsafeMovesAllowed.
+#external shot.
 
 %#show unsafeMovesAllowed/0.
 %#show wumpusBlocksMoves/0.
@@ -24,12 +24,12 @@
 %#show glitter/2.
 
 
-#program glitterSection(n,m).
-#external glitter(n,m).
+%#program glitterSection(n,m).
+%#external glitter(n,m).
 
-#program stuff(n,m).
-#external is(n,m).
+%#program stuff(n,m).
+%#external is(n,m).
 
 %für n = 123123 und m = Stift oder Haus oder Maus -> endlos
 
-q(is(n,m)):-q(stuffFromConceptNet).
+%q(is(n,m)):-q(stuffFromConceptNet).

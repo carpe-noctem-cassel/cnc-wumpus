@@ -9,6 +9,7 @@
 #include <utility> //pair
 #include <vector>
 #include <wumpus/model/Objective.h>
+#include <mutex>
 namespace aspkb
 {
 class Extractor;
@@ -52,6 +53,10 @@ public:
 
     std::vector<std::pair<std::string, std::string>> shootingTargets; //FIXME
 
+
+    bool getIsPlanning();
+    void setIsPlanning(bool planning);
+
 private:
     essentials::SystemConfig* sc;
     wumpus::WumpusWorldModel* wm;
@@ -65,6 +70,9 @@ private:
     std::pair<std::string, std::string> extractBinaryPredicateParameters(const std::string& str, const std::string& predName);
     std::string extractUnaryPredicateParameter(const std::string& str);
 
+
+    double maxHorizonFactor;
+
     std::vector<std::string> goalGenerationRules;
     std::vector<std::string> pathValidationRules;
     std::vector<std::string> actionsGenerationRules;
@@ -76,6 +84,10 @@ private:
     std::vector<std::string> baseRules;
     std::vector<std::string> stepRules;
     std::vector<std::string> checkRules;
+
+    std::mutex planningMtx;
+
+    bool isPlanning;
 
 
 };

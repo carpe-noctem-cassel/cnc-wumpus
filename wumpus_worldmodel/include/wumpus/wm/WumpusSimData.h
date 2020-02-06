@@ -57,11 +57,10 @@ public:
     bool isIntegratedFromAllAgents();
 
     //should be called when action was performed
-    void raiseTurnCouter();
+    void raiseTurnCounter();
     std::map<int, bool> integratedFromOtherAgentsForTurnNr; // FIXME
 
-
-    // needed for evauation (restarting of Base)
+    // needed for evaluation (restarting of Base)
     void clearBuffers();
 
 private:
@@ -76,6 +75,7 @@ private:
     int turn;
 
     std::mutex mtx;
+    std::mutex respMtx;
     bool integratedFromSimulatorForTurnNumber;
 
     bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };

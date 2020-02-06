@@ -36,6 +36,7 @@ public:
     void handleChangedStench(std::shared_ptr<wumpus::model::Field> field);
     void handleChangedMoveGoal(int id, std::shared_ptr<wumpus::model::Field> goal);
     void handleChangedVisited(std::shared_ptr<wumpus::model::Field> field);
+    void handleChangedShotAt(std::shared_ptr<wumpus::model::Field> field);
     void handleTurn(long turn);
     void handleSetInitialPosition(std::shared_ptr<wumpus::model::Field> newPosition);
     void handleSetGold(int agentId);
@@ -47,6 +48,7 @@ public:
     void handleScream();
     void handleSilence();
     void clearBlacklist();
+    bool getIsIntegrating();
 
 
 

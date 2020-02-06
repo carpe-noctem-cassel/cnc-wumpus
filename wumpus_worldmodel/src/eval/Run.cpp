@@ -12,6 +12,7 @@ Run::Run(std::string worldName)
         : completionStatus(CompletionStatus::UNDEFINED)
         , worldName(worldName)
         , currentResult(nullptr)
+        , wroteHeader(false)
 {
     // TODO make fieldSize better accessible
     this->fieldSize = this->determineFieldSizeFromFilename(this->worldName);
@@ -26,37 +27,51 @@ Run::Run(std::string worldName)
 */
 std::vector<std::shared_ptr<wumpus::model::Field>> Run::getNextStartPositions()
 {
-    // previous run should be completed
+
     if (this->currentResult) {
+
+        // previous run should be completed
+        if (!this->wroteHeader) { // TODO check permutation for initial state instead of flag?
+            this->currentResult->writeHeader(this->worldName + ".csv");
+            this->wroteHeader = true;
+        }
+
         this->saveToDiskAndClearResult();
     }
-    this->currentResult = std::make_shared<eval::Result>(wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount(),
-            wumpus::WumpusWorldModel::getInstance()->experiment->communicationAllowed); // TODO consider moving this info
 
+    this->currentResult = std::make_shared<eval::Result>(wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount(),
+            wumpus::WumpusWorldModel::getInstance()->experiment->communicationAllowed, this->worldName,
+            this->currentPermutation); // TODO consider moving this info
 
     // a completed run means all spawn positions have been handled
     if (this->isCompleted()) {
         return std::vector<std::shared_ptr<wumpus::model::Field>>();
     }
 
-    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositions;
-    std::pair<int, int> fieldCoordinates;
-
-    for (int j = 0; j < this->currentPermutation.size(); ++j) // [0..N-1] integers TODO was only fieldSize before
-    {
-        if (this->currentPermutation[j] == '1') {
-            fieldCoordinates.first = j % this->fieldSize; // TODO was only fieldSize before
-            fieldCoordinates.second = j / this->fieldSize;
-            auto field = wumpus::WumpusWorldModel::getInstance()->playground->getField(fieldCoordinates.first, fieldCoordinates.second);
-            agentPositions.push_back(wumpus::WumpusWorldModel::getInstance()->playground->getField(fieldCoordinates.first, fieldCoordinates.second));
-        }
-    }
+    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositions = this->agentPositionsFromEncoding();
 
     // this will modify the permutation!
     std::prev_permutation(this->currentPermutation.begin(), this->currentPermutation.end());
 
-    this->currentResult->startTimeMeasurement(); //TODO move to where all agents have been spawned
+    this->currentResult->startTimeMeasurement(); // TODO move to where all agents have been spawned
 
+    return agentPositions;
+}
+
+std::vector<std::shared_ptr<wumpus::model::Field>> Run::agentPositionsFromEncoding() const
+{
+    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositions;
+    std::pair<int, int> fieldCoordinates;
+
+    for (int j = 0; j < currentPermutation.size(); ++j) // [0..N-1] integers TODO was only fieldSize before
+    {
+        if (currentPermutation[j] == '1') {
+            fieldCoordinates.first = j % fieldSize; // TODO was only fieldSize before
+            fieldCoordinates.second = j / fieldSize;
+            auto field = wumpus::WumpusWorldModel::getInstance()->playground->getField(fieldCoordinates.first, fieldCoordinates.second);
+            agentPositions.push_back(wumpus::WumpusWorldModel::getInstance()->playground->getField(fieldCoordinates.first, fieldCoordinates.second));
+        }
+    }
     return agentPositions;
 }
 
@@ -163,12 +178,15 @@ bool Run::spawnRequestRegistered(const std::string& encoding)
     return this->spawnRequestStatus.find(encoding) != this->spawnRequestStatus.end();
 }
 
+/**
+ * doesn't actually reset result - rename
+ * TODO serialize result when
+ */
 void Run::saveToDiskAndClearResult()
 {
     this->currentResult->stopTimeMeasurement(); // TODO move into serialize?
-    auto filename = this->worldName + "_" + this->currentPermutation + ".csv";
+    auto filename = this->worldName + ".csv";
     this->currentResult->serialize(filename);
-    std::cout << "Result: " << filename << std::endl; // TODO clear instead of new initialization
 }
 
 std::shared_ptr<eval::Result> Run::getCurrentResult()

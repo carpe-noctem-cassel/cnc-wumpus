@@ -17,11 +17,11 @@ DomainBehaviour::DomainBehaviour(std::string name)
     multiPoseRequestTopic = (*sc)["WumpusWorldModel"]->get<string>("Send.SpawnMultiAgentRequest", NULL);
     loadWorldRequestTopic = (*sc)["WumpusWorldModel"]->get<string>("Send.LoadWorldRequest", NULL);
 
-    wumpusActionPublisher = n.advertise<wumpus_simulator::ActionRequest>(wumpusActionRequestTopic, 10);
-    wumpusPosePublisher = n.advertise<wumpus_simulator::InitialPoseRequest>(wumpusPoseRequestTopic, 10);
-    agentPerceptionPublisher = n.advertise<wumpus_msgs::AgentPerception>(agentPerceptionTopic, 10);
-    multiAgentPoseRequestPublisher = n.advertise<wumpus_simulator::MultiInitialPoseRequest>(multiPoseRequestTopic, 10);
-    loadWorldRequestPublisher = n.advertise<wumpus_simulator::LoadWorldRequest>(loadWorldRequestTopic, 10);
+    wumpusActionPublisher = n.advertise<wumpus_simulator::ActionRequest>(wumpusActionRequestTopic, 1000);
+    wumpusPosePublisher = n.advertise<wumpus_simulator::InitialPoseRequest>(wumpusPoseRequestTopic, 1000);
+    agentPerceptionPublisher = n.advertise<wumpus_msgs::AgentPerception>(agentPerceptionTopic, 1000);
+    multiAgentPoseRequestPublisher = n.advertise<wumpus_simulator::MultiInitialPoseRequest>(multiPoseRequestTopic, 1000);
+    loadWorldRequestPublisher = n.advertise<wumpus_simulator::LoadWorldRequest>(loadWorldRequestTopic, 1000);
 }
 
 void DomainBehaviour::send(wumpus_simulator::InitialPoseRequest& msg)

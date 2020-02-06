@@ -2,6 +2,7 @@
 
 %%when a field is stinky, a wumpus can be at the neighbor fields
 wumpus(X,Y) :- fieldAdjacent(A,B,X,Y), stinky(A,B), not withoutWumpus(X,Y).
+%1 <= {wumpus(A-1,B), wumpus(A,B-1), wumpus(A+1,B), wumpus(A,B+1)} < 5 :-  fieldAdjacent(A,B,X,Y), stinky(A,B), not withoutWumpus(X,Y). 
 
 %%if a field is known not to be stinky, there are no adjacent wumpi right now.
 withoutWumpus(X,Y) :- fieldAdjacent(A,B,X,Y), visited(A,B), not stinky(A,B).

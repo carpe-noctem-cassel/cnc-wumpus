@@ -21,7 +21,7 @@ namespace alica
     void LogPreviousResults::run(void* msg)
     {
         /*PROTECTED REGION ID(run1575467895625) ENABLED START*/ //Add additional options here
-        this->setSuccess();
+
         this->setSuccess();
         /*PROTECTED REGION END*/
     }

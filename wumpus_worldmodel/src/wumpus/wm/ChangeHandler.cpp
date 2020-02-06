@@ -52,7 +52,7 @@ void ChangeHandler::handleChangedStench(std::shared_ptr<wumpus::model::Field> fi
     std::stringstream ss;
     ss << "stinky(" << field->x << "," << field->y << ")";
     if (this->integrator->integrateInformationAsExternal(ss.str(), "stench", true, aspkb::Strategy::INSERT_TRUE)) {
-//        std::cout << "new stench perception " << field->x << ", " << field->y << std::endl;
+        //        std::cout << "new stench perception " << field->x << ", " << field->y << std::endl;
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
     }
 }
@@ -77,7 +77,7 @@ void ChangeHandler::handleSetDrafty(std::shared_ptr<wumpus::model::Field> field)
     ss << "drafty(" << field->x << ", " << field->y << ")";
     auto str = ss.str();
     if (this->integrator->integrateInformationAsExternal(str, "draft", true, aspkb::Strategy::INSERT_TRUE)) {
-//        std::cout << "new draft perception" << std::endl;
+        //        std::cout << "new draft perception" << std::endl;
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
     }
 }
@@ -87,7 +87,7 @@ void ChangeHandler::handleSetGlitter(std::shared_ptr<wumpus::model::Field> field
     std::stringstream ss;
     ss << "glitter(" << field->x << ", " << field->y << ")";
     if (this->integrator->integrateInformationAsExternal(ss.str(), "glitter", true, aspkb::Strategy::INSERT_TRUE)) {
-//        std::cout << "new glitter perception" << std::endl;
+        //        std::cout << "new glitter perception" << std::endl;
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
     }
 }
@@ -124,17 +124,22 @@ void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective obje
         ss << "huntWumpus";
         break;
     case wumpus::model::Objective::SHOOT:
-        ss << "shoot";
+        ss << "shootWumpus";
         break;
     case wumpus::model::Objective::LEAVE:
-        ss << "leave";
+        ss << "leaveCave";
+        break;
     case wumpus::model::Objective::MOVE_TO_GOLD_FIELD:
         ss << "moveToGoldField";
+        break;
+    case wumpus::model::Objective::IDLE:
+        ss << "idle";
+        break;
     }
     ss << ")";
     if (this->integrator->integrateInformationAsExternal(ss.str(), "objective", true, aspkb::Strategy::FALSIFY_OLD_VALUES) &&
             id == essentials::SystemConfig::getOwnRobotID()) {
-//        std::cout << "DETECTED CHANGED OBJECTIVE" << std::endl;
+        //        std::cout << "DETECTED CHANGED OBJECTIVE" << std::endl;
         this->wm->playground->getAgentById(id)->replanNecessary = true;
     }
 }
@@ -184,6 +189,14 @@ void ChangeHandler::handleChangedVisited(std::shared_ptr<wumpus::model::Field> f
         this->wm->changeHandler->integrator->integrateInformationAsExternal("", "unsafeMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     }
 }
+void ChangeHandler::handleChangedShotAt(std::shared_ptr<wumpus::model::Field> field)
+{
+    if (this->integrator->integrateInformationAsExternal(
+                "shotAt(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "shotAt", true, aspkb::Strategy::INSERT_TRUE)) {
+
+        this->wm->changeHandler->integrator->integrateInformationAsExternal("", "unsafeMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
+}
 
 // RESET GOAL
 void ChangeHandler::handleScream()
@@ -195,18 +208,19 @@ void ChangeHandler::handleScream()
 
     for (auto shotAt : this->wm->getShotAtFields()) {
         std::cout << "shotAt: " << shotAt.first << "," << shotAt.second << std::endl;
+        // FIXME don't consider shot at fields
         for (auto affected : this->wm->playground->getAdjacentFields(std::stoi(shotAt.first), std::stoi(shotAt.second))) {
             std::cout << "affected: " << affected->x << ", " << affected->y << std::endl;
             std::stringstream ss;
             ss << "visited(" << affected->x << "," << affected->y << ")";
             this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "visited", false, aspkb::Strategy::INSERT_TRUE);
-            std:: cout << "setting " << affected->x << ", " << affected->y << "to unvisited" << std::endl;
+            std::cout << "setting " << affected->x << ", " << affected->y << "to unvisited" << std::endl;
             this->wm->playground->getField(affected->x, affected->y)->updateVisited(false);
             ss.str("");
             ss << "stinky(" << affected->x << "," << affected->y << ")";
             this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "stench", false, aspkb::Strategy::INSERT_TRUE);
             // FIXME ?
-            this->wm->playground->getField(affected->x, affected->y)->updateStinky(false);
+            //            this->wm->playground->getField(affected->x, affected->y)->updateStinky(false);
         }
     }
 }
@@ -221,6 +235,10 @@ void ChangeHandler::handleSilence()
 void ChangeHandler::handleTurn(long turn)
 {
     // TODO necessary?
+}
+
+bool ChangeHandler::getIsIntegrating() {
+    return this->integrator->getIsIntegrating();
 }
 
 } /* namespace wm*/

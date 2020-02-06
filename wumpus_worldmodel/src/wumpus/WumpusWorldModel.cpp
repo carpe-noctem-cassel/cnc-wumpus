@@ -3,6 +3,8 @@
 #include "wumpus/wm/ChangeHandler.h"
 #include "wumpus/wm/PlanningModule.h"
 #include <engine/AlicaEngine.h>
+#include <engine/teammanager/TeamManager.h>
+#include <engine/IRoleAssignment.h>
 
 namespace wumpus
 {
@@ -29,7 +31,10 @@ WumpusWorldModel::WumpusWorldModel()
     this->agentName = essentials::SystemConfig::getHostname();
     this->agentCount = (*sc)["WumpusWorldModel"]->get<int>("Agents.number", NULL);
     this->agentIDs = (*sc)["WumpusWorldModel"]->getList<int>("Agents.ids", NULL);
-    if(this->agentIDs.size() != this->agentCount) {
+    this->timeoutDurationSeconds = (*sc)["WumpusEval"]->get<int>("TestRun.timeoutDuration", NULL);
+    this->spawnRequestHandlerRoleName = (*sc)["WumpusEval"]->get<std::string>("TestRun.spawnRequestHandlerRoleName", NULL);
+
+    if (this->agentIDs.size() != this->agentCount) {
         throw std::runtime_error("WumpusWorldModel.conf: Length of id list has to match defined number of agents");
     }
 }
@@ -58,7 +63,7 @@ void WumpusWorldModel::init()
     this->experiment = new eval::Experiment();
 }
 
-//TODO why is this here?
+// TODO why is this here?
 std::vector<std::pair<std::string, std::string>> WumpusWorldModel::getShotAtFields()
 {
     return this->planningModule->shootingTargets;
@@ -77,24 +82,43 @@ int WumpusWorldModel::getPresetAgentCount()
  * simulator.
  * @return list of agent ids which are going to participate in the experiment
  */
-std::vector<int> WumpusWorldModel::getAgentIDsForExperiment() {
+std::vector<int> WumpusWorldModel::getAgentIDsForExperiment()
+{
     return this->agentIDs;
+}
+
+bool WumpusWorldModel::localAgentIsSpawnRequestHandler()
+{
+    auto id = this->getEngine()->getTeamManager()->getLocalAgentID();
+    return this->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->spawnRequestHandlerRoleName;
 }
 
 void WumpusWorldModel::reset()
 {
-    //delete this->communication;
-    delete this->changeHandler; //FIXME only clear state
+    std::lock_guard<std::mutex> lock(this->resetMtx); //FIXME
+    // delete this->communication;
+    std::cout << "Resetting wm!" << std::endl;
+    delete this->changeHandler; // FIXME only clear state
+    std::cout << "Resetting wm: PM!" << std::endl;
     delete this->planningModule;
+    std::cout << "Resetting wm!: PG" << std::endl;
     delete this->playground;
     this->localAgentExited = false;
     this->localAgentDied = false;
-    this->wumpusSimData.clearBuffers();
+    std::cout << "Resetting SimData!" << std::endl;
 
+    this->wumpusSimData.clearBuffers();
 
     this->changeHandler = new wumpus::wm::ChangeHandler(this);
     this->planningModule = new wumpus::wm::PlanningModule(this);
+    std::cout << "Resetting wm!: New Playground" << std::endl;
+
     this->playground = new model::Playground(this->changeHandler);
+    std::cout << "Resetting wm!: Done " << std::endl;
+
+    this->resettedForEncoding.emplace(this->currentEncoding);
+
 }
+
 
 } /* namespace wumpus */

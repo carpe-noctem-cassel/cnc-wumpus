@@ -5,6 +5,8 @@
 /*PROTECTED REGION ID(inc1534835348868) ENABLED START*/ //Add additional includes here
 #include <map>
 #include <wumpus_simulator/MultiInitialPoseResponse.h>
+#include <eval/CompletionStatus.h>
+
 /*PROTECTED REGION END*/
 namespace alica
 {

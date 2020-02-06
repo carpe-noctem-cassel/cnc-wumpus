@@ -16,19 +16,21 @@ TermManager& TermManager::getInstance()
  * @return Pointer to new term
  */
 ::reasoner::asp::Term* TermManager::requestTerm()
-{
+    {
     auto term = new ::reasoner::asp::Term();
     auto id = solver->getQueryCounter();
     term->setLifeTime(-1);
     term->setId(id);
     term->setQueryId(id);
     term->setExternals(std::make_shared<std::map<std::string, bool>>());
+    std::lock_guard<std::mutex> lock(this->mtx);
     managedTerms.push_back(term);
     return term;
 }
 
 void TermManager::initializeSolver(::reasoner::asp::Solver* solver)
 {
+    std::cout << "TERMMANAGER: INIT SOLVER!!!" << std::endl;
     if (this->solver == nullptr) {
         this->solver = solver;
     }
@@ -42,6 +44,7 @@ void TermManager::initializeSolver(::reasoner::asp::Solver* solver)
 // TODO delete pointers to terms as soon as their associated queries expires
 TermManager::~TermManager()
 {
+    std::cout << "TermManager Destructor" << std::endl;
     for (auto it = managedTerms.begin(); it < managedTerms.end(); ++it) {
         delete *it;
         managedTerms.erase(it);
@@ -63,6 +66,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
         for (auto rule : rules) {
             term->addRule(rule);
         }
+        std::lock_guard<std::mutex> lock(this->mtx);
+
         this->managedTerms.push_back(term);
         auto query = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, term);
         this->solver->registerQuery(query);
@@ -84,6 +89,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->setId(id);
     checkTerm->setQueryId(id);
     checkTerm->setExternals(std::make_shared<std::map<std::string, bool>>());
+    std::lock_guard<std::mutex> lock(this->mtx);
     this->managedTerms.push_back(checkTerm);
     checkTerm->setLifeTime(1); // TODO is this correct?
     checkTerm->setType(reasoner::asp::QueryType::Extension);
@@ -106,7 +112,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
     }
-    rule = ":- not unsafeMovesAllowed, movedInDanger(t).";
+    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; //FIXME check if agent actually shot and possibly revoke
     checkTerm->addRule(rule);
 
     rule = " endsOnVisited(t) :- visited(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
@@ -134,6 +140,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
 void TermManager::clear()
 {
+    std::cout << "Start clearing TermManager" << std::endl;
+    std::lock_guard<std::mutex> lock(this->mtx);
     this->solver = nullptr;
     this->reusableQueries.clear();
     for (auto it = managedTerms.begin(); it < managedTerms.end(); ++it) {

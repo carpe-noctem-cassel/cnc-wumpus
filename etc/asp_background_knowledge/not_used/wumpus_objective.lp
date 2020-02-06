@@ -2,7 +2,7 @@
 
 objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksMoves.
 
-objective(huntWumpus) :- wumpusBlocksMoves, arrow(A), me(A).
+objective(huntWumpus) :- wumpusBlocksMoves, arrow(A), me(A), not objective(shoot).
 
 objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A).
 

@@ -46,6 +46,13 @@ void Field::updateVisited(bool visited) {
     }
 }
 
+void Field::updateShotAt(bool shotAt) {
+    if(this->shotAt != shotAt) {
+        this->shotAt = shotAt;
+        this->ch->handleChangedShotAt(shared_from_this());
+    }
+}
+
 Field::~Field() = default;
 
 } /* namespace model */

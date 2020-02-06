@@ -17,6 +17,7 @@
   <depend>system_config</depend>
   <depend>system_util</depend>
   <depend>asp_solver_wrapper</depend>
+  <depend>asp_solver</depend>
 
   <export>
   </export>

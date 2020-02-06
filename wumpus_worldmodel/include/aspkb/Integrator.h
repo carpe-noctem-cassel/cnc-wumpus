@@ -21,12 +21,18 @@ public:
     void integrateAsTermWithProgramSection(
             const std::string& programSection, const std::pair<std::vector<std::string>, std::vector<std::string>>& programSectionParameters);
 
+    bool getIsIntegrating();
+    void setIsIntegrating(bool integrating);
+
 private:
     ::reasoner::asp::Solver* solver;
 
-    std::map<std::string, ::reasoner::asp::ExtensionQuery*> identifierQueryMap;
+    std::map<std::string, std::shared_ptr<::reasoner::asp::ExtensionQuery>> identifierQueryMap;
+
+    bool isIntegrating;
 
     std::mutex mtx;
+    std::mutex integratingMtx;
 };
 
 } /* namespace aspkb */

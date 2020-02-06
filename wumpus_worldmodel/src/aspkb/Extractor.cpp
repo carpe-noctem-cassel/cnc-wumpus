@@ -11,12 +11,16 @@ namespace aspkb
 
 Extractor::Extractor()
 {
+    std::cout << "Creating Extractor" << std::endl;
     this->solver = TermManager::getInstance().getSolver();
     this->baseRegistered = false;
+    std::cout << "Created Ext" << std::endl;
 }
 
 Extractor::~Extractor() {
+    std::cout << "Deleting Extractor" << std::endl;
     reasoner::asp::IncrementalExtensionQuery::clear();
+    std::cout << "Deleted Extractor" << std::endl;
 }
 
 std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& baseRules,
@@ -31,8 +35,10 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
 
-    std::lock_guard<std::mutex> lock(mtx);
+//    std::lock_guard<std::mutex> lock(mtx);
     int horizon = 1;
+
+    std::cout << "Constructing base term" << std::endl;
 
     auto baseTerm = TermManager::getInstance().requestTerm();
     baseTerm->setLifeTime(-1);
@@ -42,7 +48,6 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     }
 
     // add terms to terms passed in getSolution
-    auto begin = std::chrono::system_clock::now();
     int attempts = 0;
     while (!sat && horizon <= maxHorizon) {
         attempts++;
@@ -53,8 +58,12 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         }
 
         if (reasoner::asp::IncrementalExtensionQuery::isPresent(horizon)) {
+            std::cout << "Found query for horizon " << horizon << "- activate" << std::endl;
             reasoner::asp::IncrementalExtensionQuery::activate(horizon);
+            std::cout << "Done activating" << std::endl;
+
         } else {
+            std::cout << "new step term" << std::endl;
             auto stepTerm = TermManager::getInstance().requestTerm();
             stepTerm->setLifeTime(-1);
             stepTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
@@ -62,10 +71,11 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
             for (const auto& str : stepRules) {
                 stepTerm->addRule(str);
             }
-            // manually added rules are not expanded properly :(
+            // manually added rules are not expanded properly :( FIXME
             stepTerm->addRule("{occurs(A,t-1) : moveAction(A)} = 1.");
 
             terms.push_back(stepTerm);
+            std::cout << "added step term" << std::endl;
         }
 
         // experimenting with check term
@@ -99,15 +109,17 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 inquiryTerm->setType(::reasoner::asp::QueryType::Filter);
                 // wrap query rule to match extension query
                 auto wrappedQueryRule = std::string("incquery") + std::to_string(j) + "(" + inquiry + ")";
+//                std::cout << "adding inquiry term" << std::endl;
                 inquiryTerm->setQueryRule(wrappedQueryRule);
+//                std::cout << "inquiry - 2 " << std::endl;
                 terms.push_back(inquiryTerm);
             }
         }
 
         // add terms to terms passed in getSolution
-
+        std::cout << "call getSolution" << std::endl;
         sat = this->solver->getSolution(vars, terms, results);
-        //        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
+                std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
 
 
@@ -151,8 +163,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
 
-    std::lock_guard<std::mutex> lock(mtx);
-
+//    std::lock_guard<std::mutex> lock(mtx);
     int id = TermManager::getInstance().activateReusableExtensionQuery(queryIdentifier, additionalRules);
 
     // TODO make reusable as well
@@ -166,7 +177,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         terms.push_back(inquiryTerm);
     }
     auto sat = this->solver->getSolution(vars, terms, results);
-    //    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
+        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
 
     for (auto res : results) {
         for (auto& varQueryValue : res->variableQueryValues) {

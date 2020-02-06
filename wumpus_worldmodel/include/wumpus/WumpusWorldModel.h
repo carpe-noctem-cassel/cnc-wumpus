@@ -9,6 +9,7 @@
 #include <supplementary/WorldModel.h>
 #include <wumpus/wm/PlanningModule.h>
 #include <eval/Experiment.h>
+#include <string>
 
 namespace alica
 {
@@ -58,10 +59,17 @@ public:
     void reset();
     std::vector<std::pair<std::string, std::string>> getShotAtFields();
     std::vector<int> getAgentIDsForExperiment(); //TODO move?
+    bool localAgentIsSpawnRequestHandler();
+
     int getPresetAgentCount();
     bool localAgentExited;
     bool localAgentDied;
-
+    int timeoutDurationSeconds;
+    std::string spawnRequestHandlerRoleName;
+    //maybe rename - remember encodings for which a reset has already been performed
+    std::set<std::string> resettedForEncoding;
+    std::string currentEncoding; //TODO duplicate field
+    std::mutex resetMtx;
 
 private:
     WumpusWorldModel(); /**< Private Singleton Constructor */

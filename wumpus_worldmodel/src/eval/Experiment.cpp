@@ -36,8 +36,9 @@ std::string Experiment::advanceWorld()
     std::cout << "Experiment: Advancing world! " << std::endl;
 
     if (this->currentWorldIdx < this->worlds.size() - 1) {
-        this->run->saveToDiskAndClearResult();
+        //this->run->saveToDiskAndClearResult();
         this->run = std::make_shared<eval::Run>(this->worlds.at(++this->currentWorldIdx)); //FIXME cleaner increasing
+        //FIXME confusing. run is accessed from other places a lot, should be more visible here?
         return this->worlds.at(this->currentWorldIdx);
     }
 

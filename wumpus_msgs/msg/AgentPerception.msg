@@ -1,4 +1,5 @@
 int32 senderID
+string encoding
 int32 turn
 Coordinates initialPosition
 Coordinates position
@@ -9,3 +10,5 @@ bool glitter
 bool arrow
 bool exited
 bool died
+bool exhausted
+Coordinates[] shotAt

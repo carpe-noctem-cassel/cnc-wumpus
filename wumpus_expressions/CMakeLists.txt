@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
     wumpus_worldmodel 
     system_util
     asp_solver_wrapper
+		asp_solver
 		wumpus_msgs
 )
 
@@ -32,6 +33,7 @@ catkin_package(
     wumpus_worldmodel 
     system_util
     asp_solver_wrapper
+		asp_solver
 		wumpus_msgs
   DEPENDS
 )

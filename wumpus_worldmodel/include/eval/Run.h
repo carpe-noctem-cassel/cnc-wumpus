@@ -40,7 +40,9 @@ private:
     std::shared_ptr<eval::Result> currentResult;
     int determineFieldSizeFromFilename(const std::string& filename);
     size_t findFieldsizeEndIdx(const std::string& filename);
+    bool wroteHeader;
 
 
+    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositionsFromEncoding() const;
 };
 }

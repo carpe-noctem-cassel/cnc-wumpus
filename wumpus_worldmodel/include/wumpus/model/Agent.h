@@ -29,6 +29,7 @@ public:
     bool hasGold;
     bool exited;
     bool died;
+    bool exhausted;
     bool replanNecessary;
     int id;
 

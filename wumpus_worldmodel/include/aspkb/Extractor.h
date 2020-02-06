@@ -34,7 +34,6 @@ private:
 
     std::mutex mtx;
 
-    int horizon;
     bool baseRegistered;
 };
 

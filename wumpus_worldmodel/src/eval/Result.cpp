@@ -6,9 +6,11 @@
 namespace eval
 {
 
-
-Result::Result(int agentCount, bool communicationAllowed)
+Result::Result(int agentCount, bool communicationAllowed, std::string worldName, std::string encoding)
         : timeMeasurementStart(nonstd::nullopt)
+        , worldName(worldName)
+        , encoding(encoding)
+        , completionStatus(CompletionStatus::UNDEFINED)
 {
     auto sc = essentials::SystemConfig::getInstance();
     this->agentCount = agentCount;
@@ -81,34 +83,54 @@ void Result::increaseActionsCostCounter(int agentId)
 
 void Result::serialize(const std::string& fileName)
 {
-    std::ofstream fileWriter; //TODO extract
-    fileWriter.open(essentials::FileSystem::combinePaths(this->resultsDirectory, fileName), std::ios_base::app);
-    fileWriter << std::fixed; // << "\t";
-    fileWriter << this->worldName;
-    fileWriter << "\t" << this->agentCount;
-    fileWriter << "\t" << this->communicationAllowed;
-    fileWriter << "\t" << this->duration->inSeconds();
-    fileWriter << "\t" << this->completionStatus;
-    fileWriter << "\t" << this->deadCount;
-    fileWriter << "\t" << this->exitedCount;
 
-    //actual result data
+    std::ofstream fileWriter; // TODO extract and only open writer once
+    //fileWriter.open(essentials::FileSystem::combinePaths(this->resultsDirectory, fileName), std::ios_base::app);
+    std::cout << "ResultsDirectory: "  << this->resultsDirectory << std::endl;
+    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+    fileWriter.open(essentials::FileSystem::combinePaths(folder, fileName), std::ios_base::app);
+    std::cout << "writing result to " << essentials::FileSystem::combinePaths(folder, fileName) << std::endl;
 
-    for(const auto& elem : this->actionsCostByAgent) {
-        fileWriter << "\t" << elem.second;
+    //    fileWriter << std::fixed; // << "\t";
+    fileWriter << this->worldName.c_str();
+    fileWriter << "\t";
+    fileWriter << this->encoding; //.c_str();
+    fileWriter << "\t";
+    fileWriter << this->agentCount;
+    fileWriter << "\t";
+    fileWriter << this->communicationAllowed;
+    fileWriter << "\t";
+    fileWriter << this->duration->inMilliseconds();
+    fileWriter << "\t";
+    fileWriter << this->completionStatus;
+    fileWriter << "\t";
+    fileWriter << this->died.size();
+    fileWriter << "\t";
+    fileWriter << this->exited.size();
+
+    // actual result data
+
+    for (const auto& elem : this->actionsCostByAgent) {
+        fileWriter << "\t";
+        fileWriter << elem.second;
     }
     fileWriter << std::endl;
+    fileWriter.close();
 }
 
-void Result::writeHeader(const std::string& fileName) {
+void Result::writeHeader(const std::string& fileName)
+{
     std::ofstream fileWriter;
-    fileWriter.open(essentials::FileSystem::combinePaths(this->resultsDirectory, fileName), std::ios_base::app);
-    fileWriter << std::fixed; // << "\t";
-    //csv header
-    fileWriter << "World\tAgentCount\tCommunicationAllowed\tTimeElapsed\tCompletionStatus\tDeadCount\tExitedCount";
-    for(const auto& agentIdCostPair : this->actionsCostByAgent) {
-        fileWriter << "\tScoreAgent" << agentIdCostPair.first;
+    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+    fileWriter.open(essentials::FileSystem::combinePaths(folder, fileName), std::ios_base::app);
+    //    fileWriter << std::fixed; // << "\t";
+    // csv header
+    fileWriter << "World\tEncoding\tAgentCount\tCommunicationAllowed\tTimeElapsed\tCompletionStatus\tDeadCount\tExitedCount";
+    for (const auto& agentIdCostPair : this->actionsCostByAgent) {
+        fileWriter << "\tScoreAgent";
+        fileWriter << agentIdCostPair.first;
     }
     fileWriter << std::endl;
+    fileWriter.close();
 }
 }

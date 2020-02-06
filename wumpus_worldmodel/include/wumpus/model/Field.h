@@ -22,12 +22,14 @@ public:
     void updateDrafty(bool drafty);
     void updateStinky(bool stinky);
     void updateVisited(bool visited);
+    void updateShotAt(bool shotAt);
     int x;
     int y;
     bool stinky;
     bool drafty;
     bool shiny;
     bool visited;
+    bool shotAt;
 };
 
 } /* namespace wm */

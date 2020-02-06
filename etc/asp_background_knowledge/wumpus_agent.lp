@@ -8,3 +8,4 @@ agent(id).
 #external me(id).
 #external objective(A,O) : agent(A), possibleObjective(O).
 #external arrow(A) : agent(A).
+#external exhausted(A) : agent(A).

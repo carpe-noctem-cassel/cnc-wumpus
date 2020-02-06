@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <memory>
 #include <mutex>
 #include <engine/AlicaClock.h>
@@ -26,7 +27,7 @@ namespace eval
 class Result
 {
 public:
-    Result(int agentCount, bool communicationAllowed);
+    Result(int agentCount, bool communicationAllowed, std::string worldName, std::string encoding);
     ~Result();
 
 
@@ -36,6 +37,8 @@ public:
     void increaseActionsCostCounter(int agentId);
     void serialize(const std::string& fileName);
     void writeHeader(const std::string& fileName);
+    void registerExited(int agentId);
+    void registerDied(int agentId);
 
 //private: TODO fix accessibility after testing
     nonstd::optional<alica::AlicaTime> timeMeasurementStart;
@@ -48,9 +51,13 @@ public:
     std::string worldName;
     int agentCount; //TODO cleanup/friend? - some of these fields are duplicate among classes
     bool communicationAllowed;
-    int exitedCount;
-    int deadCount;
     eval::CompletionStatus completionStatus;
+    std::string encoding;
+    std::set<int> exited;
+    std::set<int> died;
+
+    //TODO what's with the weird values written to the result file?
+    std::mutex resultMtx;
 
 };
 }

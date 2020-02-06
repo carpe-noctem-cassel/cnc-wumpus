@@ -45,6 +45,13 @@ void PerformAction::run(void* msg)
         perception.senderID = ownId;
         perception.exited = this->wm->localAgentExited;
         perception.died = this->wm->localAgentDied;
+        perception.exhausted = this->wm->playground->getAgentById(ownId)->exhausted;
+        for(auto field : this->wm->getShotAtFields()) {
+            wumpus_msgs::Coordinates coordinates;
+            coordinates.x = std::stoi(field.first); //FIXME types
+            coordinates.y= std::stoi(field.second);
+            perception.shotAt.push_back(coordinates);
+        }
         send(perception);
         //            return;
     }
@@ -86,9 +93,8 @@ void PerformAction::run(void* msg)
 
     // TODO remove
     // sleep(0.3);
-
+    std::cout << "################WUMPUSEX: START PLANNING!" << std::endl;
     this->currentActionSequence = this->wm->planningModule->processNextActionRequest(me).second;
-
     this->executeNextAction();
     this->wm->wumpusSimData.setIntegratedFromSimulator(false);
     this->wm->wumpusSimData.resetIntegratedFromAgents();
@@ -119,7 +125,7 @@ void PerformAction::executeNextAction()
                     essentials::SystemConfig::getOwnRobotID()); // TODO rename result class?
         }
 
-        //            std::cout << "PERFORM ACTION: " << req.action << std::endl;
+                    std::cout << "PERFORM ACTION: " << req.action << std::endl;
         send(req);
         this->currentActionSequence.erase(action);
         if (req.action == WumpusEnums::actions::shoot) {

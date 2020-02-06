@@ -13,7 +13,8 @@ enum Objective
     HUNT_WUMPUS,
     SHOOT,
     GO_HOME,
-    LEAVE
+    LEAVE,
+    IDLE
 };
 }
 }

@@ -1,11 +1,14 @@
+#pragma once
+
 namespace eval
 {
 
 enum CompletionStatus
 {
     UNDEFINED,
-    EXITED,
-    DIED,
+    REJECTED,
+    SUCCESS,
+    FAILURE,
     TIMEOUT
 };
 
@@ -14,9 +17,11 @@ inline std::ostream& operator<<(std::ostream& str, CompletionStatus completionSt
     switch (completionStatus) {
     case UNDEFINED:
         return str << "UNDEFINED";
-    case EXITED:
+    case REJECTED:
+        return str << "REJECTED";
+    case SUCCESS:
         return str << "EXITED";
-    case DIED:
+    case FAILURE:
         return str << "DIED";
     case TIMEOUT:
         return str << "TIMEOUT";
