@@ -42,9 +42,8 @@ private:
     //all agents who ever participated in the experiment
     std::map<int, std::shared_ptr<wumpus::model::Agent>> agentsForExperiment;
     std::map<std::pair<int, int>, std::shared_ptr<wumpus::model::Field>> fields;
-    std::mutex agentMtx;
-    std::mutex fieldMtx;
-    std::mutex turnMtx;
+    static std::mutex agentMtx;
+    static std::mutex fieldMtx;
 };
 
 } /* namespace model */

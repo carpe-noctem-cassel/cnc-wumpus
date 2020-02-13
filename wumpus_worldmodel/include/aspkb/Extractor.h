@@ -32,7 +32,7 @@ private:
 
     std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; //TODO make list and imply ordering by horizon?
 
-    std::mutex mtx;
+    static std::mutex mtx;
 
     bool baseRegistered;
 };

@@ -75,7 +75,7 @@ void Agent::updatePosition(std::shared_ptr<wumpus::model::Field> field)
     }
 
     if (this->moveGoal && field == this->moveGoal) {
-        //std::cout << "GOAL REACHED!!!" << std::endl;
+        std::cout << "GOAL REACHED!!!" << std::endl;
         this->ch->handleGoalReached(this->id);
         this->moveGoal.reset();
     }

@@ -1,7 +1,6 @@
 #include "wumpus/model/Playground.h"
 #include "wumpus/model/Agent.h"
 #include "wumpus/model/Field.h"
-#include <iostream>
 #include <nonstd/optional.hpp>
 #include <wumpus/WumpusWorldModel.h>
 
@@ -9,6 +8,9 @@ namespace wumpus
 {
 namespace model
 {
+
+std::mutex Playground::agentMtx;
+std::mutex Playground::fieldMtx;
 
 Playground::Playground(wumpus::wm::ChangeHandler* ch)
         : DomainElement(ch)
@@ -116,7 +118,7 @@ nonstd::optional<int> Playground::getOwnAgentIndex()
 {
     std::lock_guard<std::mutex> lock(this->agentMtx);
     auto ids = wumpus::WumpusWorldModel::getInstance()->getAgentIDsForExperiment();
-//    std::cout << "ids: " << ids.size() << std::endl;
+    //    std::cout << "ids: " << ids.size() << std::endl;
     for (int i = 0; i < ids.size(); ++i) {
         auto agent = ids.at(i);
         if (agent == essentials::SystemConfig::getOwnRobotID()) {

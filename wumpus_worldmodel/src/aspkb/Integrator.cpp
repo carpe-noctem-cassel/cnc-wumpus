@@ -9,13 +9,16 @@
 namespace aspkb
 {
 
-Integrator::Integrator() : isIntegrating(false)
+std::mutex Integrator::mtx;
+std::mutex Integrator::integratingMtx;
+Integrator::Integrator()
+        : isIntegrating(false)
 {
     std::cout << "Creating Integrator" << std::endl;
     this->solver = TermManager::getInstance().getSolver();
     std::cout << "Created Integrator" << std::endl;
 }
-//TODO rework strategies
+// TODO rework strategies
 bool Integrator::integrateInformationAsExternal(std::string value, const std::string& identifier, bool truthValue, Strategy strategy = Strategy::INSERT_TRUE)
 {
     this->setIsIntegrating(true);
@@ -28,14 +31,14 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
         auto ext = term->getExternals();
         bool found = false;
         for (auto& e : *ext) {
-            //std::cout << "EXTERNAL: " << e.first << std::endl;
+            // std::cout << "EXTERNAL: " << e.first << std::endl;
             if (strategy == Strategy::FALSIFY_OLD_VALUES && e.second) {
                 e.second = false;
             }
             if (e.first == value) {
                 found = true;
                 if (e.second != truthValue) {
-//                    std::cout << "changed " << value << " s truth value" << std::endl;
+                    //                    std::cout << "changed " << value << " s truth value" << std::endl;
                     e.second = truthValue;
                     changed = true;
                 }
@@ -43,7 +46,7 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
         }
         if (!found && !value.empty()) {
             ext->emplace(value, truthValue);
-//            std::cout << "couldn't find " << value << "so it was added" << std::endl;
+            //            std::cout << "couldn't find " << value << "so it was added" << std::endl;
             changed = true;
         }
     } else {
@@ -51,11 +54,11 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
         term->setType(::reasoner::asp::QueryType::Extension);
         if (!value.empty()) {
             auto externals = term->getExternals();
-//            std::cout << "registered new query with identifier " << identifier << std::endl;
+            //            std::cout << "registered new query with identifier " << identifier << std::endl;
             changed = true;
             externals->emplace(value, true);
         }
-//        std::cout << "integrator: making extension query!" << std::endl;
+        //        std::cout << "integrator: making extension query!" << std::endl;
         auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
         this->solver->registerQuery(query);
         this->identifierQueryMap.emplace(identifier, query);
@@ -82,14 +85,15 @@ void Integrator::integrateAsTermWithProgramSection(
     this->setIsIntegrating(false);
 }
 
-bool Integrator::getIsIntegrating() {
+bool Integrator::getIsIntegrating()
+{
     return this->isIntegrating;
 }
 
-void Integrator::setIsIntegrating(bool integrating) {
+void Integrator::setIsIntegrating(bool integrating)
+{
     std::lock_guard<std::mutex> lock(this->integratingMtx);
     this->isIntegrating = integrating;
-
 }
 
 } /* namespace aspkb */

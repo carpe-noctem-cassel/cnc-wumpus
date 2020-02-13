@@ -11,6 +11,7 @@ TermManager& TermManager::getInstance()
     return instance;
 }
 
+std::mutex TermManager::mtx;
 /**
  * Creates and saves a Term pointer with id, queryId, externals and default lifetime of -1
  * @return Pointer to new term

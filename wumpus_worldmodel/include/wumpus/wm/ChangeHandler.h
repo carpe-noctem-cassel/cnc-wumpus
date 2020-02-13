@@ -59,7 +59,6 @@ private:
     wumpus::WumpusWorldModel* wm;
     aspkb::Integrator* integrator;
 
-    std::mutex mtx;
 };
 
 } /*namespace wm */

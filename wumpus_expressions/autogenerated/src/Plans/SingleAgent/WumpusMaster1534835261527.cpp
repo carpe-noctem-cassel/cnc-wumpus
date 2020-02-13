@@ -103,6 +103,7 @@ bool TransitionCondition1574259998405::evaluate(shared_ptr<RunningPlan> rp)
     /*PROTECTED REGION ID(1574259996673) ENABLED START*/
     auto timeout = (rp->getAlicaEngine()->getAlicaClock()->now().inSeconds() - rp->getStateStartTime().inSeconds()) > this->wm->timeoutDurationSeconds;
     if(timeout) {
+        std::cout << "TIMEOUT!!!" << std::endl;
         return true;
     }
 

@@ -31,8 +31,8 @@ private:
 
     bool isIntegrating;
 
-    std::mutex mtx;
-    std::mutex integratingMtx;
+    static std::mutex mtx;
+    static std::mutex integratingMtx;
 };
 
 } /* namespace aspkb */

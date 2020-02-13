@@ -45,6 +45,6 @@ private:
     std::vector<::reasoner::asp::Term*> managedTerms;
     std::map<std::string, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> reusableQueries;
     ::reasoner::asp::Solver* solver;
-    std::mutex mtx;
+    static std::mutex mtx;
 };
 }

@@ -8,6 +8,7 @@
 
 namespace aspkb
 {
+std::mutex Extractor::mtx;
 
 Extractor::Extractor()
 {
@@ -17,7 +18,8 @@ Extractor::Extractor()
     std::cout << "Created Ext" << std::endl;
 }
 
-Extractor::~Extractor() {
+Extractor::~Extractor()
+{
     std::cout << "Deleting Extractor" << std::endl;
     reasoner::asp::IncrementalExtensionQuery::clear();
     std::cout << "Deleted Extractor" << std::endl;
@@ -35,7 +37,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
 
-//    std::lock_guard<std::mutex> lock(mtx);
+    //    std::lock_guard<std::mutex> lock(mtx);
     int horizon = 1;
 
     std::cout << "Constructing base term" << std::endl;
@@ -79,26 +81,24 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         }
 
         // experimenting with check term
-        //todo make reusable
+        // todo make reusable
         auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
         terms.push_back(checkTerm);
 
-//        if(horizon > 1) { //TODO lifetime? whose responsibility is it to reactivate queries?
-//            this->checkQueries.at(horizon-1)->removeExternal();
-//        }
+        //        if(horizon > 1) { //TODO lifetime? whose responsibility is it to reactivate queries?
+        //            this->checkQueries.at(horizon-1)->removeExternal();
+        //        }
 
-//         if(this->checkQueries.find(horizon) != this->checkQueries.end()) {
-//            std::cout << "reactivating with id " << horizon << std::endl;
-//            this->checkQueries.at(horizon)->reactivate();
-//        } else {
-//            std::cout << "registering check term for horizon" << horizon << std::endl;
-//            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
-//            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
-//            this->solver->registerQuery(checkQuery);
-//            this->checkQueries.emplace(horizon,checkQuery);
-//        }
-
-
+        //         if(this->checkQueries.find(horizon) != this->checkQueries.end()) {
+        //            std::cout << "reactivating with id " << horizon << std::endl;
+        //            this->checkQueries.at(horizon)->reactivate();
+        //        } else {
+        //            std::cout << "registering check term for horizon" << horizon << std::endl;
+        //            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+        //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
+        //            this->solver->registerQuery(checkQuery);
+        //            this->checkQueries.emplace(horizon,checkQuery);
+        //        }
 
         // Create Term belonging to a FilterQuery to be part of the terms in the getSolution call
 
@@ -109,9 +109,9 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 inquiryTerm->setType(::reasoner::asp::QueryType::Filter);
                 // wrap query rule to match extension query
                 auto wrappedQueryRule = std::string("incquery") + std::to_string(j) + "(" + inquiry + ")";
-//                std::cout << "adding inquiry term" << std::endl;
+                //                std::cout << "adding inquiry term" << std::endl;
                 inquiryTerm->setQueryRule(wrappedQueryRule);
-//                std::cout << "inquiry - 2 " << std::endl;
+                //                std::cout << "inquiry - 2 " << std::endl;
                 terms.push_back(inquiryTerm);
             }
         }
@@ -119,20 +119,18 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         // add terms to terms passed in getSolution
         std::cout << "call getSolution" << std::endl;
         sat = this->solver->getSolution(vars, terms, results);
-                std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
+        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
-
-
     }
 
     reasoner::asp::IncrementalExtensionQuery::cleanUp();
 
-    //new run should start without active step queries
-//        if(sat) {
-//            for(auto query : this->checkQueries) {
-//                query.second->removeExternal();
-//            }
-//        }
+    // new run should start without active step queries
+    //        if(sat) {
+    //            for(auto query : this->checkQueries) {
+    //                query.second->removeExternal();
+    //            }
+    //        }
 
     // TODO something is buggy here (way too many result entries)
 
@@ -142,7 +140,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 if (std::find(ret.begin(), ret.end(), elem) == ret.end()) {
                     //                        std::cout << "ADDING ELEMENT: " << elem << std::endl;
                     ret.push_back(elem);
-//                    std::cout << "ELEM: " << elem << std::endl;
+                    //                    std::cout << "ELEM: " << elem << std::endl;
                 }
             }
         }
@@ -163,7 +161,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
 
-//    std::lock_guard<std::mutex> lock(mtx);
+    //    std::lock_guard<std::mutex> lock(mtx);
     int id = TermManager::getInstance().activateReusableExtensionQuery(queryIdentifier, additionalRules);
 
     // TODO make reusable as well
@@ -177,13 +175,12 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         terms.push_back(inquiryTerm);
     }
     auto sat = this->solver->getSolution(vars, terms, results);
-        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
+    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
 
     for (auto res : results) {
         for (auto& varQueryValue : res->variableQueryValues) {
             for (const auto& elem : varQueryValue) {
                 ret.push_back(elem);
-
             }
         }
     }
