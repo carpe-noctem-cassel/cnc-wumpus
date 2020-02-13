@@ -6,13 +6,15 @@ namespace model
 
 Field::Field(wumpus::wm::ChangeHandler* ch, int x, int y)
         : DomainElement(ch)
+        , x(x)
+        , y(y)
+        , explored(false)
+        , visited(false)
+        , shiny(false)
+        , drafty(false)
+        , stinky(false)
+        , shotAt(false)
 {
-    this->x = x;
-    this->y = y;
-    this->visited = false;
-    this->shiny = false;
-    this->drafty = false;
-    this->stinky = false;
 }
 
 void Field::updateShiny(bool shiny)
@@ -39,15 +41,24 @@ void Field::updateStinky(bool stinky)
     }
 }
 
-void Field::updateVisited(bool visited) {
-    if(this->visited != visited) {
+void Field::updateVisited(bool visited)
+{
+    if (this->visited != visited) {
         this->visited = visited;
         this->ch->handleChangedVisited(shared_from_this());
     }
 }
 
-void Field::updateShotAt(bool shotAt) {
-    if(this->shotAt != shotAt) {
+void Field::updateExplored(bool explored)
+{
+    if(this->explored != explored) {
+        this->explored = explored;
+        this->ch->handleChangedExplored(shared_from_this());
+    }
+}
+void Field::updateShotAt(bool shotAt)
+{
+    if (this->shotAt != shotAt) {
         this->shotAt = shotAt;
         this->ch->handleChangedShotAt(shared_from_this());
     }

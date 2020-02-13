@@ -175,17 +175,12 @@ void ChangeHandler::handleGoalReached(int id)
     this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
 }
 
-void ChangeHandler::clearBlacklist()
-{
-    this->integrator->integrateInformationAsExternal("", "blacklist", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-}
-
 void ChangeHandler::handleChangedVisited(std::shared_ptr<wumpus::model::Field> field)
 {
     if (this->integrator->integrateInformationAsExternal(
                 "visited(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "visited", true, aspkb::Strategy::INSERT_TRUE)) {
 
-        // unsafe moves are no longer allowed when an unvisited field has been vistied
+        // unsafe moves are no longer allowed when an unvisited field has been vistied TODO only when own agent explored it?
         this->wm->changeHandler->integrator->integrateInformationAsExternal("", "unsafeMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     }
 }
@@ -196,6 +191,12 @@ void ChangeHandler::handleChangedShotAt(std::shared_ptr<wumpus::model::Field> fi
 
         this->wm->changeHandler->integrator->integrateInformationAsExternal("", "unsafeMoves", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     }
+}
+
+void ChangeHandler::handleChangedExplored(std::shared_ptr<wumpus::model::Field> field)
+{
+    this->integrator->integrateInformationAsExternal(
+            "explored(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "explored", true, aspkb::Strategy::INSERT_TRUE);
 }
 
 // RESET GOAL
@@ -212,7 +213,7 @@ void ChangeHandler::handleScream()
         for (auto affected : this->wm->playground->getAdjacentFields(std::stoi(shotAt.first), std::stoi(shotAt.second))) {
             std::cout << "affected: " << affected->x << ", " << affected->y << std::endl;
             std::stringstream ss;
-            ss << "visited(" << affected->x << "," << affected->y << ")";
+            ss << "explored(" << affected->x << "," << affected->y << ")";
             this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "visited", false, aspkb::Strategy::INSERT_TRUE);
             std::cout << "setting " << affected->x << ", " << affected->y << "to unvisited" << std::endl;
             this->wm->playground->getField(affected->x, affected->y)->updateVisited(false);
@@ -237,7 +238,8 @@ void ChangeHandler::handleTurn(long turn)
     // TODO necessary?
 }
 
-bool ChangeHandler::getIsIntegrating() {
+bool ChangeHandler::getIsIntegrating()
+{
     return this->integrator->getIsIntegrating();
 }
 

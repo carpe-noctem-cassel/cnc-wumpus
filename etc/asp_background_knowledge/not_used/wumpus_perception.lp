@@ -1,6 +1,7 @@
 #program wumpus_perception.
 
 #external visited(X,Y) : field(X,Y).
+#external explored(X,Y) : field(X,Y).
 #external glitter(X,Y) : field(X,Y).
 
 #external goal(A,X,Y) : field(X,Y), agent(A).

@@ -95,8 +95,8 @@ bool WumpusSimData::getIntegratedFromSimulator()
 void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse)
 {
     // FIXME process one message at a time for now - clingo keeps crashing
-    std::lock_guard<std::mutex> lock(this->respMtx);
-    // reject msgs which aren't meant for me
+//    std::lock_guard<std::mutex> lock(this->respMtx);
+    // ignore msgs which aren't meant for me
     if (actionResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
         if (this->turn > 0) {
             auto id = this->wm->getEngine()->getTeamManager()->getLocalAgentID();
@@ -152,6 +152,7 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
     field->updateDrafty(responsesContain(actionResponse->responses, WumpusEnums::drafty));
     field->updateShiny(responsesContain(actionResponse->responses, WumpusEnums::shiny));
     field->updateStinky(responsesContain(actionResponse->responses, WumpusEnums::stinky));
+    field->updateExplored(true);
     field->updateVisited(true);
 
     if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
@@ -281,7 +282,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
             field->updateDrafty(agentPerception->drafty);
             field->updateShiny(agentPerception->glitter);
             field->updateStinky(agentPerception->stinky);
-            field->updateVisited(true);
+            field->updateExplored(true);
         } else {
             std::cout << "WumpusSimData: No field with given coordinates! " << std::endl;
         }

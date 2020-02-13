@@ -5,6 +5,7 @@
 #external goal(X,Y) : field(X,Y).
 #external initial(X,Y) : field(X,Y).
 #external visited(X,Y) : field(X,Y).
+#external explored(X,Y) : field(X,Y).
 #external glitter(X,Y) : field(X,Y).
 #external drafty(X,Y) : field(X,Y).
 #external stinky(X,Y) : field(X,Y).

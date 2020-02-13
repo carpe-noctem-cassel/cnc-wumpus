@@ -35,8 +35,8 @@ movedInDanger(A) :- wumpus(X,Y) , holds(on(X,Y),_), agent(A).
 movedInDanger(A) :- trap(X,Y) , holds(on(X,Y),_), agent(A).
 :- not unsafeMovesAllowed, movedInDanger(A), me(A).
 
-endsOnVisited :- visited(X,Y), holds(on(X,Y),n).
-:- not goal(_,_), endsOnVisited.
+endsOnExplored :- explored(X,Y), holds(on(X,Y),n).
+:- not goal(_,_), endsOnExplored.
 
 wrongHeading :- goalHeading(A), holds(heading(B),n), A!=B.
 :- wrongHeading.

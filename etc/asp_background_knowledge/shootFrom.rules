@@ -4,7 +4,7 @@ fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,2), Y=B, X > A.
 fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,3), X=A, Y > B.
 
 wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpus(X,Y)
-blockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not visited(A,B).
+blockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B).
 wumpusUtil(N) :- N = #count{1,C,D : wumpusAhead(C,D), blockingWumpus(C,D)}.
 {target(X,Y,D) : field(X,Y), visited(X,Y), not wumpus(X,Y), not trap(X,Y), direction(D)} = 1.
 

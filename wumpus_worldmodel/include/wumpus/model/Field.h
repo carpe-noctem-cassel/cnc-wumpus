@@ -23,12 +23,14 @@ public:
     void updateStinky(bool stinky);
     void updateVisited(bool visited);
     void updateShotAt(bool shotAt);
+    void updateExplored(bool explored);
     int x;
     int y;
     bool stinky;
     bool drafty;
     bool shiny;
     bool visited;
+    bool explored;
     bool shotAt;
 };
 

@@ -5,5 +5,5 @@
 %%when a field is drafty, a trap can be at the neighbor fields
 trap(X,Y) :- fieldAdjacent(A,B,X,Y), drafty(A,B), not withoutTrap(X,Y).
 %%if a field is known not to be drafty, there are no adjacent traps.
-withoutTrap(X,Y) :- fieldAdjacent(A,B,X,Y), visited(A,B), not drafty(A,B).
-withoutTrap(X,Y) :- visited(X,Y).
+withoutTrap(X,Y) :- fieldAdjacent(A,B,X,Y), explored(A,B), not drafty(A,B).
+withoutTrap(X,Y) :- explored(X,Y).

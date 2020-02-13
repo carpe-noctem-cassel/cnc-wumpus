@@ -71,7 +71,6 @@ void Agent::updatePosition(std::shared_ptr<wumpus::model::Field> field)
     if (!this->currentPosition || field != this->currentPosition) {
         this->currentPosition = field;
         this->ch->handleChangedPosition(field);
-        this->ch->clearBlacklist();
     }
 
     if (this->moveGoal && field == this->moveGoal) {

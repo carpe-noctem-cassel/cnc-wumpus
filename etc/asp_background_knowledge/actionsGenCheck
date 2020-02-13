@@ -6,10 +6,10 @@ notMoved(t) :- incquery(holds(on(A,B),t)) , incquery(holds(on(A,B),0)).
 movedInDanger(t) :- wumpus(X,Y) , incquery(holds(on(X,Y),t)).
 movedInDanger(t) :- trap(X,Y) , incquery(holds(on(X,Y),t)).
 
-endsOnVisited(t) :- visited(X,Y), incquery(holds(on(X,Y),t)).
-:- not goal(_,_), endsOnVisited(t).
+endsOnExplored(t) :- explored(X,Y), incquery(holds(on(X,Y),t)).
+:- not goal(_,_), endsOnExplored(t).
 % Fix for underscores
-%:- endsOnVisited(t) , #count{1,X,Y : goal(X,Y)} = 0.
+%:- endsOnExplored(t) , #count{1,X,Y : goal(X,Y)} = 0.
 
 wrongHeading(t) :- goalHeading(A), incquery(holds(heading(B),t)), A!=B.
 :- wrongHeading(t).
