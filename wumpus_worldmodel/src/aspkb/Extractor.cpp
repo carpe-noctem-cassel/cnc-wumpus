@@ -37,19 +37,18 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
 
-    //    std::lock_guard<std::mutex> lock(mtx);
     int horizon = 1;
-
-
 
     // add terms to terms passed in getSolution
     int attempts = 0;
+
     while (!sat && horizon <= maxHorizon) {
+        std::lock_guard<std::mutex> lock(TermManager::queryMtx);
+        auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
         attempts++;
         terms.clear();
         if (!baseRegistered) { // fixme register in query by hand. make removable or not?
-            std::cout << "Constructing base term" << std::endl;
-
+            std::cout << "Constructing base term!" << std::endl;
             auto baseTerm = TermManager::getInstance().requestTerm();
             baseTerm->setLifeTime(-1);
             baseTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
@@ -66,6 +65,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
             std::cout << "Done activating" << std::endl;
 
         } else {
+
             std::cout << "new step term" << std::endl;
             auto stepTerm = TermManager::getInstance().requestTerm();
             stepTerm->setLifeTime(-1);
@@ -78,28 +78,56 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
             stepTerm->addRule("{occurs(A,t-1) : moveAction(A)} = 1.");
 
             terms.push_back(stepTerm);
-            std::cout << "added step term" << std::endl;
+            std::cout << "added step term for horizon " << horizon << std::endl;
         }
 
         // experimenting with check term
         // todo make reusable
-        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
-        terms.push_back(checkTerm);
+//        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+//        terms.push_back(checkTerm);
 
         //        if(horizon > 1) { //TODO lifetime? whose responsibility is it to reactivate queries?
         //            this->checkQueries.at(horizon-1)->removeExternal();
         //        }
 
         //         if(this->checkQueries.find(horizon) != this->checkQueries.end()) {
-        //            std::cout << "reactivating with id " << horizon << std::endl;
-        //            this->checkQueries.at(horizon)->reactivate();
-        //        } else {
-        //            std::cout << "registering check term for horizon" << horizon << std::endl;
-        //            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
-        //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
-        //            this->solver->registerQuery(checkQuery);
-        //            this->checkQueries.emplace(horizon,checkQuery);
-        //        }
+        //        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+        //        terms.push_back(checkTerm);
+
+        // FIXME this is not working because of the order of grounding...
+        if (horizon > 1) {
+            std::cout << "Horizon is greater than 1" << std::endl;
+            for (const auto& query : registeredQueries) {
+                std::cout << "Last checkTerm id is: " << this->checkTerms.at(horizon - 1)->getQueryId();
+                std::cout << "Current query id is: " << query->getTerm()->getQueryId() << std::endl;
+                if (query->getTerm()->getQueryId() ==
+                        this->checkTerms.at(horizon - 1)->getQueryId()) { // TODO lifetime? whose responsibility is it to reactivate queries?
+                    //                this->checkQueries.at(horizon - 1)->removeExternal();
+                    std::cout << "Deactivating query for last horizon which is " << horizon-1 << std::endl;
+                    query->removeExternal();
+                    break;
+                }
+            }
+        }
+
+        if (this->checkTerms.find(horizon) != this->checkTerms.end()) {
+            for (const auto& query : registeredQueries) {
+                if (query->getTerm()->getQueryId() == this->checkTerms.at(horizon)->getQueryId()) {
+                    std::cout << "reactivating check term with horizon " << horizon << std::endl;
+                    std::dynamic_pointer_cast<::reasoner::asp::ReusableExtensionQuery>(query)->reactivate();
+                    break;
+                }
+            }
+        } else {
+            std::cout << "registering check term for horizon" << horizon << std::endl;
+            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+            terms.push_back(checkTerm);
+            //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
+            //            this->solver->registerQuery(checkQuery);
+            //            this->checkQueries.emplace(horizon, checkQuery);
+            this->checkTerms.emplace(horizon, checkTerm);
+            std::cout << "there are now " << this->checkTerms.size() << " check terms" << std::endl;
+        }
 
         // Create Term belonging to a FilterQuery to be part of the terms in the getSolution call
 
@@ -122,6 +150,19 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         sat = this->solver->getSolution(vars, terms, results);
         std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
+    }
+
+    // FIXME don't forget to remove this if reusable check terms are not working
+    std::lock_guard<std::mutex> lock(TermManager::queryMtx);
+    auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
+    for (const auto& term : this->checkTerms) {
+        for (const auto& query : registeredQueries) {
+            if (query->getTerm()->getQueryId() == term.second->getQueryId()) {
+                std::cout << "Solving done - removing check term with id " << term.second->getQueryId() << std::endl;
+                query->removeExternal();
+                break;
+            }
+        }
     }
 
     reasoner::asp::IncrementalExtensionQuery::cleanUp();

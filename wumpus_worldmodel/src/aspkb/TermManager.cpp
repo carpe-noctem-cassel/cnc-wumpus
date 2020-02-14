@@ -4,7 +4,7 @@
 
 namespace aspkb
 {
-
+std::mutex TermManager::queryMtx;
 TermManager& TermManager::getInstance()
 {
     static TermManager instance;
@@ -92,8 +92,10 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->setExternals(std::make_shared<std::map<std::string, bool>>());
     std::lock_guard<std::mutex> lock(this->mtx);
     this->managedTerms.push_back(checkTerm);
-    checkTerm->setLifeTime(1); // TODO is this correct?
-    checkTerm->setType(reasoner::asp::QueryType::Extension);
+    checkTerm->setLifeTime(-1); // TODO is this correct?
+                                //    checkTerm->setLifeTime(1); // TODO is this correct?
+    checkTerm->setType(reasoner::asp::QueryType::ReusableExtension);
+    //    checkTerm->setType(reasoner::asp::QueryType::Extension);
     checkTerm->addProgramSectionParameter("t", std::to_string(horizon));
     // for (const auto& str : checkRules) {
     auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
@@ -101,7 +103,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                 std::string("(holds(on(A,B),0)).");
     checkTerm->addRule(rule);
     rule = ":- not goal(_,_), notMoved(t).";
-    checkTerm->addRule(rule);
+    checkTerm->addRule(rule); // FIXME comment in
     for (int i = 0; i <= horizon; ++i) {
         rule = "movedInDanger(t) :- wumpus(X,Y) , incquery" + std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
@@ -147,6 +149,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
     checkTerm->addRule(rule);
     checkTerm->addRule("randomQueryFact(t).");
+//    checkTerm->addRule(":- incquery0(holds(on(_,_),0)).");
     return checkTerm;
 }
 

@@ -18,6 +18,8 @@ class TermManager
 public:
     static TermManager& getInstance();
 
+    static std::mutex queryMtx;
+
     ::reasoner::asp::Term* requestTerm();
 
     ::reasoner::asp::Term* requestCheckTerm(int horizon);

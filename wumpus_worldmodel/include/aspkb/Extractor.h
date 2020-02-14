@@ -31,6 +31,7 @@ private:
     ::reasoner::asp::Solver* solver;
 
     std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; //TODO make list and imply ordering by horizon?
+    std::map<int, ::reasoner::asp::Term*> checkTerms;
 
     static std::mutex mtx;
 

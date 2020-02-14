@@ -11,6 +11,7 @@ namespace aspkb
 
 std::mutex Integrator::mtx;
 std::mutex Integrator::integratingMtx;
+
 Integrator::Integrator()
         : isIntegrating(false)
 {
@@ -31,14 +32,14 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
         auto ext = term->getExternals();
         bool found = false;
         for (auto& e : *ext) {
-            // std::cout << "EXTERNAL: " << e.first << std::endl;
+            std::cout << "EXTERNAL: " << e.first << std::endl;
             if (strategy == Strategy::FALSIFY_OLD_VALUES && e.second) {
                 e.second = false;
             }
             if (e.first == value) {
                 found = true;
                 if (e.second != truthValue) {
-                    //                    std::cout << "changed " << value << " s truth value" << std::endl;
+                    std::cout << "changed " << value << " s truth value" << std::endl;
                     e.second = truthValue;
                     changed = true;
                 }
@@ -46,7 +47,7 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
         }
         if (!found && !value.empty()) {
             ext->emplace(value, truthValue);
-            //            std::cout << "couldn't find " << value << "so it was added" << std::endl;
+            std::cout << "couldn't find " << value << "so it was added" << std::endl;
             changed = true;
         }
     } else {
@@ -59,9 +60,13 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
             externals->emplace(value, true);
         }
         //        std::cout << "integrator: making extension query!" << std::endl;
-        auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
-        this->solver->registerQuery(query);
-        this->identifierQueryMap.emplace(identifier, query);
+        {
+            std::lock_guard<std::mutex> queryLock(TermManager::queryMtx);
+            auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
+            this->solver->registerQuery(query);
+            this->identifierQueryMap.emplace(identifier, query);
+        }
+
     }
     this->setIsIntegrating(false);
     return changed;
@@ -71,7 +76,6 @@ bool Integrator::integrateInformationAsExternal(std::string value, const std::st
 void Integrator::integrateAsTermWithProgramSection(
         const std::string& programSection, const std::pair<std::vector<std::string>, std::vector<std::string>>& programSectionParameters)
 {
-    std::lock_guard<std::mutex> lock(this->mtx);
     this->setIsIntegrating(true);
     ::reasoner::asp::Term* term = TermManager::getInstance().requestTerm();
     term->setBackgroundKnowledgeFilename(programSection);
@@ -80,19 +84,23 @@ void Integrator::integrateAsTermWithProgramSection(
         for (auto param : programSectionParameters.second)
             term->addProgramSectionParameter(representation, param);
     }
-    auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
-    this->solver->registerQuery(query);
+    {
+        std::lock_guard<std::mutex> queryLock(TermManager::queryMtx);
+        auto query = std::make_shared<::reasoner::asp::ExtensionQuery>(solver, term);
+        this->solver->registerQuery(query);
+    }
     this->setIsIntegrating(false);
 }
 
 bool Integrator::getIsIntegrating()
 {
+    std::lock_guard<std::mutex> lock(aspkb::Integrator::integratingMtx);
     return this->isIntegrating;
 }
 
 void Integrator::setIsIntegrating(bool integrating)
 {
-    std::lock_guard<std::mutex> lock(this->integratingMtx);
+    std::lock_guard<std::mutex> lock(aspkb::Integrator::integratingMtx);
     this->isIntegrating = integrating;
 }
 
