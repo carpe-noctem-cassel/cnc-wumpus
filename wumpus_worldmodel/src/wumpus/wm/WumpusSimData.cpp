@@ -73,6 +73,7 @@ void WumpusSimData::processInitialPoseResponse(wumpus_simulator::InitialPoseResp
 
     auto field = this->wm->playground->getField(initialPoseResponse->x, initialPoseResponse->y);
     field->updateVisited(true);
+    field->updateExplored(true);
 
     agent->updatePosition(field);
     agent->updateInitialPosition(field);

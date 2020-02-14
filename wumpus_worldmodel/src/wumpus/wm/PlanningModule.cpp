@@ -192,18 +192,12 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
 }
 
 /**
- *
  * @return String representation of goal predicate
  */
 std::string PlanningModule::determineGoal()
 {
-
     std::string goalQueryHeadValue = "suggestedGoal(wildcard,wildcard)";
 
-    auto paramsPair = std::make_pair<std::string, std::string>("", "");
-    auto params = std::vector<std::string>();
-
-    // auto result = this->extractor->extractTemporaryQueryResult({goalQueryHeadValue}, this->goalGenerationRules, paramsPair);
     auto result = this->extractor->extractReusableTemporaryQueryResult({goalQueryHeadValue}, "goal", this->goalGenerationRules);
     if (!result.empty()) {
         if (result.size() > 1) {
@@ -232,7 +226,7 @@ wumpus::model::Objective PlanningModule::determineObjective()
     // auto sol = this->extractor->extractTemporaryQueryResult({"objective(wildcard)"}, objectiveRules, {});
     auto sol = this->extractor->extractReusableTemporaryQueryResult({"objective(wildcard)"}, "objective", this->objectiveRules);
 
-    if (sol.empty()) {
+    if (sol.empty()) { //FIXME should probably be removed
         std::cout << "Determine Objective: No solution!" << std::endl;
         return wumpus::model::Objective::EXPLORE;
     }

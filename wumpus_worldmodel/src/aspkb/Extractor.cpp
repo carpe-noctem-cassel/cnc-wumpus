@@ -40,14 +40,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     //    std::lock_guard<std::mutex> lock(mtx);
     int horizon = 1;
 
-    std::cout << "Constructing base term" << std::endl;
 
-    auto baseTerm = TermManager::getInstance().requestTerm();
-    baseTerm->setLifeTime(-1);
-    baseTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
-    for (const auto& str : baseRules) {
-        baseTerm->addRule(str);
-    }
 
     // add terms to terms passed in getSolution
     int attempts = 0;
@@ -55,6 +48,14 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         attempts++;
         terms.clear();
         if (!baseRegistered) { // fixme register in query by hand. make removable or not?
+            std::cout << "Constructing base term" << std::endl;
+
+            auto baseTerm = TermManager::getInstance().requestTerm();
+            baseTerm->setLifeTime(-1);
+            baseTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
+            for (const auto& str : baseRules) {
+                baseTerm->addRule(str);
+            }
             terms.push_back(baseTerm);
             baseRegistered = true;
         }

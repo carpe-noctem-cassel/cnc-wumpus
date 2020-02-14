@@ -17,7 +17,7 @@ std::mutex TermManager::mtx;
  * @return Pointer to new term
  */
 ::reasoner::asp::Term* TermManager::requestTerm()
-    {
+{
     auto term = new ::reasoner::asp::Term();
     auto id = solver->getQueryCounter();
     term->setLifeTime(-1);
@@ -56,7 +56,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 {
     int id = -1;
     if (this->reusableQueries.find(identifier) == this->reusableQueries.end()) {
-//        std::cout << "Creating term with identifier " << identifier << std::endl;
+        //        std::cout << "Creating term with identifier " << identifier << std::endl;
         auto term = new reasoner::asp::Term();
         id = solver->getQueryCounter();
         term->setLifeTime(1);
@@ -74,7 +74,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
         this->solver->registerQuery(query);
         this->reusableQueries.emplace(identifier, query);
     } else {
-//        std::cout << "Found identifier " << identifier << std::endl;
+        //        std::cout << "Found identifier " << identifier << std::endl;
         auto query = this->reusableQueries.at(identifier);
         query->reactivate();
         id = query->getTerm()->getId();
@@ -113,14 +113,23 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
     }
-    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; //FIXME check if agent actually shot and possibly revoke
+    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
     checkTerm->addRule(rule);
 
-    rule = " endsOnVisited(t) :- visited(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
+    checkTerm->addRule(rule);
+
+//    rule = " endsOnVisited(t) :- visited(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+//           std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
+//    checkTerm->addRule(rule);
+//    rule = ":- not goal(_,_), endsOnVisited(t).";
+//    checkTerm->addRule(rule);
+
+    rule = " endsOnExplored(t) :- explored(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
-    checkTerm->addRule(rule);
+    checkTerm->addRule(rule); //FIXME evaluate using explored vs visited here
+    rule = ":- not goal(_,_), endsOnExplored(t).";
 
-    rule = ":- not goal(_,_), endsOnVisited(t).";
     checkTerm->addRule(rule);
     rule = "wrongHeading(t) :- goalHeading(A), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(heading(B),t)), A!=B.");
@@ -130,6 +139,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->addRule(rule);
     rule = "notEndsOnGoal(t) :- goal(X,Y), not incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y),t)).");
+
+    //FIXME exploring safe fields close to the (glittering) goal should be more favourable than allowing
 
     checkTerm->addRule(rule);
     rule = ":- notEndsOnGoal(t).";
