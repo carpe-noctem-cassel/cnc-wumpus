@@ -158,7 +158,6 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     for (const auto& term : this->checkTerms) {
         for (const auto& query : registeredQueries) {
             if (query->getTerm()->getQueryId() == term.second->getQueryId()) {
-                std::cout << "Solving done - removing check term with id " << term.second->getQueryId() << std::endl;
                 query->removeExternal();
                 break;
             }
@@ -186,6 +185,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 }
             }
         }
+        delete res;
     }
     return ret;
 }
@@ -203,7 +203,6 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
 
-    //    std::lock_guard<std::mutex> lock(mtx);
     int id = TermManager::getInstance().activateReusableExtensionQuery(queryIdentifier, additionalRules);
 
     // TODO make reusable as well
@@ -225,6 +224,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
                 ret.push_back(elem);
             }
         }
+        delete res;
     }
 
     return ret;

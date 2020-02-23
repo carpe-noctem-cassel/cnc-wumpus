@@ -131,8 +131,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
            std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     checkTerm->addRule(rule); //FIXME evaluate using explored vs visited here
     rule = ":- not goal(_,_), endsOnExplored(t).";
-
     checkTerm->addRule(rule);
+
     rule = "wrongHeading(t) :- goalHeading(A), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(heading(B),t)), A!=B.");
     checkTerm->addRule(rule);
