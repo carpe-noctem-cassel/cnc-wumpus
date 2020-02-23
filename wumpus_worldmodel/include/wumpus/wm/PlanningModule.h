@@ -90,6 +90,13 @@ private:
     bool isPlanning;
 
 
+    bool agentObjectiveRequiresMovement(const std::shared_ptr<wumpus::model::Agent> &agent) const;
+
+    bool agentObjectiveRequiresGoal(const std::shared_ptr<wumpus::model::Agent> &agent) const;
+
+    bool objectiveImpliesSimpleAction(const std::shared_ptr<model::Agent> &agent) const;
+
+    std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> tryGetSafeActions();
 };
 } /*namespace wm */
 } /*namespace wumpus*/

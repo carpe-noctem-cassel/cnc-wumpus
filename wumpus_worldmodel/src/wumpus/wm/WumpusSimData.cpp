@@ -39,7 +39,10 @@ WumpusSimData::WumpusSimData(WumpusWorldModel* wm)
     this->integratedFromSimulatorForTurnNumber = false;
 }
 
-WumpusSimData::~WumpusSimData() = default;
+WumpusSimData::~WumpusSimData() {
+    delete this->actionResponseBuffer;
+    delete this->isMyTurnBuffer;
+}
 
 /**
 * Adds new agent to list of known agents

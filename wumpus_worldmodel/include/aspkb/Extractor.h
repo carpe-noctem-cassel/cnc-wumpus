@@ -17,10 +17,10 @@ public:
 
     ~Extractor();
 
-    void initializeSolver(::reasoner::asp::Solver* solver);
-
-    std::vector<std::string> extractTemporaryQueryResult(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& additionalRules,
-            const std::pair<std::string, std::string>& horizonParam);
+//    void initializeSolver(::reasoner::asp::Solver* solver);
+//
+//    std::vector<std::string> extractTemporaryQueryResult(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& additionalRules,
+//            const std::pair<std::string, std::string>& horizonParam);
 
     std::vector<std::string> extractReusableTemporaryQueryResult(const std::vector<std::string>& inquiryPredicates, const std::string& queryIdentifier, const std::vector<std::string>& additionalRules);
 
@@ -30,9 +30,8 @@ public:
 private:
     ::reasoner::asp::Solver* solver;
 
-    std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; //TODO make list and imply ordering by horizon?
-
-    static std::mutex mtx;
+    //std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; //TODO make list and imply ordering by horizon?
+    std::map<int, ::reasoner::asp::Term*> checkTerms; //TODO make list and imply ordering by horizon?
 
     bool baseRegistered;
 };

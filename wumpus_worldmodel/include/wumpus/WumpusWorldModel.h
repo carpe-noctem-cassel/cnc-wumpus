@@ -61,6 +61,11 @@ public:
     std::vector<int> getAgentIDsForExperiment(); //TODO move?
     bool localAgentIsSpawnRequestHandler();
 
+    void setIsTimeout();
+    bool isTimeout();
+
+    void sendAgentPerception(wumpus_msgs::AgentPerception& msg);
+
     int getPresetAgentCount();
     bool localAgentExited;
     bool localAgentDied;
@@ -76,6 +81,7 @@ private:
     std::string agentName;
     int agentCount;
     std::vector<int> agentIDs;
+    bool isTimedOut;
 };
 
 } /* namespace wumpus */

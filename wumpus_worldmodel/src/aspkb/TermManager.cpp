@@ -12,6 +12,7 @@ TermManager& TermManager::getInstance()
 }
 
 std::mutex TermManager::mtx;
+std::mutex TermManager::queryMtx;
 /**
  * Creates and saves a Term pointer with id, queryId, externals and default lifetime of -1
  * @return Pointer to new term
@@ -92,8 +93,10 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->setExternals(std::make_shared<std::map<std::string, bool>>());
     std::lock_guard<std::mutex> lock(this->mtx);
     this->managedTerms.push_back(checkTerm);
-    checkTerm->setLifeTime(1); // TODO is this correct?
-    checkTerm->setType(reasoner::asp::QueryType::Extension);
+    checkTerm->setLifeTime(-1); // TODO is this correct?
+//    checkTerm->setLifeTime(1); // TODO is this correct?
+//    checkTerm->setType(reasoner::asp::QueryType::Extension);
+    checkTerm->setType(reasoner::asp::QueryType::ReusableExtension);
     checkTerm->addProgramSectionParameter("t", std::to_string(horizon));
     // for (const auto& str : checkRules) {
     auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
@@ -118,6 +121,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
     rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
     checkTerm->addRule(rule);
+    rule = ":- movedInDanger(t), not unsafeMovesAllowed";
+    checkTerm->addRule(rule);
 
 //    rule = " endsOnVisited(t) :- visited(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
 //           std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
@@ -129,8 +134,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
            std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     checkTerm->addRule(rule); //FIXME evaluate using explored vs visited here
     rule = ":- not goal(_,_), endsOnExplored(t).";
-
     checkTerm->addRule(rule);
+
     rule = "wrongHeading(t) :- goalHeading(A), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(heading(B),t)), A!=B.");
     checkTerm->addRule(rule);

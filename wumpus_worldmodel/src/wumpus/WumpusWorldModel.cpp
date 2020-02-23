@@ -3,8 +3,8 @@
 #include "wumpus/wm/ChangeHandler.h"
 #include "wumpus/wm/PlanningModule.h"
 #include <engine/AlicaEngine.h>
-#include <engine/teammanager/TeamManager.h>
 #include <engine/IRoleAssignment.h>
+#include <engine/teammanager/TeamManager.h>
 
 namespace wumpus
 {
@@ -25,6 +25,7 @@ WumpusWorldModel::WumpusWorldModel()
         , experiment(nullptr)
         , localAgentExited(false)
         , localAgentDied(false)
+        , isTimedOut(false)
 
 {
     auto sc = essentials::SystemConfig::getInstance();
@@ -95,7 +96,7 @@ bool WumpusWorldModel::localAgentIsSpawnRequestHandler()
 
 void WumpusWorldModel::reset()
 {
-    std::lock_guard<std::mutex> lock(this->resetMtx); //FIXME
+    std::lock_guard<std::mutex> lock(this->resetMtx); // FIXME
     // delete this->communication;
     std::cout << "Resetting wm!" << std::endl;
     delete this->changeHandler; // FIXME only clear state
@@ -118,7 +119,23 @@ void WumpusWorldModel::reset()
 
     this->resettedForEncoding.emplace(this->currentEncoding);
 
+    this->isTimedOut = false;
 }
 
+void WumpusWorldModel::setIsTimeout()
+{
+    this->isTimedOut = true;
+}
+
+bool WumpusWorldModel::isTimeout()
+{
+    return this->isTimedOut;
+}
+
+void WumpusWorldModel::sendAgentPerception(wumpus_msgs::AgentPerception& msg)
+{
+
+    this->communication->sendAgentPerception(msg);
+}
 
 } /* namespace wumpus */

@@ -38,6 +38,8 @@ public:
     //TODO remove, only to make evaluation easier
     void clear();
 
+    static std::mutex queryMtx;
+
 private:
     TermManager() {}
     ~TermManager();

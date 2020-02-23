@@ -17,7 +17,7 @@ SpawnAgent::SpawnAgent()
         : DomainBehaviour("SpawnAgent")
 {
     /*PROTECTED REGION ID(con1534835348868) ENABLED START*/ // Add additional options here
-    this->multiAgentSpawnResponseSub = n.subscribe("wumpus_simulator/SpawnMultiAgentResponse", 1000, &SpawnAgent::onMultiInitialPoseResponse, (SpawnAgent*) this);
+    this->multiAgentSpawnResponseSub = n.subscribe("wumpus_simulator/SpawnMultiAgentResponse", 10, &SpawnAgent::onMultiInitialPoseResponse, (SpawnAgent*) this);
     std::cout << "SpawnAgent Constructor" << std::endl;
     this->nextStartPositions = std::vector<std::shared_ptr<wumpus::model::Field>>(); // wm->experiment->getCurrentRun()->getNextStartPositions(); //already set
                                                                                      // in initialise parameters

@@ -24,6 +24,9 @@ public:
     alica::AlicaTime getTimeLastSimMsgReceived();
     void sendTimeoutMessage();
 
+//Allow sending perception messages from WM triggered from plan transitions
+void sendAgentPerception(wumpus_msgs::AgentPerception& msg);
+
 private:
     void onInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse);
     void onActionResponse(wumpus_simulator::ActionResponsePtr actionResponse);
@@ -39,8 +42,13 @@ private:
     ros::Subscriber actionResponseSub;
     ros::Subscriber agentPerceptionSub;
 
+    ros::Publisher agentPerceptionPublisher;
     // TODO remove this after debugging. timeout should not even happen
     ros::Publisher timeoutPublisher;
+
+    std::string agentPerceptionTopic;
+
+
 };
 
 } /* namespace wm */
