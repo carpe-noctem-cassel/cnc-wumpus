@@ -48,16 +48,14 @@ public:
     void handleChangedObjective(int id, wumpus::model::Objective objective);
     void handleScream();
     void handleSilence();
-    bool getIsIntegrating();
 
-
+    aspkb::Integrator* integrator;
 
     //allow pm to integrate its results as externals
     friend PlanningModule;
 
 private:
     wumpus::WumpusWorldModel* wm;
-    aspkb::Integrator* integrator;
 
 };
 

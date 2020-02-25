@@ -57,6 +57,7 @@ public:
     wm::Communication* communication;
     eval::Experiment* experiment;
     void reset();
+    void integrateChanges();
     std::vector<std::pair<std::string, std::string>> getShotAtFields();
     std::vector<int> getAgentIDsForExperiment(); //TODO move?
     bool localAgentIsSpawnRequestHandler();

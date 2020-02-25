@@ -3,6 +3,7 @@ using namespace std;
 
 /*PROTECTED REGION ID(inccpp1572878618173) ENABLED START*/ // Add additional includes here
 #include <asp_solver_wrapper/ASPSolverWrapper.h>
+#include <aspkb/Integrator.h>
 #include <aspkb/TermManager.h>
 #include <engine/AlicaEngine.h>
 #include <reasoner/asp/Solver.h>
@@ -55,7 +56,8 @@ void Reset::run(void* msg)
         //        std::cout << "In Reset!" << std::endl;
 
         // if not planning and all info integrated
-        if (!this->wm->planningModule->getIsPlanning() && !this->wm->changeHandler->getIsIntegrating()) {
+        if (!this->wm->planningModule->getIsPlanning()) {
+            std::lock_guard<std::mutex> integrating_lock(aspkb::Integrator::integratingMtx);
             std::cout << "***********Time to reset!" << std::endl;
             auto* solverWrapper = this->getEngine()->getSolver<alica::reasoner::ASPSolverWrapper>();
             solverWrapper->reset();

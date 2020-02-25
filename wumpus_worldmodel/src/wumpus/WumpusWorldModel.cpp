@@ -4,6 +4,7 @@
 #include "wumpus/wm/PlanningModule.h"
 #include <engine/AlicaEngine.h>
 #include <engine/IRoleAssignment.h>
+#include <aspkb/Integrator.h>
 #include <engine/teammanager/TeamManager.h>
 
 namespace wumpus
@@ -136,6 +137,14 @@ void WumpusWorldModel::sendAgentPerception(wumpus_msgs::AgentPerception& msg)
 {
 
     this->communication->sendAgentPerception(msg);
+}
+
+/**
+ * FIXME weird structure because of refactoring...
+ */
+void WumpusWorldModel::integrateChanges()
+{
+    this->changeHandler->integrator->applyChanges();
 }
 
 } /* namespace wumpus */

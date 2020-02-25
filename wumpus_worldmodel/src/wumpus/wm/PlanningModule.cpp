@@ -59,8 +59,7 @@ PlanningModule::~PlanningModule()
 std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextActionRequest(std::shared_ptr<wumpus::model::Agent> agent)
 {
 
-    // TODO FIXME new logic broke this, quick fixed
-
+    this->wm->integrateChanges();
     this->wm->wumpusSimData.setIntegratedFromSimulator(false);
     this->setIsPlanning(true);
 
@@ -75,9 +74,10 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
     this->determineObjective();
     // determine actions
 
-    if ((this->lastPathAndActions.second.empty() && agentObjectiveRequiresMovement(agent))) {
+    if (this->lastPathAndActions.second.empty() && agentObjectiveRequiresMovement(agent)) {
 
         if (agentObjectiveRequiresGoal(agent)) {
+            std::cout << "AGENT OBJECTIVE REQUIRES GOAL" << std::endl;
             goal = this->determineGoal();
         }
         fieldsActionsPair = tryGetSafeActions();
@@ -89,6 +89,10 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
     } else { // lastPathAndActions not empty
 
         if (agent->replanNecessary) {
+            if (agentObjectiveRequiresGoal(agent)) {
+                std::cout << "AGENT OBJECTIVE REQUIRES GOAL" << std::endl;
+                goal = this->determineGoal();
+            }
             fieldsActionsPair = tryGetSafeActions();
         } else {
 
@@ -135,6 +139,7 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
             this->wm->changeHandler->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
             std::cout << "SHOT!" << std::endl;
             this->wm->changeHandler->integrator->integrateInformationAsExternal("shot", "shot", true, aspkb::Strategy::INSERT_TRUE);
+            this->wm->integrateChanges();
         } else if (tmp.find("pickup") != std::string::npos) {
             actionArray[index] = WumpusEnums::pickUpGold;
         } else if (tmp.find("leave") != std::string::npos) {
@@ -176,6 +181,7 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 
                 std::cout << "Wumpus blocks moves!" << std::endl;
                 wm->changeHandler->integrator->integrateInformationAsExternal("wumpusBlocksMoves", "wumpusMoves", true, aspkb::FALSIFY_OLD_VALUES);
+                this->wm->integrateChanges();
                 determineObjective();
                 determinePosToShootFrom();
                 std::cout << "got pos to shoot from!" << std::endl;
@@ -183,12 +189,14 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
                 std::cout << "solved for path and actions " << fieldsActionsPair.second.size() << std::endl;
             } else { // no blocking wumpi found
                 wm->changeHandler->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", true, aspkb::FALSIFY_OLD_VALUES);
+                this->wm->integrateChanges();
                 fieldsActionsPair = determinePathAndActions({}, -1);
             }
         } else {
             // TODO needs to be resetted after actions
             std::cout << "Setting unsafe moves allowed" << std::endl;
             wm->changeHandler->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", true, aspkb::FALSIFY_OLD_VALUES);
+            this->wm->integrateChanges();
             fieldsActionsPair = determinePathAndActions({}, -1);
         }
     }
@@ -213,7 +221,7 @@ std::string PlanningModule::determineGoal()
         auto goal = goalRep.str();
 
         this->wm->changeHandler->integrator->integrateInformationAsExternal(goal, "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-
+        this->wm->integrateChanges();
         return goal;
     }
     return "";
@@ -261,6 +269,7 @@ wumpus::model::Objective PlanningModule::determineObjective()
     //        std::cout << "OBJECTIVE: " << obj << std::endl;
 
     this->wm->playground->getAgentById(essentials::SystemConfig::getInstance()->getOwnRobotID())->updateObjective(obj);
+    this->wm->integrateChanges();
 
     return obj;
     // return wumpus::model::Objective::EXPLORE;
@@ -363,6 +372,8 @@ void PlanningModule::determinePosToShootFrom()
             this->wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt", true, aspkb::Strategy::INSERT_TRUE);
             ss.str("");
         }
+
+        this->wm->integrateChanges();
     } else {
     }
 }

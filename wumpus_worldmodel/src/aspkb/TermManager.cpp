@@ -59,7 +59,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
         //        std::cout << "Creating term with identifier " << identifier << std::endl;
         auto term = new reasoner::asp::Term();
         id = solver->getQueryCounter();
-        term->setLifeTime(1);
+        term->setLifeTime(-1);
         term->setId(id);
         term->setQueryId(id);
         term->setType(reasoner::asp::ReusableExtension);
@@ -115,8 +115,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
     }
-    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
-    checkTerm->addRule(rule);
+//    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
+//    checkTerm->addRule(rule);
 
     rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
     checkTerm->addRule(rule);
@@ -142,7 +142,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     rule = "notEndsOnGoal(t) :- goal(X,Y), not incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y),t)).");
 
-    //FIXME exploring safe fields close to the (glittering) goal should be more favourable than allowing
+    //FIXME exploring safe fields close to the (glittering) goal should be more favourable than allowing unsafe moves
 
     checkTerm->addRule(rule);
     rule = ":- notEndsOnGoal(t).";
