@@ -51,6 +51,9 @@ void Reset::run(void* msg)
         perception.senderID = sc->getOwnRobotID();
         perception.died = this->wm->localAgentDied;
         perception.exited = this->wm->localAgentExited; // FIXME hack
+        if (this->wm->localAgentIsSpawnRequestHandler()) {
+            perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
+        }
         send(perception);
         bool allExitedOrDied = true;
         //        std::cout << "In Reset!" << std::endl;
@@ -65,7 +68,7 @@ void Reset::run(void* msg)
             aspkb::TermManager::getInstance().clear();
             //        std::cout << "Reset: Cleared TermManager" << std::endl;
             aspkb::TermManager::getInstance().initializeSolver(solverWrapper->getSolver());
-//            std::cout << "Reset: Re-Initialized solver for TermManager!" << std::endl;
+            //            std::cout << "Reset: Re-Initialized solver for TermManager!" << std::endl;
             //        std::cout << "Reset: Cleared WorldModel - re-initializing" << std::endl;
             //        this->wm->init();
             //        std::cout << "Reset: Re-Initialized WM" << std::endl;

@@ -1,28 +1,33 @@
 #include "aspkb/Extractor.h"
 #include "aspkb/TermManager.h"
+#include <FileSystem.h>
+#include <engine/AlicaClock.h>
 #include <reasoner/asp/AnnotatedValVec.h>
 #include <reasoner/asp/ExtensionQuery.h>
 #include <reasoner/asp/IncrementalExtensionQuery.h>
 #include <reasoner/asp/Term.h>
 #include <reasoner/asp/Variable.h>
+#include <wumpus/WumpusWorldModel.h>
 
 namespace aspkb
 {
 std::mutex Extractor::mtx;
+bool Extractor::wroteHeaderReusable = false;
+bool Extractor::wroteHeaderIncremental = false;
 
 Extractor::Extractor()
 {
-    std::cout << "Creating Extractor" << std::endl;
     this->solver = TermManager::getInstance().getSolver();
     this->baseRegistered = false;
-    std::cout << "Created Ext" << std::endl;
+    // TODO only for getSolution stats
+    this->resultsDirectory = (*essentials::SystemConfig::getInstance())["WumpusEval"]->get<std::string>("TestRun.resultsDirectory", NULL);
+    this->filenameIncremental = "getSolutionStatsIncremental.csv";
+    this->filenameReusable = "getSolutionStatsReusable.csv";
 }
 
 Extractor::~Extractor()
 {
-    std::cout << "Deleting Extractor" << std::endl;
     reasoner::asp::IncrementalExtensionQuery::clear();
-    std::cout << "Deleted Extractor" << std::endl;
 }
 
 std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& baseRules,
@@ -36,7 +41,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
-
+    alica::AlicaTime timeElapsed = alica::AlicaTime::zero();
     int horizon = 1;
 
     // add terms to terms passed in getSolution
@@ -83,8 +88,8 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
 
         // experimenting with check term
         // todo make reusable
-//        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
-//        terms.push_back(checkTerm);
+        //        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+        //        terms.push_back(checkTerm);
 
         //        if(horizon > 1) { //TODO lifetime? whose responsibility is it to reactivate queries?
         //            this->checkQueries.at(horizon-1)->removeExternal();
@@ -103,7 +108,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
                 if (query->getTerm()->getQueryId() ==
                         this->checkTerms.at(horizon - 1)->getQueryId()) { // TODO lifetime? whose responsibility is it to reactivate queries?
                     //                this->checkQueries.at(horizon - 1)->removeExternal();
-                    std::cout << "Deactivating query for last horizon which is " << horizon-1 << std::endl;
+                    std::cout << "Deactivating query for last horizon which is " << horizon - 1 << std::endl;
                     query->removeExternal();
                     break;
                 }
@@ -147,12 +152,18 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
 
         // add terms to terms passed in getSolution
         std::cout << "call getSolution" << std::endl;
+        auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now();
         sat = this->solver->getSolution(vars, terms, results);
+        auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
+        timeElapsed = timeElapsed + solveTime;
+
         std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
     }
 
-    // FIXME don't forget to remove this if reusable check terms are not working
+    this->writeGetSolutionStatsIncremental(horizon, timeElapsed);
+
+    // FIXME loop in reverse
     std::lock_guard<std::mutex> lock(TermManager::queryMtx);
     auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
     for (const auto& term : this->checkTerms) {
@@ -202,6 +213,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     vars.push_back(tmpVar.get());
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
+    alica::AlicaTime timeElapsed = alica::AlicaTime::zero();
 
     int id = TermManager::getInstance().activateReusableExtensionQuery(queryIdentifier, additionalRules);
 
@@ -215,7 +227,12 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         inquiryTerm->setQueryRule(wrappedQueryRule);
         terms.push_back(inquiryTerm);
     }
+
+    auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now();
     auto sat = this->solver->getSolution(vars, terms, results);
+    auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
+    timeElapsed = timeElapsed + solveTime;
+    this->writeGetSolutionStatsReusable(queryIdentifier,timeElapsed);
     std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
 
     for (auto res : results) {
@@ -228,6 +245,68 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     }
 
     return ret;
+}
+
+void Extractor::writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime timeElapsed)
+{
+    std::ofstream fileWriter;
+    std::string separator = ";";
+    if (!aspkb::Extractor::wroteHeaderIncremental) {
+        this->writeHeader(true);
+    }
+
+    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameIncremental), std::ios_base::app);
+    fileWriter << std::to_string(horizon);
+    fileWriter << separator;
+    fileWriter << timeElapsed; //.inMilliseconds();
+    fileWriter << std::endl;
+    fileWriter.close();
+}
+
+void Extractor::writeGetSolutionStatsReusable(const std::string& queryIdentifier, alica::AlicaTime timeElapsed)
+{
+    std::ofstream fileWriter;
+    std::string separator = ";";
+
+    if (!aspkb::Extractor::wroteHeaderReusable) {
+        this->writeHeader(false);
+    }
+
+    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameReusable), std::ios_base::app);
+
+    fileWriter << queryIdentifier;
+    fileWriter << separator;
+    fileWriter << timeElapsed; //.inSeconds();
+    fileWriter << std::endl;
+    fileWriter.close();
+}
+
+void Extractor::writeHeader(bool incremental)
+{
+    std::ofstream fileWriter;
+    std::string separator = ";";
+    std::string fileName;
+    if (incremental) {
+        fileName = this->filenameIncremental;
+    } else {
+        fileName = this->filenameReusable;
+    }
+
+    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+    fileWriter.open(essentials::FileSystem::combinePaths(folder, fileName), std::ios_base::app);
+
+    fileWriter << (incremental ? "MaxHorizon" : "QueryIdentifier");
+    fileWriter << separator;
+    fileWriter << "TimeElapsed";
+    fileWriter.close();
+
+    if (incremental) {
+        this->wroteHeaderIncremental = true;
+    } else {
+        this->wroteHeaderReusable = true;
+    }
 }
 
 } /* namespace aspkb */

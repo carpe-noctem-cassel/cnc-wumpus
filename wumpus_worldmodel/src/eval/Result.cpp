@@ -11,10 +11,10 @@ Result::Result(int agentCount, bool communicationAllowed, std::string worldName,
         , worldName(worldName)
         , encoding(encoding)
         , completionStatus(CompletionStatus::UNDEFINED)
+        , agentCount(agentCount)
+        , communicationAllowed(communicationAllowed)
 {
     auto sc = essentials::SystemConfig::getInstance();
-    this->agentCount = agentCount;
-    this->communicationAllowed = communicationAllowed;
     this->resultsDirectory = (*sc)["WumpusEval"]->get<std::string>("TestRun.resultsDirectory", NULL);
     this->alicaClock = new alica::AlicaClock();
 }

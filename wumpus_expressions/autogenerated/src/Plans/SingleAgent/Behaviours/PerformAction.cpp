@@ -39,6 +39,9 @@ void PerformAction::run(void* msg)
         coords.x = currentPos->x;
         coords.y = currentPos->y;
         perception.position = coords;
+        if (this->wm->localAgentIsSpawnRequestHandler()) {
+            perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
+        }
         perception.stinky = currentPos->stinky;
         perception.glitter = currentPos->shiny;
         perception.drafty = currentPos->drafty;

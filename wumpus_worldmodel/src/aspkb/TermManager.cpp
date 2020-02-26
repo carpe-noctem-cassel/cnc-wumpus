@@ -115,8 +115,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
     }
-//    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
-//    checkTerm->addRule(rule);
+    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
+    checkTerm->addRule(rule);
 
     rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
     checkTerm->addRule(rule);

@@ -264,6 +264,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
             agent->setDead();
             //            std::cout << "WSD: Agent Dead!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
+            return;
         } else if (agentPerception->exited) {
             agent->setExited();
             //            std::cout << "Agent " << agentPerception->senderID << " exited!" << std::endl;

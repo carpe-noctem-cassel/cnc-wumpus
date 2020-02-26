@@ -89,11 +89,19 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
     } else { // lastPathAndActions not empty
 
         if (agent->replanNecessary) {
-            if (agentObjectiveRequiresGoal(agent)) {
-                std::cout << "AGENT OBJECTIVE REQUIRES GOAL" << std::endl;
-                goal = this->determineGoal();
+            if (agentObjectiveRequiresMovement(agent)) {
+
+                if (agentObjectiveRequiresGoal(agent)) {
+                    std::cout << "AGENT OBJECTIVE REQUIRES GOAL" << std::endl;
+                    goal = this->determineGoal();
+                }
+                fieldsActionsPair = tryGetSafeActions();
+            } else if (objectiveImpliesSimpleAction(agent)) {
+                fieldsActionsPair.second = this->determineActionsNoMovement();
+            } else {
+                std::cout << "Planning module: exhausted options!" << std::endl;
             }
-            fieldsActionsPair = tryGetSafeActions();
+
         } else {
 
             fieldsActionsPair = this->lastPathAndActions;

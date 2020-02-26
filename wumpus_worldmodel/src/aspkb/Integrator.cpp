@@ -46,6 +46,9 @@ void Integrator::integrateInformationAsExternal(
 void Integrator::applyChanges()
 {
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
+    for(auto& ext : *this->changedExternals) {
+        std::cout << "ApplyChanges: " << ext.first << ", " << (ext.second ? "true " : "false") << std::endl;
+    }
     this->solver->handleExternals(this->changedExternals);
     this->changedExternals->clear();
 }

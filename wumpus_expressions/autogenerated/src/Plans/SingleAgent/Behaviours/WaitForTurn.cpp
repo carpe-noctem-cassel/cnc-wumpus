@@ -34,6 +34,9 @@ namespace alica
             perception.senderID = sc->getOwnRobotID();
             perception.died = this->wm->localAgentDied;
             perception.exited = this->wm->localAgentExited;
+            if (this->wm->localAgentIsSpawnRequestHandler()) {
+                perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
+            }
             send(perception);
 
         }
