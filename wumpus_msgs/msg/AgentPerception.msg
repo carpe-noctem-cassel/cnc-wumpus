@@ -10,5 +10,8 @@ bool glitter
 bool arrow
 bool exited
 bool died
+Coordinates diedOn
 bool exhausted
-Coordinates[] shotAt
+Coordinates[] shootingTargets
+bool shot
+Coordinates[] blockingWumpi

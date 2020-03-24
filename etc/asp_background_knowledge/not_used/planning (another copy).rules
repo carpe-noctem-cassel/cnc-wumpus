@@ -24,8 +24,8 @@ holds(heading(X),T+1) :- holds(heading(X),T), not occurs(turnLeft,T), not occurs
 :- occurs(leave,_) , not haveGold(_).
 :- occurs(pickup,_) , not glitter(_,_).
 safe(X,Y) :- field(X,Y), not danger(X,Y).
-danger(X,Y) :- wumpus(X,Y).
-danger(X,Y) :- trap(X,Y).
+danger(X,Y) :- wumpusPossible(X,Y).
+danger(X,Y) :- trapPossible(X,Y).
 
 
 

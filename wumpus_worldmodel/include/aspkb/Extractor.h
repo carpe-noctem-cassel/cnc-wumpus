@@ -34,9 +34,12 @@ private:
 
     void writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime timeElapsed);
     void writeGetSolutionStatsReusable(const std::string& queryIdentifier, alica::AlicaTime timeElapsed);
-    void writeHeader(bool incremental);
+    inline void writeHeader(bool incremental);
 
     static std::mutex mtx;
+
+    static std::mutex incrementalMtx;
+    static std::mutex reusableMtx;
 
     bool baseRegistered;
     std::string resultsDirectory;

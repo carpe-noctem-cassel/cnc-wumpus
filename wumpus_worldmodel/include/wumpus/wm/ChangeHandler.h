@@ -30,13 +30,14 @@ public:
     ChangeHandler(wumpus::WumpusWorldModel* wm);
     virtual ~ChangeHandler();
     void registerNewAgent(int id, bool me);
+    void unregisterAgent(int id);
     void handleChangedPosition(std::shared_ptr<wumpus::model::Field> newPosition);
     void handleChangedHeading(int newHeading);
     void handleChangedArrow(int agentId,bool arrow);
     void handleChangedStench(std::shared_ptr<wumpus::model::Field> field);
     void handleChangedMoveGoal(int id, std::shared_ptr<wumpus::model::Field> goal);
     void handleChangedVisited(std::shared_ptr<wumpus::model::Field> field);
-    void handleChangedShotAt(std::shared_ptr<wumpus::model::Field> field);
+    void handleChangedShotAt(int id, std::shared_ptr<wumpus::model::Field> field);
     void handleChangedExplored(std::shared_ptr<wumpus::model::Field> field);
     void handleTurn(long turn);
     void handleSetInitialPosition(std::shared_ptr<wumpus::model::Field> newPosition);
@@ -45,7 +46,9 @@ public:
     void handleSetGlitter(std::shared_ptr<wumpus::model::Field> field);
     void handleSetFieldSize(int fieldSize);
     void handleGoalReached(int id);
+    void handleChangedExhausted(int id, bool exhausted);
     void handleChangedObjective(int id, wumpus::model::Objective objective);
+    void handleSetDiedOn(std::shared_ptr<wumpus::model::Field> field);
     void handleScream();
     void handleSilence();
 
@@ -54,9 +57,12 @@ public:
     //allow pm to integrate its results as externals
     friend PlanningModule;
 
+    void handleChangedShot(int agentId);
+
 private:
     wumpus::WumpusWorldModel* wm;
 
+    void handleShotAtFields() const;
 };
 
 } /*namespace wm */

@@ -12,6 +12,8 @@
 namespace aspkb
 {
 std::mutex Extractor::mtx;
+std::mutex Extractor::incrementalMtx;
+std::mutex Extractor::reusableMtx;
 bool Extractor::wroteHeaderReusable = false;
 bool Extractor::wroteHeaderIncremental = false;
 
@@ -53,7 +55,6 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         attempts++;
         terms.clear();
         if (!baseRegistered) { // fixme register in query by hand. make removable or not?
-            std::cout << "Constructing base term!" << std::endl;
             auto baseTerm = TermManager::getInstance().requestTerm();
             baseTerm->setLifeTime(-1);
             baseTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
@@ -65,13 +66,10 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         }
 
         if (reasoner::asp::IncrementalExtensionQuery::isPresent(horizon)) {
-            std::cout << "Found query for horizon " << horizon << "- activate" << std::endl;
             reasoner::asp::IncrementalExtensionQuery::activate(horizon);
-            std::cout << "Done activating" << std::endl;
 
         } else {
 
-            std::cout << "new step term" << std::endl;
             auto stepTerm = TermManager::getInstance().requestTerm();
             stepTerm->setLifeTime(-1);
             stepTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
@@ -83,7 +81,6 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
             stepTerm->addRule("{occurs(A,t-1) : moveAction(A)} = 1.");
 
             terms.push_back(stepTerm);
-            std::cout << "added step term for horizon " << horizon << std::endl;
         }
 
         // experimenting with check term
@@ -101,14 +98,10 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
 
         // FIXME this is not working because of the order of grounding...
         if (horizon > 1) {
-            std::cout << "Horizon is greater than 1" << std::endl;
             for (const auto& query : registeredQueries) {
-                std::cout << "Last checkTerm id is: " << this->checkTerms.at(horizon - 1)->getQueryId();
-                std::cout << "Current query id is: " << query->getTerm()->getQueryId() << std::endl;
                 if (query->getTerm()->getQueryId() ==
                         this->checkTerms.at(horizon - 1)->getQueryId()) { // TODO lifetime? whose responsibility is it to reactivate queries?
                     //                this->checkQueries.at(horizon - 1)->removeExternal();
-                    std::cout << "Deactivating query for last horizon which is " << horizon - 1 << std::endl;
                     query->removeExternal();
                     break;
                 }
@@ -118,20 +111,17 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         if (this->checkTerms.find(horizon) != this->checkTerms.end()) {
             for (const auto& query : registeredQueries) {
                 if (query->getTerm()->getQueryId() == this->checkTerms.at(horizon)->getQueryId()) {
-                    std::cout << "reactivating check term with horizon " << horizon << std::endl;
                     std::dynamic_pointer_cast<::reasoner::asp::ReusableExtensionQuery>(query)->reactivate();
                     break;
                 }
             }
         } else {
-            std::cout << "registering check term for horizon" << horizon << std::endl;
             auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
             terms.push_back(checkTerm);
             //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
             //            this->solver->registerQuery(checkQuery);
             //            this->checkQueries.emplace(horizon, checkQuery);
             this->checkTerms.emplace(horizon, checkTerm);
-            std::cout << "there are now " << this->checkTerms.size() << " check terms" << std::endl;
         }
 
         // Create Term belonging to a FilterQuery to be part of the terms in the getSolution call
@@ -151,7 +141,6 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         }
 
         // add terms to terms passed in getSolution
-        std::cout << "call getSolution" << std::endl;
         auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now();
         sat = this->solver->getSolution(vars, terms, results);
         auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
@@ -244,14 +233,18 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         delete res;
     }
 
+    TermManager::getInstance().deactivateReusableExtensionQuery(queryIdentifier);
+
     return ret;
 }
 
 void Extractor::writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime timeElapsed)
 {
+    std::lock_guard<std::mutex> lock(Extractor::incrementalMtx);
     std::ofstream fileWriter;
     std::string separator = ";";
     if (!aspkb::Extractor::wroteHeaderIncremental) {
+        aspkb::Extractor::wroteHeaderIncremental = true;
         this->writeHeader(true);
     }
 
@@ -259,17 +252,19 @@ void Extractor::writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime t
     fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameIncremental), std::ios_base::app);
     fileWriter << std::to_string(horizon);
     fileWriter << separator;
-    fileWriter << timeElapsed; //.inMilliseconds();
+    fileWriter << timeElapsed.inMilliseconds();
     fileWriter << std::endl;
     fileWriter.close();
 }
 
 void Extractor::writeGetSolutionStatsReusable(const std::string& queryIdentifier, alica::AlicaTime timeElapsed)
 {
+    std::lock_guard<std::mutex> lock(Extractor::reusableMtx);
     std::ofstream fileWriter;
     std::string separator = ";";
 
     if (!aspkb::Extractor::wroteHeaderReusable) {
+        aspkb::Extractor::wroteHeaderReusable = true;
         this->writeHeader(false);
     }
 
@@ -278,12 +273,12 @@ void Extractor::writeGetSolutionStatsReusable(const std::string& queryIdentifier
 
     fileWriter << queryIdentifier;
     fileWriter << separator;
-    fileWriter << timeElapsed; //.inSeconds();
+    fileWriter << timeElapsed.inMilliseconds();
     fileWriter << std::endl;
     fileWriter.close();
 }
 
-void Extractor::writeHeader(bool incremental)
+inline void Extractor::writeHeader(bool incremental)
 {
     std::ofstream fileWriter;
     std::string separator = ";";
@@ -300,13 +295,9 @@ void Extractor::writeHeader(bool incremental)
     fileWriter << (incremental ? "MaxHorizon" : "QueryIdentifier");
     fileWriter << separator;
     fileWriter << "TimeElapsed";
+    fileWriter << std::endl;
     fileWriter.close();
 
-    if (incremental) {
-        this->wroteHeaderIncremental = true;
-    } else {
-        this->wroteHeaderReusable = true;
-    }
 }
 
 } /* namespace aspkb */

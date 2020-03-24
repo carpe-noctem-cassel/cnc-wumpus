@@ -27,8 +27,8 @@ holds(heading((X+3)\4),T) :- holds(heading(X),T-1), occurs(turnRight,T-1).
 :- not holds(on(_,_),T) , timestep(T).
 
 
-movedInDanger :- wumpus(X,Y) , holds(on(X,Y),_).
-movedInDanger :- trap(X,Y) , holds(on(X,Y),_).
+movedInDanger :- wumpusPossible(X,Y) , holds(on(X,Y),_).
+movedInDanger :- trapPossible(X,Y) , holds(on(X,Y),_).
 :- movedInDanger : not unsafeMovesAllowed.
 
 :- not holds(on(X,Y),n), goal(X,Y).

@@ -10,11 +10,12 @@
 #external drafty(X,Y) : field(X,Y).
 #external stinky(X,Y) : field(X,Y).
 #external shotAt(X,Y) : field(X,Y).
+#external otherAgentDiedOn(X,Y) : field(X,Y).
 #external heading(X) : direction(X).
 #external goalHeading(X) : direction(X).
 #external wumpusBlocksMoves.
 #external unsafeMovesAllowed.
-#external shot.
+#external everyAgentExhausted.
 
 %#show unsafeMovesAllowed/0.
 %#show wumpusBlocksMoves/0.

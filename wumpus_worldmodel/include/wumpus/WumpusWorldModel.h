@@ -58,7 +58,7 @@ public:
     eval::Experiment* experiment;
     void reset();
     void integrateChanges();
-    std::vector<std::pair<std::string, std::string>> getShotAtFields();
+    std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> getShotAtFields(); //TODO move to playground(?) and fix types (might be Fields?)
     std::vector<int> getAgentIDsForExperiment(); //TODO move?
     bool localAgentIsSpawnRequestHandler();
 

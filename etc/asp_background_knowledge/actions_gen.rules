@@ -31,8 +31,8 @@ notMoved :- holds(on(A,B),n) , on(A,B).
 
 :- not holds(on(_,_),T) , timestep(T).
 
-movedInDanger(A) :- wumpus(X,Y) , holds(on(X,Y),_), agent(A).
-movedInDanger(A) :- trap(X,Y) , holds(on(X,Y),_), agent(A).
+movedInDanger(A) :- wumpusPossible(X,Y) , holds(on(X,Y),_), agent(A).
+movedInDanger(A) :- trapPossible(X,Y) , holds(on(X,Y),_), agent(A).
 :- not unsafeMovesAllowed, movedInDanger(A), me(A).
 
 endsOnExplored :- explored(X,Y), holds(on(X,Y),n).

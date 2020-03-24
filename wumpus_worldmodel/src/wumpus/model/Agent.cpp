@@ -1,6 +1,6 @@
 #include "wumpus/model/Agent.h"
-#include <utility>
 #include <memory>
+#include <utility>
 #include <wumpus/WumpusWorldModel.h>
 
 namespace wumpus
@@ -11,6 +11,7 @@ namespace model
 Agent::Agent(wumpus::wm::ChangeHandler* ch, int agentId)
         : DomainElement(ch)
         , id(agentId)
+        , shot(false)
 {
     this->replanNecessary = true;
     this->initialPosition = nullptr;
@@ -22,7 +23,7 @@ Agent::Agent(wumpus::wm::ChangeHandler* ch, int agentId)
     this->hasGold = false;
     this->registered = false;
     this->exited = false;
-    this->died = false;
+    this->diedOn = nullptr;
     this->objective = Objective::UNDEFINED;
 }
 
@@ -42,12 +43,12 @@ void Agent::registerAgent(bool me)
 /**
  * Agent should be unregistered as soon as it died or exited.
  */
-void Agent::unregisterAgent() {
+void Agent::unregisterAgent()
+{
 
     wumpus::WumpusWorldModel::getInstance()->playground->removeAgent(this->id);
-    //TODO necessary?
+    // TODO necessary?
     this->registered = false;
-
 }
 
 void Agent::updateCurrentMoveGoal(std::shared_ptr<wumpus::model::Field> goal)
@@ -104,20 +105,45 @@ void Agent::updateArrow(bool arrow)
     }
 }
 
-void Agent::updateObjective(Objective obj) {
-    if(this->objective != obj) {
-//        std::cout << "AGENT: obj changed" << std::endl;
+void Agent::updateObjective(Objective obj)
+{
+    if (this->objective != obj) {
+        //        std::cout << "AGENT: obj changed" << std::endl;
         this->objective = obj;
         this->ch->handleChangedObjective(this->id, this->objective);
     }
 }
 
-void Agent::setDead() {
-    this->died = true;
+void Agent::setDead(const std::shared_ptr<wumpus::model::Field>& field)
+{
+    if (!this->diedOn || this->diedOn != field) {
+        this->diedOn = field;
+        this->ch->handleSetDiedOn(field);
+        this->ch->unregisterAgent(this->id);
+    }
 }
 
-void Agent::setExited() {
+void Agent::setExited()
+{
     this->exited = true;
+    this->ch->unregisterAgent(this->id);
+}
+
+void Agent::updateExhausted(bool exhausted)
+{
+    if (this->exhausted != exhausted) {
+        std::cout << "Changed exhausted of " << this->id << " from " << (this->exhausted ? "True" : "False") << " to " << (exhausted ? "True" : "False") << std::endl;
+        this->exhausted = exhausted;
+        this->ch->handleChangedExhausted(this->id, exhausted);
+    }
+}
+
+void Agent::updateShot()
+{
+    if (!this->shot) {
+        this->shot = true;
+        this->ch->handleChangedShot(this->id);
+    }
 }
 
 } /* namespace model */

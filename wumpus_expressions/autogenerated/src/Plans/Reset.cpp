@@ -8,6 +8,7 @@ using namespace std;
 #include <engine/AlicaEngine.h>
 #include <reasoner/asp/Solver.h>
 #include <wumpus/model/Agent.h>
+#include <wumpus/model/Field.h>
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -50,9 +51,34 @@ void Reset::run(void* msg)
         perception.position = pos;
         perception.senderID = sc->getOwnRobotID();
         perception.died = this->wm->localAgentDied;
+        if (this->wm->localAgentDied) {
+            auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+            if (localAgent) {
+                if (localAgent->diedOn) {
+                    wumpus_msgs::Coordinates diedOn;
+                    diedOn.x = localAgent->diedOn->x;
+                    diedOn.y = localAgent->diedOn->y;
+                    perception.diedOn = diedOn;
+                } else {
+                    std::cout << "Reset: Can't access field the agent died on!" << std::endl;
+                    throw std::exception();
+                }
+            }
+        }
         perception.exited = this->wm->localAgentExited; // FIXME hack
         if (this->wm->localAgentIsSpawnRequestHandler()) {
             perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
+        }
+        perception.exhausted = this->wm->playground->getAgentById(sc->getOwnRobotID())->exhausted;
+        perception.shot = this->wm->playground->getAgentById(sc->getOwnRobotID())->shot;
+        auto shotAtFields = this->wm->getShotAtFields();
+        if (shotAtFields && shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
+            for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
+                wumpus_msgs::Coordinates coordinates;
+                coordinates.x = std::stoi(field.first); // FIXME types
+                coordinates.y = std::stoi(field.second);
+                perception.shootingTargets.push_back(coordinates);
+            }
         }
         send(perception);
         bool allExitedOrDied = true;

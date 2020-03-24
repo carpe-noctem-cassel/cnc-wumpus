@@ -28,7 +28,8 @@ public:
     bool hasArrow;
     bool hasGold;
     bool exited;
-    bool died;
+    bool shot;
+    std::shared_ptr<wumpus::model::Field> diedOn;
     bool exhausted;
     bool replanNecessary;
     int id;
@@ -42,9 +43,11 @@ public:
     void updateHeading(int heading);
     void updateArrow(bool arrow);
     void updateHaveGold(bool gold);
+    void updateExhausted(bool exhausted);
+    void updateShot();
 
     void setExited();
-    void setDead();
+    void setDead(const std::shared_ptr<wumpus::model::Field>& diedOn);
 
 private:
     bool registered;

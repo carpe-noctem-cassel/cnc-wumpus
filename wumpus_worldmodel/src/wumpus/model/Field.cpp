@@ -56,11 +56,11 @@ void Field::updateExplored(bool explored)
         this->ch->handleChangedExplored(shared_from_this());
     }
 }
-void Field::updateShotAt(bool shotAt)
+void Field::updateShotAt(int whoShot, bool shotAt)
 {
     if (this->shotAt != shotAt) {
         this->shotAt = shotAt;
-        this->ch->handleChangedShotAt(shared_from_this());
+        this->ch->handleChangedShotAt(whoShot, shared_from_this());
     }
 }
 

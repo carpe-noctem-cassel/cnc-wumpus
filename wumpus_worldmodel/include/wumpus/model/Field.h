@@ -22,7 +22,7 @@ public:
     void updateDrafty(bool drafty);
     void updateStinky(bool stinky);
     void updateVisited(bool visited);
-    void updateShotAt(bool shotAt);
+    void updateShotAt(int whoShot, bool shotAt);
     void updateExplored(bool explored);
     int x;
     int y;

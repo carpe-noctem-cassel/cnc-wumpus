@@ -33,6 +33,7 @@ public:
     nonstd::optional<int> getOwnAgentIndex();
     int getNumberOfAgents();
     int getNumberOfFields();
+    std::vector<std::shared_ptr<wumpus::model::Agent>> getAgentsWhoShot();
 
 private:
     long turnCounter;

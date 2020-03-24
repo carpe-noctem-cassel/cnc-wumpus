@@ -145,7 +145,7 @@ std::vector<std::shared_ptr<wumpus::model::Field>> Playground::getAdjacentFields
     if (field != this->fields.end()) {
         adj.push_back(field->second);
     }
-    this->fields.find(std::make_pair(x, y - 1));
+    field = this->fields.find(std::make_pair(x, y - 1));
     if (field != this->fields.end()) {
         adj.push_back(field->second);
     }
@@ -176,5 +176,17 @@ int Playground::getNumberOfAgents()
 {
     return this->agents.size();
 }
+
+std::vector<std::shared_ptr<wumpus::model::Agent>> Playground::getAgentsWhoShot()
+{
+    std::vector<std::shared_ptr<wumpus::model::Agent>> ret;
+    for(const auto& a : *this->getAgents(false)) {
+        if(a.second->shot) {
+            ret.push_back(a.second);
+        }
+    }
+    return ret;
+}
+
 } /* namespace model */
 } /* namespace wumpus */

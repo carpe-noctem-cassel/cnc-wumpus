@@ -1,8 +1,8 @@
 objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksMoves.
 
-objective(huntWumpus) :- wumpusBlocksMoves, arrow(A), me(A), not shot, not objective(shoot).
+objective(huntWumpus) :- wumpusBlocksMoves, arrow(A), me(A), not shot(A), not objective(shoot), allAgentsExhausted.
 
-objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A), not shot.
+objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A), not shot(A).
 
 objective(goHome) :- haveGold(A), me(A), not on(X,Y), initial(X,Y).
 
@@ -12,4 +12,4 @@ objective(moveToGoldField) :- glitter(X,Y), not on(X,Y), not haveGold(A), me(A),
 
 objective(collectGold) :- glitter(X,Y), on(X,Y), not haveGold(A), me(A), not objective(huntWumpus).
 
-objective(idle) :- me(A), agent(B), not exhausted(B), unsafeMovesAllowed, not me(B).
+objective(idle) :- me(A), exhausted(A), agent(B), not me(B), not allAgentsExhausted.

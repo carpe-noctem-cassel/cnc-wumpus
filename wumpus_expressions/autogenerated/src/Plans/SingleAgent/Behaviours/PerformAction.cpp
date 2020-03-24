@@ -49,12 +49,18 @@ void PerformAction::run(void* msg)
         perception.exited = this->wm->localAgentExited;
         perception.died = this->wm->localAgentDied;
         perception.exhausted = this->wm->playground->getAgentById(ownId)->exhausted;
-        for(auto field : this->wm->getShotAtFields()) {
-            wumpus_msgs::Coordinates coordinates;
-            coordinates.x = std::stoi(field.first); //FIXME types
-            coordinates.y= std::stoi(field.second);
-            perception.shotAt.push_back(coordinates);
+        perception.shot = this->wm->playground->getAgentById(ownId)->shot;
+        auto shotAtFields = this->wm->getShotAtFields();
+        if (shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
+            for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
+                wumpus_msgs::Coordinates coordinates;
+                coordinates.x = std::stoi(field.first); // FIXME types
+                coordinates.y = std::stoi(field.second);
+                std::cout << "Perform Action: Agent " << essentials::SystemConfig::getOwnRobotID() << "shot at " << coordinates.x << ", " << coordinates.y << std::endl;
+                perception.shootingTargets.push_back(coordinates);
+            }
         }
+
         send(perception);
         //            return;
     }
@@ -128,7 +134,7 @@ void PerformAction::executeNextAction()
                     essentials::SystemConfig::getOwnRobotID()); // TODO rename result class?
         }
 
-                    std::cout << "PERFORM ACTION: " << req.action << std::endl;
+        std::cout << "PERFORM ACTION: " << req.action << std::endl;
         send(req);
         this->currentActionSequence.erase(action);
         if (req.action == WumpusEnums::actions::shoot) {

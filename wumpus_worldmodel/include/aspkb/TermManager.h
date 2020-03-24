@@ -25,6 +25,7 @@ public:
     ::reasoner::asp::Term* requestCheckTerm(int horizon);
 
     int activateReusableExtensionQuery(std::string identifier, const std::vector<std::string>& rules);
+    void deactivateReusableExtensionQuery(std::string identifier);
 
     void initializeSolver(::reasoner::asp::Solver* solver);
 

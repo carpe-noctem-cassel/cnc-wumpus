@@ -4,6 +4,6 @@ invalid(X,Y) :- initial(X,Y), not goal(X,Y), haveGold(A), agent(A).
 invalid(X,Y) :- dangerous(X,Y).
 invalid(X,Y) :- blacklist(X,Y).
 invalid(X,Y) :- on(X,Y), goal(X,Y).
-dangerous(X,Y) :- wumpus(X,Y).
-dangerous(X,Y) :- trap(X,Y).
+dangerous(X,Y) :- wumpusPossible(X,Y).
+dangerous(X,Y) :- trapPossible(X,Y).
 

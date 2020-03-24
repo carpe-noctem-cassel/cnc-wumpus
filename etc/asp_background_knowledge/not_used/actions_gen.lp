@@ -47,5 +47,5 @@ holds(heading((X+3)\4),T) :- holds(heading(X),T-1), occurs(turnRight,T-1).
 :- holds(on(A,B),n) : on(A,B).
 
 %dont land on unsafe field
-:- wumpus(X,Y) : holds(on(X,Y),_).
-:- trap(X,Y) : holds(on(X,Y),_).
+:- wumpusPossible(X,Y) : holds(on(X,Y),_).
+:- trapPossible(X,Y) : holds(on(X,Y),_).

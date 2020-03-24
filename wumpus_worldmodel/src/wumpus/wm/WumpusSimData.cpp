@@ -39,7 +39,8 @@ WumpusSimData::WumpusSimData(WumpusWorldModel* wm)
     this->integratedFromSimulatorForTurnNumber = false;
 }
 
-WumpusSimData::~WumpusSimData() {
+WumpusSimData::~WumpusSimData()
+{
     delete this->actionResponseBuffer;
     delete this->isMyTurnBuffer;
 }
@@ -99,7 +100,30 @@ bool WumpusSimData::getIntegratedFromSimulator()
 void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse)
 {
     // FIXME process one message at a time for now - clingo keeps crashing
-//    std::lock_guard<std::mutex> lock(this->respMtx);
+    //        std::lock_guard<std::mutex> lock(this->respMtx);
+
+    // FIXME does this have any effect?
+//    if (!this->wm->currentEncoding.empty() && this->wm->resettedForEncoding.find(this->wm->currentEncoding) != this->wm->resettedForEncoding.end()) {
+//        std::cout << "Already resetted for this encoding!" << this->wm->currentEncoding << std::endl;
+//        return;
+//    }
+
+    //TODO access
+    auto me = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID()); //may have been resetted alredy
+    if(me) {
+        // silence and scream can be heard from anyone
+        if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
+            me->replanNecessary = true;
+            this->wm->playground->handleSilence();
+        }
+
+        if (responsesContain(actionResponse->responses, WumpusEnums::scream)) {
+            me->replanNecessary = true;
+            this->wm->playground->handleScream();
+        }
+    }
+
+
     // ignore msgs which aren't meant for me
     if (actionResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
         if (this->turn > 0) {
@@ -108,14 +132,13 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
             // each turn multiple actionresponses are sent so only count for the "yourTurn" messages
 
             if (this->wm->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->wm->spawnRequestHandlerRoleName)
-                if(responsesContain(actionResponse->responses, WumpusEnums::yourTurn)) {
+                if (responsesContain(actionResponse->responses, WumpusEnums::yourTurn)) {
                     this->wm->experiment->getCurrentRun()->getCurrentResult()->increaseActionsCostCounter(
                             actionResponse->agentId); // TODO only tracks other agents' actions - own actions are currently tracked in
                     // performaction beh0
-                if(responsesContain(actionResponse->responses,WumpusEnums::exited)) {
-
+                    if (responsesContain(actionResponse->responses, WumpusEnums::exited)) {
+                    }
                 }
-            }
         }
         return;
     }
@@ -128,7 +151,8 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
     // avoid inconsistencies in knowledgebase and crashing of clingo
     if (responsesContain(actionResponse->responses, WumpusEnums::dead)) {
         this->wm->localAgentDied = true;
-        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->setDead();
+        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())
+                ->setDead(this->wm->playground->getField(actionResponse->x, actionResponse->y));
         return;
     }
 
@@ -138,7 +162,6 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->setExited();
         return; // needed for exitting after shooting
     }
-    std::cout << "FIELD: " << actionResponse->x << ", " << actionResponse->y << std::endl;
     auto field = this->wm->playground->getField(actionResponse->x, actionResponse->y);
     auto agent = this->wm->playground->getAgentById(actionResponse->agentId);
 
@@ -147,7 +170,7 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
         this->wm->playground->addAgent(agent);
         this->wm->playground->addAgentForExperiment(agent);
         agent->registerAgent(actionResponse->agentId == essentials::SystemConfig::getOwnRobotID());
-        agent->updateArrow(true);
+        agent->updateArrow(true); // FIXME
     }
     agent->updatePosition(field);
     agent->updateHeading(actionResponse->heading);
@@ -158,14 +181,6 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
     field->updateStinky(responsesContain(actionResponse->responses, WumpusEnums::stinky));
     field->updateExplored(true);
     field->updateVisited(true);
-
-    if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
-        this->wm->playground->handleSilence();
-    }
-
-    if (responsesContain(actionResponse->responses, WumpusEnums::scream)) {
-        this->wm->playground->handleScream();
-    }
 
     auto turnInfo = std::make_shared<supplementary::InformationElement<bool>>(
             actionResponse->agentId == essentials::SystemConfig::getOwnRobotID() && responsesContain(actionResponse->responses, WumpusEnums::yourTurn),
@@ -180,18 +195,16 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
         this->integratedFromSimulatorForTurnNumber = true; // this->turn;
         this->raiseTurnCounter();
     }
-
-
 }
 
 void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception)
 {
-    std::lock_guard<std::mutex> lock(this->wm->resetMtx); //FIXME
-    std::lock_guard<std::mutex> lock2(this->respMtx); // FIXME fix segfault rc properly
+    std::lock_guard<std::mutex> lock(this->wm->resetMtx); // FIXME
+    std::lock_guard<std::mutex> lock2(this->respMtx);     // FIXME fix segfault rc properly
 
-    if(!agentPerception->encoding.empty() && agentPerception->encoding != this->wm->currentEncoding) {
+    if (!agentPerception->encoding.empty() && agentPerception->encoding != this->wm->currentEncoding) {
         this->wm->currentEncoding = agentPerception->encoding;
-        if(this->wm->resettedForEncoding.find(agentPerception->encoding) != this->wm->resettedForEncoding.end()) {
+        if (this->wm->resettedForEncoding.find(agentPerception->encoding) != this->wm->resettedForEncoding.end()) {
             return;
         }
     }
@@ -216,7 +229,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
         }
     }
 
-    if(this->wm->localAgentExited || this->wm->localAgentDied) {
+    if (this->wm->localAgentExited || this->wm->localAgentDied) {
         return;
     }
 
@@ -231,6 +244,8 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
 
     auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
     if (!agent) {
+        std::cout << "Cant access agent from model with id " << agentPerception->senderID << std::endl;
+        //        throw std::exception(); //FIXME remove
         return;
         // TODO this might not be a good idea in case one agent already exited
         //        if (!(agentPerception->died || agentPerception->exited)) {
@@ -238,6 +253,12 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
         //            this->wm->playground->addAgent(agent);
         //            this->wm->playground->addAgentForExperiment(agent);
         //        }
+    }
+    std::cout << "Setting agent perception from " << agentPerception->senderID << std::endl;
+    agent->updateArrow(agentPerception->arrow);
+    agent->updateExhausted(agentPerception->exhausted);
+    if (agentPerception->shot) {
+        agent->updateShot();
     }
     //    std::cout << "Processing agent perception" << std::endl;
 
@@ -261,7 +282,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
             (agentPerception->exited || agentPerception->died)) {
         auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
         if (agentPerception->died) {
-            agent->setDead();
+            agent->setDead(this->wm->playground->getField(agentPerception->position.x, agentPerception->position.y));
             //            std::cout << "WSD: Agent Dead!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
             return;
@@ -293,11 +314,19 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
         }
     }
 
+    // new, possibly useful info -> reset exhausted
+    //    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false); //FIXME check if this is needed somewhere else
+    // TODO new stuff - method should be refactoredc
+    for (auto coordinates : agentPerception->shootingTargets) {
+        this->wm->planningModule->addShootingTarget(
+                agentPerception->senderID, std::make_pair<std::string, std::string>(std::to_string(coordinates.x), std::to_string(coordinates.y)));
+        //        for (const auto& affected: this->wm->playground->getAdjacentFields(coordinates.x, coordinates.y)) {
+        //            affected->updateStinky(false);
+        //        }
+    }
+
     std::cout << "################WUMPUSSIMDATA: DONE UPDATING" << std::endl;
-
-
 }
-
 
 /**
  * Clear buffers to be able to start a new Base from a running program (evaluation scenario)
@@ -341,6 +370,5 @@ void WumpusSimData::raiseTurnCounter()
 {
     ++this->turn;
 }
-
 }
 } /* namespace wumpus */

@@ -3,12 +3,19 @@ fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,1), X=A, Y < B.
 fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,2), Y=B, X > A.
 fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,3), X=A, Y > B.
 
-wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpus(X,Y)
-blockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B).
+wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpusPossible(X,Y)
+blockingWumpus(X,Y) :- wumpusPossible(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B).
+definitelyBlockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B), not trap(X,Y).
 wumpusUtil(N) :- N = #count{1,C,D : wumpusAhead(C,D), blockingWumpus(C,D)}.
-{target(X,Y,D) : field(X,Y), visited(X,Y), not wumpus(X,Y), not trap(X,Y), direction(D)} = 1.
+wumpusUtilDefinite(X) :- X = #count{1,C,D : wumpusAhead(C,D), definitelyBlockingWumpus(C,D)}.
+duplicateShotAt(N) :- N= #count{1,X,Y : fieldIsAhead(X,Y), shotAt(X,Y)}.
+{target(X,Y,D) : field(X,Y), visited(X,Y), not wumpusPossible(X,Y), not trapPossible(X,Y), direction(D)} = 1.
 
-#maximize{N@1 : wumpusUtil(N)}.
+#maximize{N@1 : wumpusUtilDefinite(N)}.
+#minimize {N@2 : duplicateShotAt(N)}.
+#maximize{N@3 : wumpusUtil(N)}.
+
+:- wumpusUtil(0), wumpusUtilDefinite(0).
 
 targetPos(X,Y) :- target(X,Y,_).
 targetHeading(D) :- target(_,_,D).

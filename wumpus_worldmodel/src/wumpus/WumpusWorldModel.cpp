@@ -66,9 +66,9 @@ void WumpusWorldModel::init()
 }
 
 // TODO why is this here?
-std::vector<std::pair<std::string, std::string>> WumpusWorldModel::getShotAtFields()
+std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> WumpusWorldModel::getShotAtFields()
 {
-    return this->planningModule->shootingTargets;
+    return this->planningModule->getShootingTargets();
 }
 
 // used in plans to check if all agents have been spawned, only then are actions available
