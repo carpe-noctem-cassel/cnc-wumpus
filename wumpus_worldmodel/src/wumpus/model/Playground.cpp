@@ -14,6 +14,8 @@ std::mutex Playground::fieldMtx;
 
 Playground::Playground(wumpus::wm::ChangeHandler* ch)
         : DomainElement(ch)
+        , wumpusBlocksSafeMoves(false)
+        , goldFieldKnown(false)
 {
     this->playgroundSize = -1;
     this->turnCounter = 0;
@@ -180,12 +182,20 @@ int Playground::getNumberOfAgents()
 std::vector<std::shared_ptr<wumpus::model::Agent>> Playground::getAgentsWhoShot()
 {
     std::vector<std::shared_ptr<wumpus::model::Agent>> ret;
-    for(const auto& a : *this->getAgents(false)) {
-        if(a.second->shot) {
+    for (const auto& a : *this->getAgents(false)) {
+        if (a.second->shot) {
             ret.push_back(a.second);
         }
     }
     return ret;
+}
+
+void Playground::updateWumpusBlocksMoves(bool blocks)
+{
+    if (this->wumpusBlocksSafeMoves != blocks) {
+        this->wumpusBlocksSafeMoves = blocks;
+        this->ch->handleChangedWumpusBlocksMoves(blocks);
+    }
 }
 
 } /* namespace model */

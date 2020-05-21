@@ -1,5 +1,7 @@
-{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y)} = 1 :- not definitiveGoal(_,_).
-definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A).
+{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y)} = 1 :- not definitiveGoal(_,_), not objective(A,fetchOtherAgent), me(A).
+{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y), not trapPossible(X,Y), not wumpusPossible(X,Y)} = 1 :- not definitiveGoal(_,_), objective(A, fetchOtherAgent), me(A), not me(B), not haveGold(B), exhausted(B).
+definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A), not objective(A, fetchOtherAgent).
+definitiveGoal(X,Y) :- objective(A, fetchOtherAgent), me(A), position(B,X,Y), not me(B), not haveGold(B), not exhausted(B).
 definitiveGoal(X,Y) :- glitter(X,Y), not haveGold(A), agent(A), me(A).
 suggestedGoal(X,Y) :- definitiveGoal(X,Y).
 

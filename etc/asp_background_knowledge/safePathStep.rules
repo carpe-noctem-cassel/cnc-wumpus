@@ -1,0 +1,1 @@
+{path(X,Y,t)} = 1 :- path(C, D, t-1), fieldAdjacent(X, Y, C, D), explored(C, D).

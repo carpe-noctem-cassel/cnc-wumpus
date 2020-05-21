@@ -2,6 +2,7 @@
 #include <memory>
 #include <utility>
 #include <wumpus/WumpusWorldModel.h>
+#include <wumpus/model/Field.h>
 
 namespace wumpus
 {
@@ -12,19 +13,22 @@ Agent::Agent(wumpus::wm::ChangeHandler* ch, int agentId)
         : DomainElement(ch)
         , id(agentId)
         , shot(false)
+        , hasArrow(false)
+        , hasGold(false)
+        , hasSafePathToGold(false)
+        , registered(false)
+        , exited(false)
+        , exhausted(false)
+        , replanNecessary(true)
+        , initialPosition(nullptr)
+        , currentPosition(nullptr)
+        , moveGoal(nullptr)
+        , diedOn(nullptr)
+        , currentHeading(-1)
+        , turn(1)
+        , objective(Objective::UNDEFINED)
+
 {
-    this->replanNecessary = true;
-    this->initialPosition = nullptr;
-    this->currentPosition = nullptr;
-    this->moveGoal = nullptr;
-    this->currentHeading = -1;
-    this->turn = 1;
-    this->hasArrow = false;
-    this->hasGold = false;
-    this->registered = false;
-    this->exited = false;
-    this->diedOn = nullptr;
-    this->objective = Objective::UNDEFINED;
 }
 
 /**
@@ -70,10 +74,11 @@ void Agent::updateInitialPosition(std::shared_ptr<wumpus::model::Field> field)
 void Agent::updatePosition(std::shared_ptr<wumpus::model::Field> field)
 {
     if (!this->currentPosition || field != this->currentPosition) {
+        //        if (this->currentPosition) {
         this->currentPosition = field;
-        this->ch->handleChangedPosition(field);
+        this->ch->handleChangedPosition(this->id, field);
+        //        }
     }
-
     if (this->moveGoal && field == this->moveGoal) {
         std::cout << "GOAL REACHED!!!" << std::endl;
         this->ch->handleGoalReached(this->id);
@@ -108,7 +113,6 @@ void Agent::updateArrow(bool arrow)
 void Agent::updateObjective(Objective obj)
 {
     if (this->objective != obj) {
-        //        std::cout << "AGENT: obj changed" << std::endl;
         this->objective = obj;
         this->ch->handleChangedObjective(this->id, this->objective);
     }
@@ -116,11 +120,14 @@ void Agent::updateObjective(Objective obj)
 
 void Agent::setDead(const std::shared_ptr<wumpus::model::Field>& field)
 {
+    std::cout << "Agent: set dead " << std::endl;
+//    throw std::exception();
     if (!this->diedOn || this->diedOn != field) {
         this->diedOn = field;
         this->ch->handleSetDiedOn(field);
         this->ch->unregisterAgent(this->id);
     }
+//    throw std::exception();
 }
 
 void Agent::setExited()
@@ -132,7 +139,8 @@ void Agent::setExited()
 void Agent::updateExhausted(bool exhausted)
 {
     if (this->exhausted != exhausted) {
-        std::cout << "Changed exhausted of " << this->id << " from " << (this->exhausted ? "True" : "False") << " to " << (exhausted ? "True" : "False") << std::endl;
+        std::cout << "WumpusAgent: Changed exhausted of " << this->id << " from " << (this->exhausted ? "True" : "False") << " to "
+                  << (exhausted ? "True" : "False") << std::endl;
         this->exhausted = exhausted;
         this->ch->handleChangedExhausted(this->id, exhausted);
     }
@@ -143,6 +151,15 @@ void Agent::updateShot()
     if (!this->shot) {
         this->shot = true;
         this->ch->handleChangedShot(this->id);
+    }
+}
+
+// should only have to be set to true once
+void Agent::updateHaveSafePathToGold()
+{
+    if (!this->hasSafePathToGold) {
+        this->hasSafePathToGold = true;
+        this->ch->handleChangedSafeGoldPath(this->id);
     }
 }
 

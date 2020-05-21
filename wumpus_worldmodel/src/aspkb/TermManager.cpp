@@ -56,7 +56,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 {
     int id = -1;
     if (this->reusableQueries.find(identifier) == this->reusableQueries.end()) {
-                std::cout << "Creating term with identifier " << identifier << std::endl;
+        std::cout << "Creating term with identifier " << identifier << std::endl;
         auto term = new reasoner::asp::Term();
         id = solver->getQueryCounter();
         term->setLifeTime(-1);
@@ -98,29 +98,29 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     //    checkTerm->setType(reasoner::asp::QueryType::Extension);
     checkTerm->addProgramSectionParameter("t", std::to_string(horizon));
     // for (const auto& str : checkRules) {
-    auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
-                std::string("(holds(on(A,B),t)) , incquery") + std::to_string(0) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    auto rule = "notMoved(t) :- pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+                std::string("(holds(on(A,B),t)), pathActionsincquery") + std::to_string(0) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                 std::string("(holds(on(A,B),0)).");
     checkTerm->addRule(rule);
     rule = ":- not goal(_,_), notMoved(t).";
     checkTerm->addRule(rule); // FIXME comment in
     for (int i = 0; i <= horizon; ++i) {
-        rule = "movedInDanger(t) :- wumpusPossible(X,Y) , incquery" +
+        rule = "movedInDanger(t) :- wumpusPossible(X,Y), pathActionsincquery" +
                std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
-        rule = "movedInDanger(t) :- trapPossible(X,Y) , incquery" +
+        rule = "movedInDanger(t) :- trapPossible(X,Y), pathActionsincquery" +
                std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
     }
 
     for (int i = 0; i <= horizon; ++i) {
-        rule = "definitelyMovedInDanger(t) :- wumpus(X,Y) , incquery" +
+        rule = "definitelyMovedInDanger(t) :- wumpus(X,Y), pathActionsincquery" +
                std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
-        rule = "definitelyMovedInDanger(t) :- trap(X,Y) , incquery" +
+        rule = "definitelyMovedInDanger(t) :- trap(X,Y), pathActionsincquery" +
                std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
@@ -132,32 +132,33 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     //    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
     rule = ":- movedInDanger(t), not unsafeMovesAllowed.";
     checkTerm->addRule(rule);
-//    rule = ":- movedInDanger(t) , not shot.";
-//    checkTerm->addRule(rule); FIXME review necessity
+    //    rule = ":- movedInDanger(t) , not shot.";
+    //    checkTerm->addRule(rule); FIXME review necessity
 
     rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
     checkTerm->addRule(rule);
 
-    //    rule = " endsOnVisited(t) :- visited(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId)
+    //    rule = " endsOnVisited(t) :- visited(X,Y),pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId)
     //    */ +
     //           std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     //    checkTerm->addRule(rule);
     //    rule = ":- not goal(_,_), endsOnVisited(t).";
     //    checkTerm->addRule(rule);
 
-    rule = " endsOnExplored(t) :- explored(X,Y), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    //FIXME experimentally added info about being exhausted to avoid agent getting stuck
+    rule = " endsOnExplored(t) :- explored(X,Y), me(A), not exhausted(A), pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     checkTerm->addRule(rule); // FIXME evaluate using explored vs visited here
     rule = ":- not goal(_,_), endsOnExplored(t).";
     checkTerm->addRule(rule);
 
-    rule = "wrongHeading(t) :- goalHeading(A), incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    rule = "wrongHeading(t) :- goalHeading(A), pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(heading(B),t)), A!=B.");
     checkTerm->addRule(rule);
 
     rule = ":- wrongHeading(t).";
     checkTerm->addRule(rule);
-    rule = "notEndsOnGoal(t) :- goal(X,Y), not incquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    rule = "notEndsOnGoal(t) :- goal(X,Y), not pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y),t)).");
 
     // FIXME exploring safe fields close to the (glittering) goal should be more favourable than allowing unsafe moves
@@ -167,8 +168,42 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
     checkTerm->addRule(rule);
     checkTerm->addRule("randomQueryFact(t).");
-    //    checkTerm->addRule(":- incquery0(holds(on(_,_),0)).");
+    //    checkTerm->addRule(":-pathActionsincquery0(holds(on(_,_),0)).");
     return checkTerm;
+}
+
+::reasoner::asp::Term* TermManager::requestPathCheckTerm(int horizon, std::string coordinateEncoding)
+{
+//    auto termInstance = this->requestTerm();
+//    termInstance->setType(reasoner::asp::QueryType::ReusableExtension);
+//    termInstance->addProgramSectionParameter("t", std::to_string(horizon));
+
+
+
+    auto termInstance = new ::reasoner::asp::Term();
+    auto id = solver->getQueryCounter();
+    termInstance->setId(id);
+    termInstance->setQueryId(id);
+    termInstance->setExternals(std::make_shared<std::map<std::string, bool>>());
+    std::lock_guard<std::mutex> lock(this->mtx);
+    this->managedTerms.push_back(termInstance);
+    termInstance->setLifeTime(-1); // TODO is this correct?
+    //    checkTerm->setLifeTime(1); // TODO is this correct?
+    termInstance->setType(reasoner::asp::QueryType::ReusableExtension);
+    //    checkTerm->setType(reasoner::asp::QueryType::Extension);
+    termInstance->addProgramSectionParameter("t", std::to_string(horizon));
+
+    auto rule = "pathComplete(t) :- " + coordinateEncoding + "incquery" + std::to_string(horizon) + "(path(X,Y,t)), end(X,Y).";
+    termInstance->addRule(rule);
+//    rule = ":- not noPathPossible(t), not pathComplete(t).";
+//    termInstance->addRule(rule);
+    rule = ":- not pathComplete(t).";
+    termInstance->addRule(rule);
+
+
+//    auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) + "(holds(on(A,B),t)) , incquery" + std::to_string(0) + "(holds(on(A,B),0)).";
+//    termInstance->addRule(rule);
+    return termInstance;
 }
 
 void TermManager::clear()

@@ -8,5 +8,7 @@
 %#external goal(A,X,Y) : field(X,Y), agent(A).
 #external me(id).
 #external objective(A,O) : agent(A), possibleObjective(O).
+#external position(A,X,Y) : agent(A), field(X,Y).
 #external arrow(A) : agent(A).
 #external exhausted(A) : agent(A).
+#external hasSafePathToGold(A) : agent(A).

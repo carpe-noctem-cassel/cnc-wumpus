@@ -119,7 +119,7 @@ void WumpusWorldModel::reset()
     std::cout << "Resetting wm!: Done " << std::endl;
 
     this->resettedForEncoding.emplace(this->currentEncoding);
-
+    std::cout << "Resetting wm!: resetted for encoding " << this->currentEncoding << std::endl;
     this->isTimedOut = false;
 }
 

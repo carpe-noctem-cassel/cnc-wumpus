@@ -32,38 +32,6 @@ void PerformAction::run(void* msg)
     // wait for wm to integrate all new information into knowledge base
     auto ownId = this->sc->getOwnRobotID();
 
-    if (this->wm->wumpusSimData.getIntegratedFromSimulator()) {
-        auto currentPos = this->wm->playground->getAgentById(ownId)->currentPosition;
-        wumpus_msgs::AgentPerception perception;
-        wumpus_msgs::Coordinates coords;
-        coords.x = currentPos->x;
-        coords.y = currentPos->y;
-        perception.position = coords;
-        if (this->wm->localAgentIsSpawnRequestHandler()) {
-            perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
-        }
-        perception.stinky = currentPos->stinky;
-        perception.glitter = currentPos->shiny;
-        perception.drafty = currentPos->drafty;
-        perception.senderID = ownId;
-        perception.exited = this->wm->localAgentExited;
-        perception.died = this->wm->localAgentDied;
-        perception.exhausted = this->wm->playground->getAgentById(ownId)->exhausted;
-        perception.shot = this->wm->playground->getAgentById(ownId)->shot;
-        auto shotAtFields = this->wm->getShotAtFields();
-        if (shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
-            for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
-                wumpus_msgs::Coordinates coordinates;
-                coordinates.x = std::stoi(field.first); // FIXME types
-                coordinates.y = std::stoi(field.second);
-                std::cout << "Perform Action: Agent " << essentials::SystemConfig::getOwnRobotID() << "shot at " << coordinates.x << ", " << coordinates.y << std::endl;
-                perception.shootingTargets.push_back(coordinates);
-            }
-        }
-
-        send(perception);
-        //            return;
-    }
     //        if(this->wm->wumpusSimData.getIntegratedFromSimulator() && !this->wm->wumpusSimData.isIntegratedFromAllAgents()) {
     //            auto currentPos = this->wm->playground->getAgentById(ownId)->currentPosition;
     //            wumpus_msgs::AgentPerception perception;
@@ -102,9 +70,43 @@ void PerformAction::run(void* msg)
 
     // TODO remove
     // sleep(0.3);
-    std::cout << "################WUMPUSEX: START PLANNING!" << std::endl;
+    std::cout << "################PERFORMACTION: START PLANNING!" << std::endl;
     this->currentActionSequence = this->wm->planningModule->processNextActionRequest(me).second;
     this->executeNextAction();
+    //if (this->wm->wumpusSimData.getIntegratedFromSimulator()) {
+        auto currentPos = this->wm->playground->getAgentById(ownId)->currentPosition;
+        wumpus_msgs::AgentPerception perception;
+        wumpus_msgs::Coordinates coords;
+        coords.x = currentPos->x;
+        coords.y = currentPos->y;
+        perception.position = coords;
+        if (this->wm->localAgentIsSpawnRequestHandler()) {
+            perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
+        }
+        perception.stinky = currentPos->stinky;
+        perception.glitter = currentPos->shiny;
+        perception.drafty = currentPos->drafty;
+        perception.senderID = ownId;
+        perception.exited = this->wm->localAgentExited;
+        perception.died = this->wm->localAgentDied;
+        perception.haveGold = this->wm->playground->getAgentById(ownId)->hasGold;
+        perception.exhausted = this->wm->playground->getAgentById(ownId)->exhausted;
+        std::cout << "PerformAction: set exhausted " << this->wm->playground->getAgentById(ownId)->exhausted << std::endl;
+        perception.shot = this->wm->playground->getAgentById(ownId)->shot;
+        auto shotAtFields = this->wm->getShotAtFields();
+        if (shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
+            for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
+                wumpus_msgs::Coordinates coordinates;
+                coordinates.x = std::stoi(field.first); // FIXME types
+                coordinates.y = std::stoi(field.second);
+                std::cout << "Perform Action: Agent " << essentials::SystemConfig::getOwnRobotID() << "shot at " << coordinates.x << ", " << coordinates.y << std::endl;
+                perception.shootingTargets.push_back(coordinates);
+            }
+        }
+
+        send(perception);
+        //            return;
+    //}
     this->wm->wumpusSimData.setIntegratedFromSimulator(false);
     this->wm->wumpusSimData.resetIntegratedFromAgents();
 

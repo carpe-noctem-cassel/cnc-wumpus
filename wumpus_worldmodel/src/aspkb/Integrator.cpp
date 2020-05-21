@@ -21,7 +21,7 @@ Integrator::Integrator()
 void Integrator::integrateInformationAsExternal(
         const std::string& value, const std::string& identifier, bool truthValue, Strategy strategy = Strategy::INSERT_TRUE)
 {
-    //    this->setIsIntegrating(true);
+//    this->setIsIntegrating(true);
 
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
     // FIXME use truthvalue and strategy toggle instead of using empty values!
@@ -31,7 +31,8 @@ void Integrator::integrateInformationAsExternal(
 
     if (strategy == Strategy::FALSIFY_OLD_VALUES) {
         if (this->identifierOldExternalsMap.find(identifier) != this->identifierOldExternalsMap.end()) {
-            this->changedExternals->emplace(this->identifierOldExternalsMap.at(identifier), false);
+            std::cout << "found " << identifier << " with value " << this->identifierOldExternalsMap.at(identifier) << std::endl;
+                this->changedExternals->emplace(this->identifierOldExternalsMap.at(identifier), false);
             if (!value.empty()) {
                 this->identifierOldExternalsMap.at(identifier) = value;
             }
@@ -46,7 +47,7 @@ void Integrator::integrateInformationAsExternal(
 void Integrator::applyChanges()
 {
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
-    for(auto& ext : *this->changedExternals) {
+    for (auto& ext : *this->changedExternals) {
         std::cout << "ApplyChanges: " << ext.first << ", " << (ext.second ? "true " : "false") << std::endl;
     }
     this->solver->handleExternals(this->changedExternals);
@@ -57,6 +58,8 @@ void Integrator::applyChanges()
 void Integrator::integrateAsTermWithProgramSection(
         const std::string& programSection, const std::pair<std::vector<std::string>, std::vector<std::string>>& programSectionParameters)
 {
+    std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
+
     ::reasoner::asp::Term* term = TermManager::getInstance().requestTerm();
     term->setBackgroundKnowledgeFilename(programSection);
     term->setProgramSection(programSection);

@@ -31,6 +31,8 @@ add_library(wumpus_worldmodel
         src/aspkb/Integrator.cpp
         src/aspkb/Extractor.cpp
         src/aspkb/TermManager.cpp
+        src/aspkb/IncrementalProblem.cpp
+        src/aspkb/PathExistsProblem.cpp
 
         src/eval/Experiment.cpp
         src/eval/Result.cpp

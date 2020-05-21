@@ -10,6 +10,7 @@ bool glitter
 bool arrow
 bool exited
 bool died
+bool haveGold
 Coordinates diedOn
 bool exhausted
 Coordinates[] shootingTargets

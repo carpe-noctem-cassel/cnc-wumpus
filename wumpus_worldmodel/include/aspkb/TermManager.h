@@ -24,6 +24,8 @@ public:
 
     ::reasoner::asp::Term* requestCheckTerm(int horizon);
 
+    ::reasoner::asp::Term* requestPathCheckTerm(int horizon, std::string coordinateEncoding);
+
     int activateReusableExtensionQuery(std::string identifier, const std::vector<std::string>& rules);
     void deactivateReusableExtensionQuery(std::string identifier);
 

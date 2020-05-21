@@ -10,6 +10,9 @@
 #external drafty(X,Y) : field(X,Y).
 #external stinky(X,Y) : field(X,Y).
 #external shotAt(X,Y) : field(X,Y).
+#external start(X,Y) : field(X,Y).
+#external end(X,Y) : field(X,Y).
+%#external safePathExists(A,B,C,D) : field(A,B), field(C,D).
 #external otherAgentDiedOn(X,Y) : field(X,Y).
 #external heading(X) : direction(X).
 #external goalHeading(X) : direction(X).

@@ -41,11 +41,18 @@ void ChangeHandler::unregisterAgent(int id)
     this->integrator->integrateInformationAsExternal(ss.str(), "wumpus_agent", false, aspkb::Strategy::INSERT_TRUE);
 }
 
-void ChangeHandler::handleChangedPosition(std::shared_ptr<wumpus::model::Field> field)
+void ChangeHandler::handleChangedPosition(int id, std::shared_ptr<wumpus::model::Field> field)
 {
-    std::stringstream ss;
-    ss << "on(" << field->x << ", " << field->y << ")";
-    this->integrator->integrateInformationAsExternal(ss.str(), "position", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    if (id == essentials::SystemConfig::getOwnRobotID()) {
+        std::stringstream ss;
+        ss << "on(" << field->x << ", " << field->y << ")";
+        this->integrator->integrateInformationAsExternal(ss.str(), "position", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
+    if (id != essentials::SystemConfig::getOwnRobotID()) {
+        std::stringstream s2; // TOOD reuse other stream
+        s2 << "position(" << id << "," << field->x << "," << field->y << ")" << std::endl;
+        this->integrator->integrateInformationAsExternal(s2.str(), "otherAgentPos", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
 }
 
 void ChangeHandler::handleChangedHeading(int newHeading)
@@ -112,42 +119,16 @@ void ChangeHandler::handleChangedArrow(int agentId, bool arrow)
 void ChangeHandler::handleSetDiedOn(std::shared_ptr<wumpus::model::Field> field)
 {
     std::stringstream ss;
-    ss << "otherAgentDiedOn(" << field->x << field->y << ")";
+    ss << "otherAgentDiedOn(" << field->x << "," << field->y << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "diedOn", true, aspkb::Strategy::INSERT_TRUE);
+    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
 }
 
 void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective objective)
 {
     std::stringstream ss;
     ss << "objective(" << id << ", ";
-
-    switch (objective) {
-
-    case wumpus::model::Objective::EXPLORE:
-        ss << "explore";
-        break;
-    case wumpus::model::Objective::GO_HOME:
-        ss << "goHome";
-        break;
-    case wumpus::model::Objective::COLLECT_GOLD:
-        ss << "collectGold";
-        break;
-    case wumpus::model::Objective::HUNT_WUMPUS:
-        ss << "huntWumpus";
-        break;
-    case wumpus::model::Objective::SHOOT:
-        ss << "shootWumpus";
-        break;
-    case wumpus::model::Objective::LEAVE:
-        ss << "leaveCave";
-        break;
-    case wumpus::model::Objective::MOVE_TO_GOLD_FIELD:
-        ss << "moveToGoldField";
-        break;
-    case wumpus::model::Objective::IDLE:
-        ss << "idle";
-        break;
-    }
+    ss << objective;
     ss << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "objective", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     if (id == essentials::SystemConfig::getOwnRobotID()) {
@@ -201,12 +182,12 @@ void ChangeHandler::handleChangedShotAt(int id, std::shared_ptr<wumpus::model::F
             "shotAt(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "shotAt", true, aspkb::Strategy::INSERT_TRUE);
 
     if (id == essentials::SystemConfig::getOwnRobotID()) {
-        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMovesAllowed", false, aspkb::Strategy::INSERT_TRUE);
+        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
     }
 
     // a blocking wumpus for the local agent might have been shot
     // TODO check if shot at field contained a blocking wumpus for the local agent
-    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
+//    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
 }
 
 void ChangeHandler::handleChangedExplored(std::shared_ptr<wumpus::model::Field> field)
@@ -242,7 +223,7 @@ void ChangeHandler::handleScream()
                     this->wm->playground->getField(affected->x, affected->y)->updateExplored(false);
                     this->wm->playground->getField(affected->x, affected->y)->updateVisited(false);
                     // FIXME ?
-                    this->wm->playground->getField(affected->x, affected->y)->updateStinky(false);
+                    //                    this->wm->playground->getField(affected->x, affected->y)->updateStinky(false);
                 }
             }
         }
@@ -298,6 +279,9 @@ void ChangeHandler::handleChangedExhausted(int id, bool exhausted)
     std::stringstream ss;
     ss << "exhausted (" << id << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "exhausted", exhausted, aspkb::Strategy::INSERT_TRUE);
+    if(exhausted) {
+        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
+    }
 }
 
 void ChangeHandler::handleChangedShot(int agentId)
@@ -305,6 +289,18 @@ void ChangeHandler::handleChangedShot(int agentId)
     std::stringstream ss;
     ss << "shot(" << std::to_string(agentId) << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "agentsWhoShot", true, aspkb::Strategy::INSERT_TRUE);
+}
+
+void ChangeHandler::handleChangedSafeGoldPath(int i)
+{
+    std::stringstream ss;
+    ss << "hasSafePathToGold(" << std::to_string(i) << ")";
+    this->integrator->integrateInformationAsExternal(ss.str(), "safePathForAgent", true, aspkb::Strategy::INSERT_TRUE);
+}
+
+void ChangeHandler::handleChangedWumpusBlocksMoves(bool blocks)
+{
+    this->integrator->integrateInformationAsExternal("wumpusBlocksMoves", "wumpusMoves", blocks, aspkb::Strategy::INSERT_TRUE);
 }
 
 } /* namespace wm*/

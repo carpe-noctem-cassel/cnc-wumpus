@@ -24,6 +24,7 @@ public:
     void removeAgent(int id);
     void handleSilence();
     void handleScream();
+    void updateWumpusBlocksMoves(bool blocks);
     std::shared_ptr<wumpus::model::Agent> getAgentById(int id);
     std::shared_ptr<std::map<int,std::shared_ptr<wumpus::model::Agent>>> getAgents(bool expectAll);
     std::shared_ptr<std::map<int,std::shared_ptr<wumpus::model::Agent>>> getAgentsForExperiment();
@@ -35,6 +36,10 @@ public:
     int getNumberOfFields();
     std::vector<std::shared_ptr<wumpus::model::Agent>> getAgentsWhoShot();
 
+    //this is a convenience flag and set to true when a field's glitter flag is set
+    bool goldFieldKnown;
+
+    bool wumpusBlocksSafeMoves; //TODO maybe move into agent
 private:
     long turnCounter;
     int playgroundSize;

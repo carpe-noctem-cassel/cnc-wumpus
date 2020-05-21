@@ -1,4 +1,5 @@
 #include "aspkb/Extractor.h"
+#include "aspkb/IncrementalProblem.h"
 #include "aspkb/TermManager.h"
 #include <FileSystem.h>
 #include <engine/AlicaClock.h>
@@ -8,6 +9,8 @@
 #include <reasoner/asp/Term.h>
 #include <reasoner/asp/Variable.h>
 #include <wumpus/WumpusWorldModel.h>
+
+#define EXTRACTOR_DEBUG
 
 namespace aspkb
 {
@@ -20,7 +23,6 @@ bool Extractor::wroteHeaderIncremental = false;
 Extractor::Extractor()
 {
     this->solver = TermManager::getInstance().getSolver();
-    this->baseRegistered = false;
     // TODO only for getSolution stats
     this->resultsDirectory = (*essentials::SystemConfig::getInstance())["WumpusEval"]->get<std::string>("TestRun.resultsDirectory", NULL);
     this->filenameIncremental = "getSolutionStatsIncremental.csv";
@@ -29,11 +31,10 @@ Extractor::Extractor()
 
 Extractor::~Extractor()
 {
-    reasoner::asp::IncrementalExtensionQuery::clear();
+    //    reasoner::asp::IncrementalExtensionQuery::clear();
 }
 
-std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vector<std::string> inquiryPredicates, const std::vector<std::string>& baseRules,
-        const std::vector<std::string>& stepRules, const std::vector<std::string>& checkRules, int maxHorizon)
+std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc)
 {
 
     std::vector<std::string> ret;
@@ -44,45 +45,27 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
     alica::AlicaTime timeElapsed = alica::AlicaTime::zero();
-    int horizon = 1;
+    int horizon = inc->startHorizon;
 
-    // add terms to terms passed in getSolution
-    int attempts = 0;
+    if (!inc->keepBase) {
+        inc->activateBase();
+    }
 
-    while (!sat && horizon <= maxHorizon) {
+    while (!sat && horizon <= inc->maxHorizon) {
         std::lock_guard<std::mutex> lock(TermManager::queryMtx);
         auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
-        attempts++;
         terms.clear();
-        if (!baseRegistered) { // fixme register in query by hand. make removable or not?
-            auto baseTerm = TermManager::getInstance().requestTerm();
-            baseTerm->setLifeTime(-1);
-            baseTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
-            for (const auto& str : baseRules) {
-                baseTerm->addRule(str);
-            }
-            terms.push_back(baseTerm);
-            baseRegistered = true;
-        }
 
-        if (reasoner::asp::IncrementalExtensionQuery::isPresent(horizon)) {
-            reasoner::asp::IncrementalExtensionQuery::activate(horizon);
+        //        if (inc->stepTermsByHorizon.find(horizon) != inc->stepTermsByHorizon.end()) {
+        //            inc->activateStep(horizon);
+        //        } else {
+        //            auto stepTerm = inc->addStep(horizon);
+        //            terms.push_back(stepTerm);
+        //        }
 
-        } else {
+        inc->activateStep(horizon);
 
-            auto stepTerm = TermManager::getInstance().requestTerm();
-            stepTerm->setLifeTime(-1);
-            stepTerm->setType(reasoner::asp::QueryType::IncrementalExtension);
-            stepTerm->addProgramSectionParameter("t", std::to_string(horizon));
-            for (const auto& str : stepRules) {
-                stepTerm->addRule(str);
-            }
-            // manually added rules are not expanded properly :( FIXME
-            stepTerm->addRule("{occurs(A,t-1) : moveAction(A)} = 1.");
-
-            terms.push_back(stepTerm);
-        }
-
+        /*
         // experimenting with check term
         // todo make reusable
         //        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
@@ -95,48 +78,75 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         //         if(this->checkQueries.find(horizon) != this->checkQueries.end()) {
         //        auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
         //        terms.push_back(checkTerm);
+         */
 
-        // FIXME this is not working because of the order of grounding...
         if (horizon > 1) {
-            for (const auto& query : registeredQueries) {
-                if (query->getTerm()->getQueryId() ==
-                        this->checkTerms.at(horizon - 1)->getQueryId()) { // TODO lifetime? whose responsibility is it to reactivate queries?
-                    //                this->checkQueries.at(horizon - 1)->removeExternal();
-                    query->removeExternal();
-                    break;
-                }
-            }
-        }
+            inc->deactivateCheck(horizon - 1);
+            //#ifdef EXTRACTOR_DEBUG
+            //            for (const auto& i : inc->inquiryPredicates) {
+            //                if (i.find("Complete") != std::string::npos) {
+            //                    std::cout << std::endl;
+            ////                    std::cout << "EXTRACTOR: CALLING GETSOLUTION WITH ACTIVE STEP FOR HORIZON " << horizon << std::endl;
+            //                    this->solver->getSolution(vars, terms, results);
+            //                    std::cout << std::endl;
+            //                    break;
+            //                }
+            //            }
 
-        if (this->checkTerms.find(horizon) != this->checkTerms.end()) {
-            for (const auto& query : registeredQueries) {
-                if (query->getTerm()->getQueryId() == this->checkTerms.at(horizon)->getQueryId()) {
-                    std::dynamic_pointer_cast<::reasoner::asp::ReusableExtensionQuery>(query)->reactivate();
-                    break;
-                }
-            }
-        } else {
-            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
-            terms.push_back(checkTerm);
-            //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
-            //            this->solver->registerQuery(checkQuery);
-            //            this->checkQueries.emplace(horizon, checkQuery);
-            this->checkTerms.emplace(horizon, checkTerm);
+            //#endif
+            //            for (const auto& query : registeredQueries) {
+            //                if (query->getTerm()->getQueryId() ==
+            //                        this->checkTerms.at(horizon - 1)->getQueryId()) { // TODO lifetime? whose responsibility is it to reactivate queries?
+            //                    //                this->checkQueries.at(horizon - 1)->removeExternal();
+            //                    query->removeExternal();
+            //                    break;
+            //                }
+            //            }
         }
+        //        std::cout << "Extractor: activating check term for horizon " << horizon << std::endl;
+        inc->activateCheckTerm(horizon);
+        //        if (this->checkTerms.find(horizon) != this->checkTerms.end()) {
+        //            for (const auto& query : registeredQueries) {
+        //                if (query->getTerm()->getQueryId() == this->checkTerms.at(horizon)->getQueryId()) {
+        //                    std::dynamic_pointer_cast<::reasoner::asp::ReusableExtensionQuery>(query)->reactivate();
+        //                    break;
+        //                }
+        //            }
+        //        } else {
+        //            auto checkTerm = TermManager::getInstance().requestCheckTerm(horizon);
+        //            terms.push_back(checkTerm);
+        //            //            auto checkQuery = std::make_shared<reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
+        //            //            this->solver->registerQuery(checkQuery);
+        //            //            this->checkQueries.emplace(horizon, checkQuery);
+        //            this->checkTerms.emplace(horizon, checkTerm);
+        //        }
 
         // Create Term belonging to a FilterQuery to be part of the terms in the getSolution call
-
-        for (auto inquiry : inquiryPredicates) {
-            auto inquiryTerm = TermManager::getInstance().requestTerm();
+        for (auto inquiry : inc->inquiryPredicates) {
             for (int j = 0; j <= horizon; ++j) {
-                inquiryTerm->setLifeTime(1);
-                inquiryTerm->setType(::reasoner::asp::QueryType::Filter);
-                // wrap query rule to match extension query
-                auto wrappedQueryRule = std::string("incquery") + std::to_string(j) + "(" + inquiry + ")";
-                //                std::cout << "adding inquiry term" << std::endl;
-                inquiryTerm->setQueryRule(wrappedQueryRule);
-                //                std::cout << "inquiry - 2 " << std::endl;
-                terms.push_back(inquiryTerm);
+                if (j == 0) {
+                    bool found = false;
+                    for (const auto& i : inc->inquiryPredicates) {
+                        if (i.find("Complete") != std::string::npos) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        continue;
+                    }
+                } // FIXME hack - review
+                auto term = inc->activateInquiryTerm(inquiry, j);
+                // this should collect results - validate!
+                terms.push_back(term);
+                //                inquiryTerm->setLifeTime(1);
+                //                inquiryTerm->setType(::reasoner::asp::QueryType::Filter);
+                //                // wrap query rule to match extension query
+                //                auto wrappedQueryRule = std::string("incquery") + std::to_string(j) + "(" + inquiry + ")";
+                //                //                std::cout << "adding inquiry term" << std::endl;
+                //                inquiryTerm->setQueryRule(wrappedQueryRule);
+                //                //                std::cout << "inquiry - 2 " << std::endl;
+                //                terms.push_back(inquiryTerm);
             }
         }
 
@@ -146,7 +156,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
         auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
         timeElapsed = timeElapsed + solveTime;
 
-        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
+        //        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
     }
 
@@ -154,34 +164,39 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(std::vect
 
     // FIXME loop in reverse
     std::lock_guard<std::mutex> lock(TermManager::queryMtx);
-    auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
-    for (const auto& term : this->checkTerms) {
-        for (const auto& query : registeredQueries) {
-            if (query->getTerm()->getQueryId() == term.second->getQueryId()) {
-                query->removeExternal();
-                break;
-            }
-        }
+    //    auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
+    //    for (const auto& term : this->checkTerms) {
+    //        for (const auto& query : registeredQueries) {
+    //            if (query->getTerm()->getQueryId() == term.second->getQueryId()) {
+    //                query->removeExternal();
+    //                break;
+    //            }
+    //        }
+    //    }
+
+    inc->falsifyAllStepTerms();
+    inc->deactivateAllChecks();
+
+    if (!inc->keepBase) {
+        inc->deactivateBase();
     }
 
-    reasoner::asp::IncrementalExtensionQuery::cleanUp();
-
+    /*
     // new run should start without active step queries
     //        if(sat) {
     //            for(auto query : this->checkQueries) {
     //                query.second->removeExternal();
     //            }
     //        }
+    */
 
     // TODO something is buggy here (way too many result entries)
-
     for (auto res : results) {
         for (auto& factQueryValue : res->factQueryValues) {
             for (const auto& elem : factQueryValue) {
                 if (std::find(ret.begin(), ret.end(), elem) == ret.end()) {
-                    //                        std::cout << "ADDING ELEMENT: " << elem << std::endl;
                     ret.push_back(elem);
-                    //                    std::cout << "ELEM: " << elem << std::endl;
+                } else {
                 }
             }
         }
@@ -221,9 +236,8 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     auto sat = this->solver->getSolution(vars, terms, results);
     auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
     timeElapsed = timeElapsed + solveTime;
-    this->writeGetSolutionStatsReusable(queryIdentifier,timeElapsed);
-    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
-
+    this->writeGetSolutionStatsReusable(queryIdentifier, timeElapsed);
+    //    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
     for (auto res : results) {
         for (auto& varQueryValue : res->variableQueryValues) {
             for (const auto& elem : varQueryValue) {
@@ -297,7 +311,6 @@ inline void Extractor::writeHeader(bool incremental)
     fileWriter << "TimeElapsed";
     fileWriter << std::endl;
     fileWriter.close();
-
 }
 
 } /* namespace aspkb */

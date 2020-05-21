@@ -31,7 +31,7 @@ public:
     virtual ~ChangeHandler();
     void registerNewAgent(int id, bool me);
     void unregisterAgent(int id);
-    void handleChangedPosition(std::shared_ptr<wumpus::model::Field> newPosition);
+    void handleChangedPosition(int id, std::shared_ptr<wumpus::model::Field> newPosition);
     void handleChangedHeading(int newHeading);
     void handleChangedArrow(int agentId,bool arrow);
     void handleChangedStench(std::shared_ptr<wumpus::model::Field> field);
@@ -58,6 +58,10 @@ public:
     friend PlanningModule;
 
     void handleChangedShot(int agentId);
+
+    void handleChangedSafeGoldPath(int i);
+
+    void handleChangedWumpusBlocksMoves(bool blocks);
 
 private:
     wumpus::WumpusWorldModel* wm;

@@ -19,20 +19,23 @@ class Agent : public wumpus::model::DomainElement
 public:
     Agent(wumpus::wm::ChangeHandler* ch, int agentId);
     virtual ~Agent() = default;
+    int id;
     std::shared_ptr<Field> initialPosition;
     std::shared_ptr<Field> currentPosition;
     std::shared_ptr<Field> moveGoal;
-    Objective objective;
+    std::shared_ptr<wumpus::model::Field> diedOn;
     int currentHeading;
     int turn;
     bool hasArrow;
     bool hasGold;
     bool exited;
     bool shot;
-    std::shared_ptr<wumpus::model::Field> diedOn;
     bool exhausted;
     bool replanNecessary;
-    int id;
+    bool unsafeMovesAllowed;
+    bool hasSafePathToGold;
+    Objective objective;
+
 
     void registerAgent(bool me);
     void unregisterAgent();
@@ -43,6 +46,7 @@ public:
     void updateHeading(int heading);
     void updateArrow(bool arrow);
     void updateHaveGold(bool gold);
+    void updateHaveSafePathToGold();
     void updateExhausted(bool exhausted);
     void updateShot();
 

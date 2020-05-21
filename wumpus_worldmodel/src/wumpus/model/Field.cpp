@@ -1,4 +1,5 @@
 #include "wumpus/model/Field.h"
+#include <wumpus/WumpusWorldModel.h>
 namespace wumpus
 {
 namespace model
@@ -23,6 +24,8 @@ void Field::updateShiny(bool shiny)
         this->shiny = shiny;
         this->ch->handleSetGlitter(shared_from_this());
     }
+    //TODO dependency on WWM and pg should not be here...
+    wumpus::WumpusWorldModel::getInstance()->playground->goldFieldKnown = true;
 }
 
 void Field::updateDrafty(bool drafty)

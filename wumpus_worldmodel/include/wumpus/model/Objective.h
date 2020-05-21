@@ -13,6 +13,7 @@ enum Objective
     MOVE_TO_GOLD_FIELD,
     COLLECT_GOLD,
     HUNT_WUMPUS,
+    FETCH_OTHER_AGENT,
     SHOOT,
     GO_HOME,
     LEAVE,
@@ -40,6 +41,8 @@ enum Objective
                 return str << "leave";
             case IDLE:
                 return str << "idle";
+            case FETCH_OTHER_AGENT:
+                return str << "fetchOtherAgent";
             default:
                 return str << (int) objective;
         }

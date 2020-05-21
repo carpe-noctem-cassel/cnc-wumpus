@@ -51,6 +51,7 @@ void Reset::run(void* msg)
         perception.position = pos;
         perception.senderID = sc->getOwnRobotID();
         perception.died = this->wm->localAgentDied;
+        perception.haveGold = this->wm->playground->getAgentById(sc->getOwnRobotID())->hasGold;
         if (this->wm->localAgentDied) {
             auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
             if (localAgent) {

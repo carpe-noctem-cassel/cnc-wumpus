@@ -1,0 +1,17 @@
+#program safelyExploredPathExistsBase(x,y,a,b).
+
+start(x,y) :- .
+end(a,b).
+
+path(x,y,0).
+
+#step
+#program safelyExploredPathExistsStep(t).
+
+
+{path(X,Y,t)} = 1 :- path(C,D, t-1), fieldAdjacent(X,Y,C,D), explored(C,D).
+
+#program safelyExploredPathCheck(t).
+
+noPathFound(t) :- not path(_,_,t).
+pathFound(t) :- end(X,Y), path(X,Y,t).

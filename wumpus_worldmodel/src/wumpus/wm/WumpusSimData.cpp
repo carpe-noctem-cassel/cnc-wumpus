@@ -103,14 +103,14 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
     //        std::lock_guard<std::mutex> lock(this->respMtx);
 
     // FIXME does this have any effect?
-//    if (!this->wm->currentEncoding.empty() && this->wm->resettedForEncoding.find(this->wm->currentEncoding) != this->wm->resettedForEncoding.end()) {
-//        std::cout << "Already resetted for this encoding!" << this->wm->currentEncoding << std::endl;
-//        return;
-//    }
+    //    if (!this->wm->currentEncoding.empty() && this->wm->resettedForEncoding.find(this->wm->currentEncoding) != this->wm->resettedForEncoding.end()) {
+    //        std::cout << "Already resetted for this encoding!" << this->wm->currentEncoding << std::endl;
+    //        return;
+    //    }
 
-    //TODO access
-    auto me = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID()); //may have been resetted alredy
-    if(me) {
+    // TODO access
+    auto me = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID()); // may have been resetted alredy
+    if (me) {
         // silence and scream can be heard from anyone
         if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
             me->replanNecessary = true;
@@ -122,7 +122,6 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
             this->wm->playground->handleScream();
         }
     }
-
 
     // ignore msgs which aren't meant for me
     if (actionResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
@@ -174,7 +173,9 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
     }
     agent->updatePosition(field);
     agent->updateHeading(actionResponse->heading);
-    agent->updateHaveGold(responsesContain(actionResponse->responses, WumpusEnums::goldFound));
+    if (responsesContain(actionResponse->responses, WumpusEnums::goldFound)) {
+        agent->updateHaveGold(true);
+    }
 
     field->updateDrafty(responsesContain(actionResponse->responses, WumpusEnums::drafty));
     field->updateShiny(responsesContain(actionResponse->responses, WumpusEnums::shiny));
@@ -200,15 +201,21 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
 void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception)
 {
     std::lock_guard<std::mutex> lock(this->wm->resetMtx); // FIXME
-    std::lock_guard<std::mutex> lock2(this->respMtx);     // FIXME fix segfault rc properly
+    //    std::lock_guard<std::mutex> lock2(this->respMtx);     // FIXME fix segfault rc properly
 
+    std::cout << "Process Agent Perception: Encoding is: " << agentPerception->encoding << std::endl;
     if (!agentPerception->encoding.empty() && agentPerception->encoding != this->wm->currentEncoding) {
+        std::cout << "Process Agent Perception: Encoding has been updated from: " << this->wm->currentEncoding << std::endl;
+
         this->wm->currentEncoding = agentPerception->encoding;
-        if (this->wm->resettedForEncoding.find(agentPerception->encoding) != this->wm->resettedForEncoding.end()) {
-            return;
-        }
     }
 
+    if (this->wm->resettedForEncoding.find(agentPerception->encoding) != this->wm->resettedForEncoding.end()) {
+        std::cout << "Already resetted for encoding " << agentPerception->encoding << std::endl;
+        return;
+    } else {
+        std::cout << "not resetted for encoding " << agentPerception->encoding << std::endl;
+    }
     // allow communicating of dead/exited for result logging
     auto id = this->wm->getEngine()->getTeamManager()->getLocalAgentID();
     if (this->wm->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->wm->spawnRequestHandlerRoleName) {
@@ -241,6 +248,14 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     if (agentPerception->senderID == essentials::SystemConfig::getOwnRobotID()) {
         return;
     }
+    std::cout << "Got perception from other agent! Agent exited: " << (agentPerception->exited ? "true" : "false") << std::endl;
+    // already integrated info FIXME reset?
+    //    if (this->integratedFromOtherAgentsForTurnNr.find(agentPerception->senderID) != this->integratedFromOtherAgentsForTurnNr.end()) {
+    //        if (this->integratedFromOtherAgentsForTurnNr.at(agentPerception->senderID)) {
+    //            std::cout << "Already integrated info from agent!" << std::endl;
+    //            return;
+    //        }
+    //    }
 
     auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
     if (!agent) {
@@ -256,16 +271,23 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     }
     std::cout << "Setting agent perception from " << agentPerception->senderID << std::endl;
     agent->updateArrow(agentPerception->arrow);
+    agent->updateHaveGold(agentPerception->haveGold);
     agent->updateExhausted(agentPerception->exhausted);
     if (agentPerception->shot) {
         agent->updateShot();
+        // integrate shooting targets
+        for (const auto& target : this->wm->planningModule->getShootingTargets()->at(agent->id)) {
+            std::cout << "WumpusSimData: Integrating shooting target from other agent" << std::endl;
+            auto field = this->wm->playground->getField(std::stoi(target.first), std::stoi(target.second));
+            field->updateShotAt(agentPerception->senderID, true);
+        }
     }
     //    std::cout << "Processing agent perception" << std::endl;
 
     if (this->integratedFromOtherAgentsForTurnNr.find(agentPerception->senderID) == this->integratedFromOtherAgentsForTurnNr.end()) {
-        //        std::cout << "IFA: couldn't find" << agentPerception->senderID << std::endl;
+        std::cout << "IFA: couldn't find" << agentPerception->senderID << std::endl;
         if (!(agentPerception->exited || agentPerception->died)) {
-            //            std::cout << "IFA: adding " << agentPerception->senderID << std::endl;
+            std::cout << "IFA: adding " << agentPerception->senderID << std::endl;
             this->integratedFromOtherAgentsForTurnNr.emplace(agentPerception->senderID, true);
         }
     } else {
@@ -280,15 +302,14 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     // remove agent if they exited or died - after this, no field info should be updated if the agent exited
     if (this->integratedFromOtherAgentsForTurnNr.find(agentPerception->senderID) != this->integratedFromOtherAgentsForTurnNr.end() &&
             (agentPerception->exited || agentPerception->died)) {
-        auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
         if (agentPerception->died) {
             agent->setDead(this->wm->playground->getField(agentPerception->position.x, agentPerception->position.y));
-            //            std::cout << "WSD: Agent Dead!" << std::endl;
+            std::cout << "WSD: Agent Dead!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
             return;
         } else if (agentPerception->exited) {
             agent->setExited();
-            //            std::cout << "Agent " << agentPerception->senderID << " exited!" << std::endl;
+            std::cout << "Agent " << agentPerception->senderID << " exited!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
             return; // TODO special case
         }
@@ -309,6 +330,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
             field->updateShiny(agentPerception->glitter);
             field->updateStinky(agentPerception->stinky);
             field->updateExplored(true);
+            agent->updatePosition(field);
         } else {
             std::cout << "WumpusSimData: No field with given coordinates! " << std::endl;
         }
@@ -320,6 +342,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     for (auto coordinates : agentPerception->shootingTargets) {
         this->wm->planningModule->addShootingTarget(
                 agentPerception->senderID, std::make_pair<std::string, std::string>(std::to_string(coordinates.x), std::to_string(coordinates.y)));
+
         //        for (const auto& affected: this->wm->playground->getAdjacentFields(coordinates.x, coordinates.y)) {
         //            affected->updateStinky(false);
         //        }
