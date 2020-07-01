@@ -12,3 +12,5 @@
 #external arrow(A) : agent(A).
 #external exhausted(A) : agent(A).
 #external hasSafePathToGold(A) : agent(A).
+#external wumpusBlocksAgent(X,Y,A) : field(X,Y), agent(A).
+#external trapBlocksAgent(X,Y,A) : field(X,Y), agent(A).

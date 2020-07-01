@@ -9,15 +9,15 @@ namespace wumpus
 namespace wm
 {
 
-ChangeHandler::ChangeHandler(wumpus::WumpusWorldModel* wm)
-        : wm(wm)
+ChangeHandler::ChangeHandler(wumpus::WumpusWorldModel* wm, aspkb::Integrator* integrator)
+        : wm(wm), integrator(integrator)
 {
-    this->integrator = new aspkb::Integrator();
+//    this->integrator = new aspkb::Integrator();
 }
 
 ChangeHandler::~ChangeHandler()
 {
-    delete this->integrator;
+//    delete this->integrator;
 }
 
 void ChangeHandler::registerNewAgent(int id, bool me)
@@ -136,11 +136,31 @@ void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective obje
     }
 }
 
+void ChangeHandler::handleChangedBlockedByWumpus(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue)
+{
+    std::stringstream ss;
+    ss << "wumpusBlocksAgent(" << std::to_string(field->x) << ", " << std::to_string(field->y) << ", " << id << ")";
+    this->integrator->integrateInformationAsExternal(ss.str(), "wumpusBlocksAgent", truthValue, aspkb::Strategy::INSERT_TRUE);
+    if (id == essentials::SystemConfig::getOwnRobotID()) {
+        this->wm->playground->getAgentById(id)->replanNecessary = true;
+    }
+}
+
+void ChangeHandler::handleChangedBlockedByTrap(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue)
+{
+    std::stringstream ss;
+    ss << "blockedByTrap(" << id << ", " << std::to_string(field->x) << ", " << std::to_string(field->y) << ")";
+    this->integrator->integrateInformationAsExternal(ss.str(), "trapBlocksAgent", truthValue, aspkb::Strategy::INSERT_TRUE);
+    if (id == essentials::SystemConfig::getOwnRobotID()) {
+        this->wm->playground->getAgentById(id)->replanNecessary = true;
+    }
+}
+
 /**
- * Knowledge about the field size is necessary for defining externals.
- * When externals are defined, background knowledge can be loaded.
- * @param fieldSize
- */
+* Knowledge about the field size is necessary for defining externals.
+* When externals are defined, background knowledge can be loaded.
+* @param fieldSize
+*/
 void ChangeHandler::handleSetFieldSize(int fieldSize)
 {
     this->integrator->integrateAsTermWithProgramSection(
@@ -187,7 +207,7 @@ void ChangeHandler::handleChangedShotAt(int id, std::shared_ptr<wumpus::model::F
 
     // a blocking wumpus for the local agent might have been shot
     // TODO check if shot at field contained a blocking wumpus for the local agent
-//    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
+    //    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
 }
 
 void ChangeHandler::handleChangedExplored(std::shared_ptr<wumpus::model::Field> field)
@@ -210,15 +230,17 @@ void ChangeHandler::handleScream()
     this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     // TODO does this make sense?
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
+    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    localAgent->updateExhausted(false);
+    localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
 
-    for (const auto& fieldsById : *this->wm->getShotAtFields()) {
+    for (const auto& fieldsById : *this->wm->playground->getFieldsShotAtByAgentIds()) {
         if (this->wm->playground->getAgentById(fieldsById.first)->shot) {
             for (const auto& shotAt : fieldsById.second) {
                 //            iff agent actually shot
-                std::cout << "shotAt: " << shotAt.first << "," << shotAt.second << std::endl;
+                std::cout << "shotAt: " << shotAt->x << "," << shotAt->y << std::endl;
                 // FIXME don't consider shot at fields
-                for (const auto& affected : this->wm->playground->getAdjacentFields(std::stoi(shotAt.first), std::stoi(shotAt.second))) {
+                for (const auto& affected : this->wm->playground->getAdjacentFields(shotAt->x, shotAt->y)) {
                     std::cout << "affected: " << affected->x << ", " << affected->y << std::endl;
                     this->wm->playground->getField(affected->x, affected->y)->updateExplored(false);
                     this->wm->playground->getField(affected->x, affected->y)->updateVisited(false);
@@ -238,32 +260,33 @@ void ChangeHandler::handleSilence()
     this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     // TODO does this make sense?
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
+    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    localAgent->updateExhausted(false);
+    localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
 }
 
 void ChangeHandler::handleShotAtFields() const
 {
     std::stringstream ss;
-    auto agentsWhoShot = this->wm->playground->getAgentsWhoShot();
-    for (auto a : agentsWhoShot) {
-        std::cout << "  AGENTS WHO SHOT: " << a->id << std::endl;
-    }
-    auto shotAtFields = wm->getShotAtFields();
-    for (const auto& agent : *shotAtFields) {
-        for (auto f : agent.second) {
-            std::cout << "  FIELD SHOT AT: " << f.first << ", " << f.second << std::endl;
-        }
-    }
-    for (const auto& agent : agentsWhoShot) {
-        if (shotAtFields->find(agent->id) == shotAtFields->end()) {
-            std::cout << "No shooting targets for id " << agent->id << "!" << std::endl;
-            throw std::exception(); // FIXME remove, only for debugging
-            return;
-        } else {
-            for (const auto& shotAt : shotAtFields->at(agent->id)) {
-                ss << "shotAt(" << shotAt.first << "," << shotAt.second << ")";
-                wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt", true, aspkb::INSERT_TRUE);
-                ss.str("");
+
+    bool integratedAll = false;
+    while (!integratedAll) {
+        auto agentsWhoShot = this->wm->playground->getAgentsWhoShot();
+        for (const auto& agent : agentsWhoShot) {
+            std::cout << "In handle Shot at Fields " << std::endl;
+            auto shotAtFields = this->wm->playground->getFieldsShotAtByAgentIds();
+            integratedAll = true;
+            if (shotAtFields->find(agent->id) == shotAtFields->end()) {
+                std::cout << "No shooting targets for id " << agent->id << "!" << std::endl;
+                integratedAll = false;
+                //                throw std::exception(); // FIXME remove, only for debugging
+                //                return;
+            } else {
+                for (const auto& shotAt : shotAtFields->at(agent->id)) {
+                    ss << "shotAt(" << std::to_string(shotAt->x) << "," << std::to_string(shotAt->y) << ")";
+                    wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt", true, aspkb::INSERT_TRUE);
+                    ss.str("");
+                }
             }
         }
     }
@@ -279,7 +302,7 @@ void ChangeHandler::handleChangedExhausted(int id, bool exhausted)
     std::stringstream ss;
     ss << "exhausted (" << id << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "exhausted", exhausted, aspkb::Strategy::INSERT_TRUE);
-    if(exhausted) {
+    if (exhausted) {
         this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
     }
 }
@@ -301,6 +324,13 @@ void ChangeHandler::handleChangedSafeGoldPath(int i)
 void ChangeHandler::handleChangedWumpusBlocksMoves(bool blocks)
 {
     this->integrator->integrateInformationAsExternal("wumpusBlocksMoves", "wumpusMoves", blocks, aspkb::Strategy::INSERT_TRUE);
+}
+
+void ChangeHandler::handleChangedPossibleNext(const std::shared_ptr<model::Field>& field)
+{
+    std::stringstream ss;
+    ss << "possibleNext(" << field->x << ", " << field->y << ")";
+    this->integrator->integrateInformationAsExternal(ss.str(), "possibleNext", field->possibleNextCandidate, aspkb::Strategy::INSERT_TRUE);
 }
 
 } /* namespace wm*/

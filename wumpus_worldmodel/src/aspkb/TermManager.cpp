@@ -99,8 +99,8 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->addProgramSectionParameter("t", std::to_string(horizon));
     // for (const auto& str : checkRules) {
     auto rule = "notMoved(t) :- pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
-                std::string("(holds(on(A,B),t)), pathActionsincquery") + std::to_string(0) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
-                std::string("(holds(on(A,B),0)).");
+                std::string("(holds(on(A,B),t)), pathActionsincquery") +
+                std::to_string(0) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ + std::string("(holds(on(A,B),0)).");
     checkTerm->addRule(rule);
     rule = ":- not goal(_,_), notMoved(t).";
     checkTerm->addRule(rule); // FIXME comment in
@@ -138,28 +138,39 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     rule = ":- movedInDanger(t), haveGold(A), me(A)."; // agent should go home safely only!
     checkTerm->addRule(rule);
 
-    //    rule = " endsOnVisited(t) :- visited(X,Y),pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId)
+    //    rule = " endsOnVisited(t) :- visited(X,Y),pathActionsincquery" + std::to_string(horizon) /* +
+    //    std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId)
     //    */ +
     //           std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     //    checkTerm->addRule(rule);
     //    rule = ":- not goal(_,_), endsOnVisited(t).";
     //    checkTerm->addRule(rule);
 
-    //FIXME experimentally added info about being exhausted to avoid agent getting stuck
-    rule = " endsOnExplored(t) :- explored(X,Y), me(A), not exhausted(A), pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    // FIXME experimentally added info about being exhausted to avoid agent getting stuck
+    //    rule = " endsOnExplored(t) :- explored(X,Y), me(A), not exhausted(A), pathActionsincquery" + std::to_string(horizon) /* +
+    //    std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+    //           std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
+    //    checkTerm->addRule(rule); // FIXME evaluate using explored vs visited here
+    //    rule = ":- not goal(_,_), endsOnExplored(t).";
+    //    checkTerm->addRule(rule);
+
+    // FIXME info about being exhausted did get agent stuck (rarely!) too..
+
+    rule = " endsOnExplored(t) :- explored(X,Y), me(A), pathActionsincquery" +
+           std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
            std::string("(holds(on(X,Y)," + std::to_string(horizon) + ")).");
     checkTerm->addRule(rule); // FIXME evaluate using explored vs visited here
     rule = ":- not goal(_,_), endsOnExplored(t).";
     checkTerm->addRule(rule);
 
-    rule = "wrongHeading(t) :- goalHeading(A), pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
-           std::string("(holds(heading(B),t)), A!=B.");
+    rule = "wrongHeading(t) :- goalHeading(A), pathActionsincquery" +
+           std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ + std::string("(holds(heading(B),t)), A!=B.");
     checkTerm->addRule(rule);
 
     rule = ":- wrongHeading(t).";
     checkTerm->addRule(rule);
-    rule = "notEndsOnGoal(t) :- goal(X,Y), not pathActionsincquery" + std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
-           std::string("(holds(on(X,Y),t)).");
+    rule = "notEndsOnGoal(t) :- goal(X,Y), not pathActionsincquery" +
+           std::to_string(horizon) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ + std::string("(holds(on(X,Y),t)).");
 
     // FIXME exploring safe fields close to the (glittering) goal should be more favourable than allowing unsafe moves
 
@@ -174,11 +185,9 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
 ::reasoner::asp::Term* TermManager::requestPathCheckTerm(int horizon, std::string coordinateEncoding)
 {
-//    auto termInstance = this->requestTerm();
-//    termInstance->setType(reasoner::asp::QueryType::ReusableExtension);
-//    termInstance->addProgramSectionParameter("t", std::to_string(horizon));
-
-
+    //    auto termInstance = this->requestTerm();
+    //    termInstance->setType(reasoner::asp::QueryType::ReusableExtension);
+    //    termInstance->addProgramSectionParameter("t", std::to_string(horizon));
 
     auto termInstance = new ::reasoner::asp::Term();
     auto id = solver->getQueryCounter();
@@ -195,15 +204,63 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 
     auto rule = "pathComplete(t) :- " + coordinateEncoding + "incquery" + std::to_string(horizon) + "(path(X,Y,t)), end(X,Y).";
     termInstance->addRule(rule);
-//    rule = ":- not noPathPossible(t), not pathComplete(t).";
-//    termInstance->addRule(rule);
+    //    rule = ":- not noPathPossible(t), not pathComplete(t).";
+    //    termInstance->addRule(rule);
     rule = ":- not pathComplete(t).";
     termInstance->addRule(rule);
 
-
-//    auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) + "(holds(on(A,B),t)) , incquery" + std::to_string(0) + "(holds(on(A,B),0)).";
-//    termInstance->addRule(rule);
+    //    auto rule = "notMoved(t) :- incquery" + std::to_string(horizon) + "(holds(on(A,B),t)) , incquery" + std::to_string(0) + "(holds(on(A,B),0)).";
+    //    termInstance->addRule(rule);
     return termInstance;
+}
+
+::reasoner::asp::Term* TermManager::requestPossibleNextCheckTerm(std::string externalPrefix, int horizon)
+{
+    auto term = this->requestTerm();
+    term->addProgramSectionParameter("t", std::to_string(horizon));
+    std::stringstream ss;
+    //    ss << ":- " << externalPrefix << "incquery" << std::to_string(horizon) << "(newFieldsCount(0,t)"
+    //       << ").";
+    if (horizon == 0) {
+        ss << "lastField(X,Y) :- " << externalPrefix << "incquery" << std::to_string(horizon) << "(genPath(X,Y,0)).";
+        term->addRule(ss.str());
+        ss.str("");
+        ss << "genPathEndpoint(X,Y) :- lastField(X,Y), not explored(A,B) : fieldAdjacent(X,Y,A,B).";
+        term->addRule(ss.str());
+        ss.str("");
+    }
+    if (horizon > 0) {
+        ss << ":- " << externalPrefix << "incquery" << std::to_string(horizon) << "(genPath(X,Y," << std::to_string(horizon) << ")).";
+        term->addRule(ss.str());
+        ss.str("");
+        ss << "endpoint(X,Y) :-" << externalPrefix << "incquery" << std::to_string(horizon) << "(genPathEndpoint(X,Y))." << std::endl; // helper predicate
+        term->addRule(ss.str());
+        ss.str("");
+    } else {
+//        ss << ":- not genPathEndpoint(_,_).";
+//        term->addRule(ss.str());
+//        ss.str("");
+        ss << "endpoint(X,Y) :- genPathEndpoint(X,Y)." << std::endl; // helper predicate
+        term->addRule(ss.str());
+        ss.str("");
+    }
+
+    //    ss << "newFieldsCount(N, t) :- N = #count{1, X, Y : " << externalPrefix << "incquery" << std::to_string(horizon) << "(genPath(X, Y, t))}.";
+
+    ss << "endpointAdjacent(X,Y) :- endpoint(A,B), fieldAdjacent(X,Y,A,B).";
+    term->addRule(ss.str());
+    ss.str("");
+    ss << "possibleNextCandidate(X,Y) :- endpointAdjacent(X,Y), not explored(X,Y).";
+    term->addRule(ss.str());
+    // experimental
+    //    for (int i = 0; i <= horizon; ++i) {
+    //        ss.str("");
+    //        ss << "possibleNextCandidate(X,Y) :- " << externalPrefix << "incquery" << std::to_string(i)
+    //           << "(genPathEndPoint(A,B)), fieldAdjacent(A,B,X,Y), not explored(X,Y).";
+    //        term->addRule(ss.str());
+    //    }
+
+    return term;
 }
 
 void TermManager::clear()

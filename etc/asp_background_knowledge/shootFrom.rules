@@ -3,19 +3,33 @@ fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,1), X=A, Y < B.
 fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,2), Y=B, X > A.
 fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,3), X=A, Y > B.
 
-wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpusPossible(X,Y)
-blockingWumpus(X,Y) :- wumpusPossible(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B).
-blockingWumpus(X,Y) :- wumpusPossible(X,Y), fieldAdjacent(X,Y,A,B), stinky(A,B), fieldAdjacent(A,B,C,D), not explored(C,D).
-definitelyBlockingWumpus(X,Y) :- wumpus(X,Y), fieldAdjacent(X,Y,A,B), not explored(A,B), not trap(X,Y).
-wumpusUtil(N) :- N = #count{1,C,D : wumpusAhead(C,D), blockingWumpus(C,D)}.
-wumpusUtilDefinite(X) :- X = #count{1,C,D : wumpusAhead(C,D), definitelyBlockingWumpus(C,D)}.
+wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpusPossible(X,Y).
+
+blockingWumpusForSelf(X,Y) :- wumpusBlocksAgent(X,Y,A), wumpusPossible(X,Y), me(A).
+blockingWumpusForOther(X,Y,A) :- wumpusBlocksAgent(X,Y,A), wumpusPossible(X,Y), not me(A).
+
+definitelyBlockingWumpusSelf(X,Y) :- wumpusBlocksAgent(X,Y,A), wumpus(X,Y), me(A).
+definitelyBlockingWumpusOther(X,Y,A) :- wumpusBlocksAgent(X,Y,A), wumpus(X,Y), not me(A).
+
+wumpusUtilSelf(N) :- N = #count{1,C,D : wumpusAhead(C,D), blockingWumpusForSelf(C,D)}.
+wumpusUtilDefiniteSelf(X) :- X = #count{1,C,D : wumpusAhead(C,D), definitelyBlockingWumpusSelf(C,D)}.
+
+{chosenAgent(A) : agent(A)} = 1.
+wumpusUtilOther(N,A) :- N = #count{1,C,D,A : wumpusAhead(C,D), blockingWumpusForOther(C,D,A), chosenAgent(A)}, chosenAgent(A).
+
+wumpusUtilDefiniteOther(X,A) :- X = #count{1,C,D,A : wumpusAhead(C,D), definitelyBlockingWumpusOther(C,D,A)}, chosenAgent(A).
+
 duplicateShotAt(N) :- N= #count{1,X,Y : fieldIsAhead(X,Y), shotAt(X,Y)}.
+
 {target(X,Y,D) : field(X,Y), visited(X,Y), not wumpusPossible(X,Y), not trapPossible(X,Y), not wumpus(X,Y), not trap(X,Y), direction(D)} = 1.
 
-#maximize{N@1 : wumpusUtilDefinite(N)}.
-#minimize {N@2 : duplicateShotAt(N)}.
-#maximize{N@3 : wumpusUtil(N)}.
-:- wumpusUtil(0), wumpusUtilDefinite(0).
+#maximize{N@1 : wumpusUtilDefiniteSelf(N)}.
+#minimize{N@2 : duplicateShotAt(N)}.
+#maximize{N@3 : wumpusUtilSelf(N)}.
+#maximize{N@4 : wumpusUtilDefiniteOther(N,_)}.
+#maximize{N@5 : wumpusUtilOther(N,_)}.
+
+:- wumpusUtilDefiniteSelf(0), wumpusUtilSelf(0), wumpusUtilDefiniteOther(0,_), wumpusUtilOther(0,_).
 
 targetPos(X,Y) :- target(X,Y,_).
 targetHeading(D) :- target(_,_,D).

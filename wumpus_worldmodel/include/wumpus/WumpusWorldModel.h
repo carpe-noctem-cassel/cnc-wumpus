@@ -4,24 +4,26 @@
 #include "wm/Communication.h"
 #include "wm/WumpusSimData.h"
 #include <SystemConfig.h>
+#include <aspkb/Integrator.h>
 #include <essentials/EventTrigger.h>
+#include <eval/Experiment.h>
+#include <string>
 #include <supplementary/InformationElement.h>
 #include <supplementary/WorldModel.h>
 #include <wumpus/wm/PlanningModule.h>
-#include <eval/Experiment.h>
-#include <string>
 
 namespace alica
 {
-    class AlicaEngine;
-    class AlicaClock;
+class AlicaEngine;
+class AlicaClock;
 }
 namespace essentials
 {
 class SystemConfig;
 }
-namespace eval {
-    class Experiment;
+namespace eval
+{
+class Experiment;
 }
 namespace wumpus
 {
@@ -57,9 +59,9 @@ public:
     wm::Communication* communication;
     eval::Experiment* experiment;
     void reset();
-    void integrateChanges();
-    std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> getShotAtFields(); //TODO move to playground(?) and fix types (might be Fields?)
-    std::vector<int> getAgentIDsForExperiment(); //TODO move?
+    //    void integrateChanges();
+
+    std::vector<int> getAgentIDsForExperiment(); // TODO move?
     bool localAgentIsSpawnRequestHandler();
 
     void setIsTimeout();
@@ -72,10 +74,36 @@ public:
     bool localAgentDied;
     int timeoutDurationSeconds;
     std::string spawnRequestHandlerRoleName;
-    //maybe rename - remember encodings for which a reset has already been performed
+    // maybe rename - remember encodings for which a reset has already been performed
     std::set<std::string> resettedForEncoding;
-    std::string currentEncoding; //TODO duplicate field
+    std::string currentEncoding; // TODO duplicate field
     std::mutex resetMtx;
+
+    static wumpus::model::Objective objectiveFromString(const std::string& objectiveString)
+    {
+        if (objectiveString == "goHome") {
+            return wumpus::model::Objective::GO_HOME;
+        } else if (objectiveString == "moveToGoldField")
+            return wumpus::model::Objective::MOVE_TO_GOLD_FIELD;
+        else if (objectiveString == "huntWumpus") {
+            return wumpus::model::Objective::HUNT_WUMPUS;
+        } else if (objectiveString == "fetchOtherAgent") {
+            return wumpus::model::Objective::FETCH_OTHER_AGENT;
+        } else if (objectiveString == "shoot") {
+            return wumpus::model::Objective::SHOOT;
+        } else if (objectiveString == "idle") {
+            return wumpus::model::Objective::IDLE;
+        } else if (objectiveString == "leave") {
+            return wumpus::model::Objective::LEAVE;
+        } else if (objectiveString == "collectGold") {
+            return wumpus::model::Objective::COLLECT_GOLD;
+        } else if (objectiveString == "explore") {
+            return wumpus::model::Objective::EXPLORE;
+        }
+        std::cout << "Unknown objective string!" << std::endl;
+        throw std::exception();
+        return wumpus::model::Objective::UNDEFINED;
+    }
 
 private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
@@ -83,6 +111,8 @@ private:
     int agentCount;
     std::vector<int> agentIDs;
     bool isTimedOut;
+    aspkb::Integrator* integrator;
+    aspkb::Extractor* extractor;
 };
 
 } /* namespace wumpus */

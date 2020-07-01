@@ -11,8 +11,11 @@ bool arrow
 bool exited
 bool died
 bool haveGold
+string objective
 Coordinates diedOn
 bool exhausted
 Coordinates[] shootingTargets
 bool shot
 Coordinates[] blockingWumpi
+Coordinates[] blockingTraps
+

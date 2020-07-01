@@ -27,13 +27,13 @@ class ChangeHandler
 {
 
 public:
-    ChangeHandler(wumpus::WumpusWorldModel* wm);
+    ChangeHandler(wumpus::WumpusWorldModel* wm, aspkb::Integrator* integrator);
     virtual ~ChangeHandler();
     void registerNewAgent(int id, bool me);
     void unregisterAgent(int id);
     void handleChangedPosition(int id, std::shared_ptr<wumpus::model::Field> newPosition);
     void handleChangedHeading(int newHeading);
-    void handleChangedArrow(int agentId,bool arrow);
+    void handleChangedArrow(int agentId, bool arrow);
     void handleChangedStench(std::shared_ptr<wumpus::model::Field> field);
     void handleChangedMoveGoal(int id, std::shared_ptr<wumpus::model::Field> goal);
     void handleChangedVisited(std::shared_ptr<wumpus::model::Field> field);
@@ -54,7 +54,7 @@ public:
 
     aspkb::Integrator* integrator;
 
-    //allow pm to integrate its results as externals
+    // allow pm to integrate its results as externals
     friend PlanningModule;
 
     void handleChangedShot(int agentId);
@@ -62,6 +62,12 @@ public:
     void handleChangedSafeGoldPath(int i);
 
     void handleChangedWumpusBlocksMoves(bool blocks);
+
+    void handleChangedBlockedByWumpus(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue);
+
+    void handleChangedBlockedByTrap(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue);
+
+    void handleChangedPossibleNext(const std::shared_ptr<model::Field>& sharedPtr);
 
 private:
     wumpus::WumpusWorldModel* wm;

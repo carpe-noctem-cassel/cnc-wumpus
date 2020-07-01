@@ -26,16 +26,16 @@ class IncrementalProblem
     const char* const CHECK_RULES_CONFIG = "checkRulesFilePath";
 
 public:
-    IncrementalProblem(reasoner::asp::Solver* solver, std::vector<std::string> inquiryPredicates,
+    IncrementalProblem(::reasoner::asp::Solver* solver, std::vector<std::string> inquiryPredicates,
             const std::map<std::string, std::string>& baseTermProgramSectionParameters, const std::string& configFilename,
             const std::string& configurationSection, const std::string& externalPrefix, int startHorizon, int maxHorizon, bool keepBase);
 
     const std::vector<std::string> inquiryPredicates;
 
-    reasoner::asp::Term* baseTerm;
-    std::map<int, reasoner::asp::Term*> stepTermsByHorizon;
-    std::map<int, reasoner::asp::Term*> checkTermsByHorizon;
-    std::map<std::string, std::map<int, reasoner::asp::Term*>> inquiryTermsByHorizon;
+    ::reasoner::asp::Term* baseTerm;
+    std::map<int, ::reasoner::asp::Term*> stepTermsByHorizon;
+    std::map<int, ::reasoner::asp::Term*> checkTermsByHorizon;
+    std::map<std::string, std::map<int, ::reasoner::asp::Term*>> inquiryTermsByHorizon;
 
     const int maxHorizon;
     const int startHorizon;
@@ -53,23 +53,25 @@ public:
     void activateBase();
     void deactivateBase();
 
-    reasoner::asp::Term* activateInquiryTerm(const std::string& inquiryString, int horizon);
+
+   ::reasoner::asp::Term* activateInquiryTerm(const std::string& inquiryString, int horizon);
 
 protected:
-    IncrementalProblem(reasoner::asp::Solver* solver, std::vector<std::string> inquiryPredicates,
+    IncrementalProblem(::reasoner::asp::Solver* solver, std::vector<std::string> inquiryPredicates,
             const std::map<std::string, std::string>& baseTermProgramSectionParameters, const std::string& configFilename,
             const std::string& configurationSection, int startHorizon, int maxHorizon, bool keepBase,
-            std::shared_ptr<reasoner::asp::IncrementalQueryWrapper> wrapper);
+            std::shared_ptr<::reasoner::asp::IncrementalQueryWrapper> wrapper);
 
+   ::reasoner::asp::Solver* solver;
+    std::shared_ptr<::reasoner::asp::IncrementalQueryWrapper> incWrapper;
 private:
     std::vector<std::string> baseRules;
     std::vector<std::string> checkRules;
 
     void loadAdditionalRules(const std::string& filePath, std::vector<std::string>& ruleContainer) const;
 
-    std::shared_ptr<reasoner::asp::IncrementalQueryWrapper> incWrapper;
-    reasoner::asp::Solver* solver;
+    ::reasoner::asp::Term* createNewInquiryTerm(const std::string& inquiryString, int horizon) const;
 
-    reasoner::asp::Term* createNewInquiryTerm(const std::string& inquiryString, int horizon) const;
+    std::string wrapWithPrefixForHorizon(const std::string& predicate, int horizon);
 };
 }

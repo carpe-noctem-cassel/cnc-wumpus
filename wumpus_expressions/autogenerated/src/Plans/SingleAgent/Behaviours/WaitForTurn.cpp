@@ -25,6 +25,7 @@ void WaitForTurn::run(void* msg)
     /*PROTECTED REGION ID(run1534835364093) ENABLED START*/ // Add additional options here
     // TODO experimental...
     if (this->wm->localAgentDied || this->wm->localAgentExited) {
+        auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
         wumpus_msgs::AgentPerception perception;
         wumpus_msgs::Coordinates pos;
         pos.x = -1;
@@ -33,9 +34,7 @@ void WaitForTurn::run(void* msg)
         perception.position = pos;
         perception.senderID = sc->getOwnRobotID();
         perception.died = this->wm->localAgentDied;
-        perception.haveGold = this->wm->playground->getAgentById(sc->getOwnRobotID())->hasGold;
-        if (this->wm->localAgentDied) {
-            auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+        perception.haveGold = localAgent->hasGold;
             if (localAgent) {
                 if (localAgent->diedOn) {
                     wumpus_msgs::Coordinates diedOn;
@@ -47,21 +46,35 @@ void WaitForTurn::run(void* msg)
                     throw std::exception();
                 }
             }
-        }
         perception.exited = this->wm->localAgentExited;
         if (this->wm->localAgentIsSpawnRequestHandler()) {
             perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
         }
-        perception.exhausted = this->wm->playground->getAgentById(sc->getOwnRobotID())->exhausted;
-        perception.shot = this->wm->playground->getAgentById(sc->getOwnRobotID())->shot;
-        auto shotAtFields = this->wm->getShotAtFields();
+        perception.exhausted = localAgent->exhausted;
+        perception.shot = localAgent->shot;
+        std::stringstream obj;
+        obj << localAgent->objective;
+        perception.objective = obj.str();
+        auto shotAtFields = this->wm->playground->getFieldsShotAtByAgentIds();
         if (shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
             for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
                 wumpus_msgs::Coordinates coordinates;
-                coordinates.x = std::stoi(field.first); // FIXME types
-                coordinates.y = std::stoi(field.second);
+                coordinates.x = field->x;
+                coordinates.y = field->y;
                 perception.shootingTargets.push_back(coordinates);
             }
+        }
+        for (const auto& blockingWumpus : localAgent->fieldsWithBlockingWumpi) {
+            wumpus_msgs::Coordinates coordinates;
+            coordinates.x = blockingWumpus->x;
+            coordinates.y = blockingWumpus->y;
+            perception.blockingWumpi.emplace_back(coordinates);
+        }
+        for (const auto& blockingTrap : localAgent->fieldsWithBlockingTraps) {
+            wumpus_msgs::Coordinates coordinates;
+            coordinates.x = blockingTrap->x;
+            coordinates.y = blockingTrap->y;
+            perception.blockingWumpi.emplace_back(coordinates);
         }
         send(perception);
     }

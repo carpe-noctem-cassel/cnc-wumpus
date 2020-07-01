@@ -9,6 +9,7 @@
 #external glitter(X,Y) : field(X,Y).
 #external drafty(X,Y) : field(X,Y).
 #external stinky(X,Y) : field(X,Y).
+#external possibleNext(X,Y) : field(X,Y).
 #external shotAt(X,Y) : field(X,Y).
 #external start(X,Y) : field(X,Y).
 #external end(X,Y) : field(X,Y).

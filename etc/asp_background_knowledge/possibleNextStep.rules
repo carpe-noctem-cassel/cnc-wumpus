@@ -1,0 +1,2 @@
+timestep(0..t).
+possibleNextCandidate(X,Y) :- genPathEndPoint(A,B), fieldAdjacent(X,Y,A,B), not explored(X,Y).

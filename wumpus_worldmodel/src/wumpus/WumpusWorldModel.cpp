@@ -4,7 +4,7 @@
 #include "wumpus/wm/PlanningModule.h"
 #include <engine/AlicaEngine.h>
 #include <engine/IRoleAssignment.h>
-#include <aspkb/Integrator.h>
+//#include <aspkb/Integrator.h>
 #include <engine/teammanager/TeamManager.h>
 
 namespace wumpus
@@ -20,6 +20,8 @@ WumpusWorldModel::WumpusWorldModel()
         : WorldModel()
         , wumpusSimData(this)
         , changeHandler(nullptr)
+        , extractor(nullptr)
+        , integrator(nullptr)
         , planningModule(nullptr)
         , playground(nullptr)
         , communication(nullptr)
@@ -46,6 +48,8 @@ WumpusWorldModel::~WumpusWorldModel()
     delete this->communication;
     delete this->changeHandler;
     delete this->planningModule;
+    delete this->extractor;
+    delete this->integrator;
     delete this->playground;
     delete this->experiment;
 }
@@ -58,18 +62,16 @@ std::string WumpusWorldModel::getAgentName()
 void WumpusWorldModel::init()
 {
 
-    this->changeHandler = new wumpus::wm::ChangeHandler(this);
-    this->planningModule = new wumpus::wm::PlanningModule(this);
+    this->extractor = new aspkb::Extractor();
+    this->integrator = new aspkb::Integrator();
+    this->changeHandler = new wumpus::wm::ChangeHandler(this, integrator);
+    this->planningModule = new wumpus::wm::PlanningModule(this, extractor, integrator);
     this->playground = new model::Playground(this->changeHandler);
     this->communication = new wm::Communication(this);
     this->experiment = new eval::Experiment();
 }
 
-// TODO why is this here?
-std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> WumpusWorldModel::getShotAtFields()
-{
-    return this->planningModule->getShootingTargets();
-}
+
 
 // used in plans to check if all agents have been spawned, only then are actions available
 int WumpusWorldModel::getPresetAgentCount()
@@ -103,6 +105,8 @@ void WumpusWorldModel::reset()
     delete this->changeHandler; // FIXME only clear state
     std::cout << "Resetting wm: PM!" << std::endl;
     delete this->planningModule;
+    delete this->extractor;
+    delete this->integrator;
     std::cout << "Resetting wm!: PG" << std::endl;
     delete this->playground;
     this->localAgentExited = false;
@@ -111,8 +115,10 @@ void WumpusWorldModel::reset()
 
     this->wumpusSimData.clearBuffers();
 
-    this->changeHandler = new wumpus::wm::ChangeHandler(this);
-    this->planningModule = new wumpus::wm::PlanningModule(this);
+    this->extractor = new aspkb::Extractor();
+    this->integrator = new aspkb::Integrator();
+    this->changeHandler = new wumpus::wm::ChangeHandler(this,integrator);
+    this->planningModule = new wumpus::wm::PlanningModule(this, extractor, integrator);
     std::cout << "Resetting wm!: New Playground" << std::endl;
 
     this->playground = new model::Playground(this->changeHandler);
@@ -142,9 +148,9 @@ void WumpusWorldModel::sendAgentPerception(wumpus_msgs::AgentPerception& msg)
 /**
  * FIXME weird structure because of refactoring...
  */
-void WumpusWorldModel::integrateChanges()
-{
-    this->changeHandler->integrator->applyChanges();
-}
+//void WumpusWorldModel::integrateChanges()
+//{
+//    this->changeHandler->integrator->applyChanges();
+//}
 
 } /* namespace wumpus */

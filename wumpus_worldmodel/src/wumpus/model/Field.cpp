@@ -24,7 +24,7 @@ void Field::updateShiny(bool shiny)
         this->shiny = shiny;
         this->ch->handleSetGlitter(shared_from_this());
     }
-    //TODO dependency on WWM and pg should not be here...
+    // TODO dependency on WWM and pg should not be here...
     wumpus::WumpusWorldModel::getInstance()->playground->goldFieldKnown = true;
 }
 
@@ -54,7 +54,7 @@ void Field::updateVisited(bool visited)
 
 void Field::updateExplored(bool explored)
 {
-    if(this->explored != explored) {
+    if (this->explored != explored) {
         this->explored = explored;
         this->ch->handleChangedExplored(shared_from_this());
     }
@@ -64,6 +64,14 @@ void Field::updateShotAt(int whoShot, bool shotAt)
     if (this->shotAt != shotAt) {
         this->shotAt = shotAt;
         this->ch->handleChangedShotAt(whoShot, shared_from_this());
+    }
+}
+
+void Field::updateIsPossibleNext(bool possible)
+{
+    if(this->possibleNextCandidate != possible) {
+        this->possibleNextCandidate = possible;
+        this->ch->handleChangedPossibleNext(shared_from_this());
     }
 }
 

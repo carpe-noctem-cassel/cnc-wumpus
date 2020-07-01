@@ -34,6 +34,7 @@ Extractor::~Extractor()
     //    reasoner::asp::IncrementalExtensionQuery::clear();
 }
 
+//TODO this should be moved into the query itself as different incremental queries might require different solving strategies
 std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc)
 {
 
@@ -193,7 +194,7 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std
     // TODO something is buggy here (way too many result entries)
     for (auto res : results) {
         for (auto& factQueryValue : res->factQueryValues) {
-            for (const auto& elem : factQueryValue) {
+            for (auto elem : factQueryValue) {
                 if (std::find(ret.begin(), ret.end(), elem) == ret.end()) {
                     ret.push_back(elem);
                 } else {
@@ -240,7 +241,7 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     //    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
     for (auto res : results) {
         for (auto& varQueryValue : res->variableQueryValues) {
-            for (const auto& elem : varQueryValue) {
+            for (auto elem : varQueryValue) {
                 ret.push_back(elem);
             }
         }

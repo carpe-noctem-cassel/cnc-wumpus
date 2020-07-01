@@ -16,6 +16,7 @@ Playground::Playground(wumpus::wm::ChangeHandler* ch)
         : DomainElement(ch)
         , wumpusBlocksSafeMoves(false)
         , goldFieldKnown(false)
+        , shootingTargets(std::make_shared<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>>>())
 {
     this->playgroundSize = -1;
     this->turnCounter = 0;
@@ -198,5 +199,30 @@ void Playground::updateWumpusBlocksMoves(bool blocks)
     }
 }
 
-} /* namespace model */
+std::shared_ptr<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, wumpus::model::Playground::FieldPtrComparator>>>
+Playground::getFieldsShotAtByAgentIds()
+{
+    std::lock_guard<std::mutex> lock(this->shotAtMtx);
+    return this->shootingTargets;
+}
+// std::shared_ptr<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>>> Playground::getFieldsShotAtByAgentIds()
+//{
+//    std::lock_guard<std::mutex> lock(this->shotAtMtx);
+//    return this->planningModule->goalPlanner.getShootingTargets();
+//}
+
+void Playground::addShootingTarget(const int id, const std::pair<std::string, std::string>& shotAt)
+{
+    std::lock_guard<std::mutex> lock(this->shotAtMtx);
+    auto field = this->getField(std::stoi(shotAt.first), std::stoi(shotAt.second));
+    if (this->shootingTargets->find(id) != this->shootingTargets->end()) {
+        this->shootingTargets->at(id).insert(field);
+    }
+    auto set = std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>();
+    set.insert(field);
+    this->shootingTargets->emplace(id, set);
+}
+
+
+    } /* namespace model */
 } /* namespace wumpus */

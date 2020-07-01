@@ -1,3 +1,4 @@
+#pragma once
 #include "Strategy.h"
 #include "TermManager.h"
 #include <asp_solver_wrapper/ASPSolverWrapper.h>

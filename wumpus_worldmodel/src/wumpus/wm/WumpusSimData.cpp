@@ -23,11 +23,12 @@ namespace wm
 {
 
 WumpusSimData::WumpusSimData(WumpusWorldModel* wm)
+        : integratedFromSimulatorForTurnNumber(false)
+        , turn(1)
+        , awaitingScreamOrSilence(false)
 {
     this->wm = wm;
     auto sc = this->wm->getSystemConfig();
-
-    this->turn = 1;
 
     // data buffers
     this->actionResponseValidityDuration = alica::AlicaTime::nanoseconds((*sc)["WumpusWorldModel"]->get<int>("Data.ActionResponse.ValidityDuration", NULL));
@@ -35,8 +36,6 @@ WumpusSimData::WumpusSimData(WumpusWorldModel* wm)
             new supplementary::InfoBuffer<wumpus_simulator::ActionResponse>((*sc)["WumpusWorldModel"]->get<int>("Data.ActionResponse.BufferLength", NULL));
     this->turnInfoValidityDuration = alica::AlicaTime::nanoseconds((*sc)["WumpusWorldModel"]->get<int>("Data.TurnInfo.ValidityDuration", NULL));
     this->isMyTurnBuffer = new supplementary::InfoBuffer<bool>((*sc)["WumpusWorldModel"]->get<int>("Data.TurnInfo.BufferLength", NULL));
-
-    this->integratedFromSimulatorForTurnNumber = false;
 }
 
 WumpusSimData::~WumpusSimData()
@@ -99,8 +98,8 @@ bool WumpusSimData::getIntegratedFromSimulator()
 
 void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse)
 {
-    // FIXME process one message at a time for now - clingo keeps crashing
-    //        std::lock_guard<std::mutex> lock(this->respMtx);
+    // FIXME possible clash actionresponse <-> agentperception?
+    std::lock_guard<std::mutex> lock(this->respMtx);
 
     // FIXME does this have any effect?
     //    if (!this->wm->currentEncoding.empty() && this->wm->resettedForEncoding.find(this->wm->currentEncoding) != this->wm->resettedForEncoding.end()) {
@@ -115,11 +114,15 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
         if (responsesContain(actionResponse->responses, WumpusEnums::silence)) {
             me->replanNecessary = true;
             this->wm->playground->handleSilence();
+            std::cout << "WSD: got silence" << std::endl;
+            this->setAwaitingScreamOrSilence(false);
         }
 
         if (responsesContain(actionResponse->responses, WumpusEnums::scream)) {
             me->replanNecessary = true;
             this->wm->playground->handleScream();
+            std::cout << "WSD: got scream" << std::endl;
+            this->setAwaitingScreamOrSilence(false);
         }
     }
 
@@ -201,7 +204,7 @@ void WumpusSimData::processActionResponse(wumpus_simulator::ActionResponsePtr ac
 void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception)
 {
     std::lock_guard<std::mutex> lock(this->wm->resetMtx); // FIXME
-    //    std::lock_guard<std::mutex> lock2(this->respMtx);     // FIXME fix segfault rc properly
+    std::lock_guard<std::mutex> lock2(this->respMtx);     // FIXME fix segfault rc properly
 
     std::cout << "Process Agent Perception: Encoding is: " << agentPerception->encoding << std::endl;
     if (!agentPerception->encoding.empty() && agentPerception->encoding != this->wm->currentEncoding) {
@@ -273,15 +276,45 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     agent->updateArrow(agentPerception->arrow);
     agent->updateHaveGold(agentPerception->haveGold);
     agent->updateExhausted(agentPerception->exhausted);
+    agent->updateObjective(WumpusWorldModel::objectiveFromString(agentPerception->objective));
+
+    for (auto coordinates : agentPerception->shootingTargets) {
+        this->wm->playground->addShootingTarget(
+                agentPerception->senderID, std::make_pair<std::string, std::string>(std::to_string(coordinates.x), std::to_string(coordinates.y)));
+
+        //        for (const auto& affected: this->wm->playground->getAdjacentFields(coordinates.x, coordinates.y)) {
+        //            affected->updateStinky(false);
+        //        }
+    }
+
     if (agentPerception->shot) {
         agent->updateShot();
+        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
         // integrate shooting targets
-        for (const auto& target : this->wm->planningModule->getShootingTargets()->at(agent->id)) {
-            std::cout << "WumpusSimData: Integrating shooting target from other agent" << std::endl;
-            auto field = this->wm->playground->getField(std::stoi(target.first), std::stoi(target.second));
-            field->updateShotAt(agentPerception->senderID, true);
+        bool found = false;
+        while (!found) {
+            auto targetMap = this->wm->playground->getFieldsShotAtByAgentIds();
+            if (targetMap->find(agent->id) != targetMap->end()) {
+                for (const auto& target : this->wm->playground->getFieldsShotAtByAgentIds()->at(agent->id)) {
+                    std::cout << "WumpusSimData: Integrating shooting target from other agent" << std::endl;
+//                    auto field = this->wm->playground->getField(target->x), target->y);
+                    target->updateShotAt(agentPerception->senderID, true);
+                }
+                found = true;
+            }
         }
     }
+
+    std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingElements;
+    for (auto wumpusCoordinates : agentPerception->blockingWumpi) {
+        blockingElements.insert(this->wm->playground->getField(wumpusCoordinates.x, wumpusCoordinates.y));
+    }
+    agent->updateBlockingWumpi(blockingElements);
+    blockingElements.clear();
+    for (auto trapCoordinates : agentPerception->blockingTraps) {
+        blockingElements.insert(this->wm->playground->getField(trapCoordinates.x, trapCoordinates.y));
+    }
+    agent->updateBlockingTraps(blockingElements);
     //    std::cout << "Processing agent perception" << std::endl;
 
     if (this->integratedFromOtherAgentsForTurnNr.find(agentPerception->senderID) == this->integratedFromOtherAgentsForTurnNr.end()) {
@@ -339,14 +372,6 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     // new, possibly useful info -> reset exhausted
     //    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false); //FIXME check if this is needed somewhere else
     // TODO new stuff - method should be refactoredc
-    for (auto coordinates : agentPerception->shootingTargets) {
-        this->wm->planningModule->addShootingTarget(
-                agentPerception->senderID, std::make_pair<std::string, std::string>(std::to_string(coordinates.x), std::to_string(coordinates.y)));
-
-        //        for (const auto& affected: this->wm->playground->getAdjacentFields(coordinates.x, coordinates.y)) {
-        //            affected->updateStinky(false);
-        //        }
-    }
 
     std::cout << "################WUMPUSSIMDATA: DONE UPDATING" << std::endl;
 }
@@ -392,6 +417,19 @@ bool WumpusSimData::isIntegratedFromAllAgents()
 void WumpusSimData::raiseTurnCounter()
 {
     ++this->turn;
+}
+
+void WumpusSimData::setAwaitingScreamOrSilence(bool b)
+{
+    std::lock_guard<std::mutex> lock(this->awaitingMtx);
+    std::cout << "WSD: Awaiting scream or silence " << b << std::endl;
+    this->awaitingScreamOrSilence = b;
+}
+
+bool WumpusSimData::getAwaitingScreamOrSilence()
+{
+    std::lock_guard<std::mutex> lock(this->awaitingMtx);
+    return this->awaitingScreamOrSilence;
 }
 }
 } /* namespace wumpus */

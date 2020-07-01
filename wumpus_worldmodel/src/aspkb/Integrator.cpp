@@ -14,6 +14,7 @@ std::mutex Integrator::integratingMtx;
 
 Integrator::Integrator()
 {
+    std::cout << "IN INTEGRATOR CONSTRUCTOR" << std::endl;
     this->solver = TermManager::getInstance().getSolver();
     this->changedExternals = std::make_shared<std::map<std::string, bool>>();
 }
@@ -26,12 +27,14 @@ void Integrator::integrateInformationAsExternal(
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
     // FIXME use truthvalue and strategy toggle instead of using empty values!
     if (!value.empty()) {
+        std::cout << "Integrator: " << this << " adding changed external " << value << ", " << truthValue << std::endl;
         this->changedExternals->emplace(value, truthValue);
     }
 
     if (strategy == Strategy::FALSIFY_OLD_VALUES) {
         if (this->identifierOldExternalsMap.find(identifier) != this->identifierOldExternalsMap.end()) {
             std::cout << "found " << identifier << " with value " << this->identifierOldExternalsMap.at(identifier) << std::endl;
+            std::cout << "value and truth value to set are: " << value << ", " << truthValue << std::endl;
                 this->changedExternals->emplace(this->identifierOldExternalsMap.at(identifier), false);
             if (!value.empty()) {
                 this->identifierOldExternalsMap.at(identifier) = value;
@@ -47,6 +50,7 @@ void Integrator::integrateInformationAsExternal(
 void Integrator::applyChanges()
 {
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
+    std::cout << "integrator " << this << " apply changes " << std::endl;
     for (auto& ext : *this->changedExternals) {
         std::cout << "ApplyChanges: " << ext.first << ", " << (ext.second ? "true " : "false") << std::endl;
     }

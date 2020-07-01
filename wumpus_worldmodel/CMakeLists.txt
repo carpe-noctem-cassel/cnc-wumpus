@@ -26,17 +26,29 @@ add_library(wumpus_worldmodel
         src/wumpus/wm/ChangeHandler.cpp
         src/wumpus/wm/PlanningModule.cpp
 
+        src/wumpus/wm/planning/Planner.cpp
+        src/wumpus/wm/planning/BlockageEvaluator.cpp
+        src/wumpus/wm/planning/ExhaustionStatusEvaluator.cpp
+        src/wumpus/wm/planning/ObjectiveEvaluator.cpp
+        src/wumpus/wm/planning/GoalPlanner.cpp
+        src/wumpus/wm/planning/PathActionsPlanner.cpp
+        src/wumpus/wm/planning/SafePathExistsPlanner.cpp
+
+        src/wumpus/wm/util/PlannerUtils.cpp
+
         src/wumpus/WumpusWorldModel.cpp
 
         src/aspkb/Integrator.cpp
         src/aspkb/Extractor.cpp
         src/aspkb/TermManager.cpp
         src/aspkb/IncrementalProblem.cpp
-        src/aspkb/PathExistsProblem.cpp
+        src/aspkb/PossibleNextFieldGenerationProblem.cpp
 
         src/eval/Experiment.cpp
         src/eval/Result.cpp
         src/eval/Run.cpp
+
+
 
         )
 

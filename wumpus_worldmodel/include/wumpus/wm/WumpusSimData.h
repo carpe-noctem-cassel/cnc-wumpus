@@ -63,6 +63,10 @@ public:
     // needed for evaluation (restarting of Base)
     void clearBuffers();
 
+    void setAwaitingScreamOrSilence(bool b);
+
+    bool getAwaitingScreamOrSilence();
+
 private:
     WumpusWorldModel* wm;
 
@@ -76,9 +80,14 @@ private:
 
     std::mutex mtx;
     std::mutex respMtx;
+    std::mutex awaitingMtx;
     bool integratedFromSimulatorForTurnNumber;
+    bool awaitingScreamOrSilence;
+
 
     bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };
+
+
 };
 } /* namespace wm */
 } /* namespace wumpus */

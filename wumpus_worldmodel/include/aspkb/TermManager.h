@@ -1,13 +1,13 @@
 #pragma once
+#include <mutex>
 #include <reasoner/asp/ReusableExtensionQuery.h>
 #include <reasoner/asp/Solver.h>
-#include <mutex>
 
 namespace reasoner
 {
 namespace asp
 {
-class  ReusableExtensionQuery;
+class ReusableExtensionQuery;
 }
 }
 namespace aspkb
@@ -26,6 +26,8 @@ public:
 
     ::reasoner::asp::Term* requestPathCheckTerm(int horizon, std::string coordinateEncoding);
 
+    ::reasoner::asp::Term* requestPossibleNextCheckTerm(std::string externalPrefix, int horizon);
+
     int activateReusableExtensionQuery(std::string identifier, const std::vector<std::string>& rules);
     void deactivateReusableExtensionQuery(std::string identifier);
 
@@ -40,7 +42,7 @@ public:
     TermManager(TermManager const&) = delete;
     void operator=(TermManager const&) = delete;
 
-    //TODO remove, only to make evaluation easier
+    // TODO remove, only to make evaluation easier
     void clear();
 
 private:

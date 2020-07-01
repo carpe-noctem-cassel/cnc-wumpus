@@ -24,6 +24,7 @@ public:
     void updateVisited(bool visited);
     void updateShotAt(int whoShot, bool shotAt);
     void updateExplored(bool explored);
+    void updateIsPossibleNext(bool possible);
     int x;
     int y;
     bool stinky;
@@ -32,6 +33,7 @@ public:
     bool visited;
     bool explored;
     bool shotAt;
+    bool possibleNextCandidate;
 };
 
 } /* namespace wm */

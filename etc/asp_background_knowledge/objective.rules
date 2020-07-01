@@ -1,18 +1,18 @@
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksMoves, not exhausted(A).
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,A), not exhausted(A).
 
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), wumpusBlocksMoves, everyAgentExhausted, not arrow(A).
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), wumpusBlocksAgent(_,_,_), everyAgentExhausted, not arrow(A), not objective(B, huntWumpus), not me(B), agent(B).
 
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksMoves, everyAgentExhausted.
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,_), everyAgentExhausted.
 
 objective(fetchOtherAgent) :- me(A), haveGold(A), agent(B), not haveGold(B), not hasSafePathToGold(B), field(X,Y), field(C,D), not position(B,U,V), glitter(U,V), not objective(huntWumpus), not objective(shoot).
 
-objective(huntWumpus) :- wumpusBlocksMoves, arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold), allOthersExhausted.
+objective(huntWumpus) :- wumpusBlocksAgent(_,_,A), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold), allOthersExhausted.
 
 othersExhaustedCount(N) :- N = #count{1, B : exhausted(B), not me(B)}.
 agentsCount(N) :- N = #count{1, A : agent(A)}.
 allOthersExhausted :- N == M - 1, othersExhaustedCount(N), agentsCount(M).
 
-objective(huntWumpus) :- me(A), haveGold(A), arrow(A), agent(B), not me(B), not haveGold(B), wumpusBlocksMoves, not objective(collectGold), not objective(shoot).
+objective(huntWumpus) :- me(A), haveGold(A), arrow(A), agent(B), not me(B), not haveGold(B), wumpusBlocksAgent(_,_,B), not objective(collectGold), not objective(shoot).
 
 objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A), not shot(A).
 
@@ -26,4 +26,7 @@ objective(collectGold) :- glitter(X,Y), on(X,Y), not haveGold(A), me(A).
 
 objective(idle) :- me(A), exhausted(A), not everyAgentExhausted, not objective(fetchOtherAgent), not objective(huntWumpus), not objective(shoot), not objective(collectGold), not objective(goHome), not objective(leave).
 
-objective(idle) :- me(A), exhausted(A), wumpusBlocksMoves, not everyAgentExhausted, not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).
+objective(idle) :- me(A), exhausted(A), wumpusBlocksAgent(_,_,_), not everyAgentExhausted, not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).
+
+objective(idle) :- me(A), exhausted(A), trapBlocksAgent(_,_,A), agent(B), not me(B), not trapBlocksAgent(_,_,B), not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).
+

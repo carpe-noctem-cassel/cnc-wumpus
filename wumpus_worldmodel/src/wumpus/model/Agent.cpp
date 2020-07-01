@@ -26,6 +26,7 @@ Agent::Agent(wumpus::wm::ChangeHandler* ch, int agentId)
         , diedOn(nullptr)
         , currentHeading(-1)
         , turn(1)
+        , unsafeMovesAllowed(false)
         , objective(Objective::UNDEFINED)
 
 {
@@ -121,18 +122,22 @@ void Agent::updateObjective(Objective obj)
 void Agent::setDead(const std::shared_ptr<wumpus::model::Field>& field)
 {
     std::cout << "Agent: set dead " << std::endl;
-//    throw std::exception();
+    this->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    this->updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+        throw std::exception();
     if (!this->diedOn || this->diedOn != field) {
         this->diedOn = field;
         this->ch->handleSetDiedOn(field);
         this->ch->unregisterAgent(this->id);
     }
-//    throw std::exception();
+    //    throw std::exception();
 }
 
 void Agent::setExited()
 {
     this->exited = true;
+    this->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    this->updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
     this->ch->unregisterAgent(this->id);
 }
 
@@ -151,6 +156,7 @@ void Agent::updateShot()
     if (!this->shot) {
         this->shot = true;
         this->ch->handleChangedShot(this->id);
+        wumpus::WumpusWorldModel::getInstance()->wumpusSimData.setAwaitingScreamOrSilence(true);
     }
 }
 
@@ -161,6 +167,56 @@ void Agent::updateHaveSafePathToGold()
         this->hasSafePathToGold = true;
         this->ch->handleChangedSafeGoldPath(this->id);
     }
+}
+
+void Agent::updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingWumpi)
+{
+
+    //remove wumpi that disappeared
+    for (const auto& oldWumpus : this->fieldsWithBlockingWumpi) {
+        if (blockingWumpi.find(oldWumpus) == blockingWumpi.end()) {
+            this->ch->handleChangedBlockedByWumpus(oldWumpus,this->id,false);
+        }
+    }
+
+    //add new wumpi if they're not known already
+    for(const auto& newWumpus : blockingWumpi) {
+        if(std::find(this->fieldsWithBlockingWumpi.begin(), this->fieldsWithBlockingWumpi.end(), newWumpus) == this->fieldsWithBlockingWumpi.end()) {
+            this->ch->handleChangedBlockedByWumpus(newWumpus,this->id,true);
+        }
+    }
+
+    this->fieldsWithBlockingWumpi = blockingWumpi;
+}
+
+void Agent::updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingTraps)
+{
+
+    //remove wumpi that disappeared
+    for (const auto& oldTrap : this->fieldsWithBlockingTraps) {
+        if (blockingTraps.find(oldTrap) == blockingTraps.end()) {
+            this->ch->handleChangedBlockedByTrap(oldTrap,this->id,false);
+        }
+    }
+
+    //add new wumpi if they're not known already
+    for(const auto& newTrap : blockingTraps) {
+        if(std::find(this->fieldsWithBlockingTraps.begin(), this->fieldsWithBlockingTraps.end(), newTrap) == this->fieldsWithBlockingTraps.end()) {
+            this->ch->handleChangedBlockedByTrap(newTrap,this->id,true);
+        }
+    }
+
+    this->fieldsWithBlockingTraps = blockingTraps;
+}
+
+bool Agent::isBlockedByTrap()
+{
+    return !this->fieldsWithBlockingTraps.empty();
+}
+
+bool Agent::isBlockedByWumpus()
+{
+    return !this->fieldsWithBlockingWumpi.empty();
 }
 
 } /* namespace model */
