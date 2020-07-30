@@ -3,6 +3,7 @@
 #include "wumpus/model/Field.h"
 #include <nonstd/optional.hpp>
 #include <wumpus/WumpusWorldModel.h>
+#include <map>
 
 namespace wumpus
 {
@@ -11,12 +12,12 @@ namespace model
 
 std::mutex Playground::agentMtx;
 std::mutex Playground::fieldMtx;
-
+std::map<int, std::shared_ptr<wumpus::model::Agent>> Playground::agentsForExperiment;
 Playground::Playground(wumpus::wm::ChangeHandler* ch)
         : DomainElement(ch)
         , wumpusBlocksSafeMoves(false)
         , goldFieldKnown(false)
-        , shootingTargets(std::make_shared<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>>>())
+        , shootingTargets(std::make_shared<std::map<int, std::unordered_set<std::shared_ptr<wumpus::model::Field>>>>())
 {
     this->playgroundSize = -1;
     this->turnCounter = 0;
@@ -26,24 +27,26 @@ Playground::~Playground() = default;
 
 void Playground::addAgent(std::shared_ptr<wumpus::model::Agent> agent)
 {
-    std::lock_guard<std::mutex> lock(this->agentMtx);
+    //    std::lock_guard<std::mutex> lock(this->agentMtx);
     this->agents[agent->id] = agent;
 }
 void Playground::addAgentForExperiment(std::shared_ptr<wumpus::model::Agent> agent)
 {
-    this->agentsForExperiment[agent->id] = agent;
+    wumpus::model::Playground::agentsForExperiment.emplace(agent->id, agent);
+//    this->agentsForExperiment[agent->id] = agent;
 }
 
 void Playground::removeAgent(int id)
 {
-    std::lock_guard<std::mutex> lock(this->agentMtx);
+    //    std::lock_guard<std::mutex> lock(this->agentMtx);
     if (this->agents.find(id) != this->agents.end()) {
+        std::cout << "Playground: Removing agent with id " << id << std::endl;
         this->agents.erase(id);
     }
 }
 std::shared_ptr<wumpus::model::Agent> Playground::getAgentById(int id)
 {
-    std::lock_guard<std::mutex> lock(this->agentMtx);
+    //    std::lock_guard<std::mutex> lock(this->agentMtx);
     auto it = this->agents.find(id);
     if (it != this->agents.end()) {
         return it->second;
@@ -64,21 +67,20 @@ std::shared_ptr<std::map<int, std::shared_ptr<wumpus::model::Agent>>> Playground
             return nullptr;
         }
     }
-
     return std::make_shared<std::map<int, std::shared_ptr<wumpus::model::Agent>>>(this->agents);
 }
 
-std::shared_ptr<std::map<int, std::shared_ptr<wumpus::model::Agent>>> Playground::getAgentsForExperiment()
-{
-    if (this->agentsForExperiment.size() < wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount()) {
-        return nullptr;
-    }
-    return std::make_shared<std::map<int, std::shared_ptr<wumpus::model::Agent>>>(this->agentsForExperiment);
-}
+//std::shared_ptr<std::map<int, std::shared_ptr<wumpus::model::Agent>>> Playground::getAgentsForExperiment()
+//{
+//    if (this->agentsForExperiment.size() < wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount()) {
+//        return nullptr;
+//    }
+//    return std::make_shared<std::map<int, std::shared_ptr<wumpus::model::Agent>>>(this->agentsForExperiment);
+//}
 
 std::shared_ptr<wumpus::model::Field> Playground::getField(int x, int y)
 {
-    std::lock_guard<std::mutex> lock(this->fieldMtx);
+    //    std::lock_guard<std::mutex> lock(this->fieldMtx);
     auto it = this->fields.find(std::make_pair(x, y));
 
     if (it != this->fields.end()) {
@@ -97,7 +99,7 @@ std::shared_ptr<wumpus::model::Field> Playground::getField(int x, int y)
  */
 void Playground::initializePlayground(int size)
 {
-    std::lock_guard<std::mutex> lock(this->fieldMtx);
+    //    std::lock_guard<std::mutex> lock(this->fieldMtx);
     this->playgroundSize = size;
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
@@ -119,7 +121,7 @@ void Playground::initializePlayground(int size)
  */
 nonstd::optional<int> Playground::getOwnAgentIndex()
 {
-    std::lock_guard<std::mutex> lock(this->agentMtx);
+    //    std::lock_guard<std::mutex> lock(this->agentMtx);
     auto ids = wumpus::WumpusWorldModel::getInstance()->getAgentIDsForExperiment();
     //    std::cout << "ids: " << ids.size() << std::endl;
     for (int i = 0; i < ids.size(); ++i) {
@@ -134,7 +136,7 @@ nonstd::optional<int> Playground::getOwnAgentIndex()
 
 std::vector<std::shared_ptr<wumpus::model::Field>> Playground::getAdjacentFields(int x, int y)
 {
-    std::lock_guard<std::mutex> lock(this->fieldMtx);
+    //    std::lock_guard<std::mutex> lock(this->fieldMtx);
     std::vector<std::shared_ptr<wumpus::model::Field>> adj;
     auto field = this->fields.find(std::make_pair(x + 1, y));
     if (field != this->fields.end()) {
@@ -180,6 +182,10 @@ int Playground::getNumberOfAgents()
     return this->agents.size();
 }
 
+void updatePossibleNextFields()
+{
+}
+
 std::vector<std::shared_ptr<wumpus::model::Agent>> Playground::getAgentsWhoShot()
 {
     std::vector<std::shared_ptr<wumpus::model::Agent>> ret;
@@ -199,8 +205,7 @@ void Playground::updateWumpusBlocksMoves(bool blocks)
     }
 }
 
-std::shared_ptr<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, wumpus::model::Playground::FieldPtrComparator>>>
-Playground::getFieldsShotAtByAgentIds()
+std::shared_ptr<std::map<int, std::unordered_set<std::shared_ptr<wumpus::model::Field>>>> Playground::getFieldsShotAtByAgentIds()
 {
     std::lock_guard<std::mutex> lock(this->shotAtMtx);
     return this->shootingTargets;
@@ -213,16 +218,15 @@ Playground::getFieldsShotAtByAgentIds()
 
 void Playground::addShootingTarget(const int id, const std::pair<std::string, std::string>& shotAt)
 {
-    std::lock_guard<std::mutex> lock(this->shotAtMtx);
+    //    std::lock_guard<std::mutex> lock(this->shotAtMtx);
     auto field = this->getField(std::stoi(shotAt.first), std::stoi(shotAt.second));
     if (this->shootingTargets->find(id) != this->shootingTargets->end()) {
         this->shootingTargets->at(id).insert(field);
     }
-    auto set = std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>();
+    auto set = std::unordered_set<std::shared_ptr<wumpus::model::Field>>();
     set.insert(field);
     this->shootingTargets->emplace(id, set);
 }
 
-
-    } /* namespace model */
+} /* namespace model */
 } /* namespace wumpus */

@@ -1,0 +1,8 @@
+newPossibleNext(X,Y) :- fieldAdjacent(A,B,C,D), visitedByOther(A,B,P), agent(P), not me(P), visited(C,D), possibleNextForOther(X,Y,P).
+
+newPossibleNext(X,Y) :- possibleNext(X,Y), not explored(X,Y).
+
+newPossibleNext(X,Y) :- fieldAdjacent(X,Y,A,B), visited(A,B), not explored(X,Y), not possibleNext(X,Y).
+newPossibleNext(X,Y) :- fieldAdjacent(X,Y,A,B), visited(A,B), not explored(X,Y), not possibleNext(X,Y).
+newPossibleNext(X,Y) :- fieldAdjacent(X,Y,A,B), visited(A,B), not explored(X,Y), not possibleNext(X,Y).
+newPossibleNext(X,Y) :- fieldAdjacent(X,Y,A,B), visited(A,B), not explored(X,Y), not possibleNext(X,Y).

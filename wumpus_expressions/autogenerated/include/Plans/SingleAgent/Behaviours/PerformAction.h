@@ -20,11 +20,11 @@ namespace alica
         /*PROTECTED REGION END*/
     private:
         /*PROTECTED REGION ID(prv1534836764921) ENABLED START*/ //Add additional private methods here
-        alica::AlicaTime lastInformationTime;
         std::vector<WumpusEnums::actions> currentActionSequence;
-        void executeNextAction();
-        int planningQueryId;
-        /*PROTECTED REGION END*/};
+        bool executeNextAction();
+        bool shotLastIteration;
+        /*PROTECTED REGION END*/
+    };
 } /* namespace alica */
 
 #endif /* PerformAction_H_ */

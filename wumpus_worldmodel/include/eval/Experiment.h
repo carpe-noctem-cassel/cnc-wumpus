@@ -24,6 +24,8 @@ public:
     std::shared_ptr<eval::Run> getCurrentRun();
     std::string advanceWorld();
     bool hasNextWorld();
+    static std::mutex runMtx;
+
     int getPresetAgentCount();
 
 private:

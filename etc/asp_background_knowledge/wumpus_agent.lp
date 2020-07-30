@@ -1,5 +1,6 @@
 %defines existance of an agent
 #program wumpus_agent(id).
+
 #external agent(id).
 #external shot(A) : agent(A).
 
@@ -14,3 +15,5 @@
 #external hasSafePathToGold(A) : agent(A).
 #external wumpusBlocksAgent(X,Y,A) : field(X,Y), agent(A).
 #external trapBlocksAgent(X,Y,A) : field(X,Y), agent(A).
+#external possibleNextForOther(X,Y,A) : field(X,Y), agent(A).
+#external visitedByOther(X,Y,A) : field(X,Y), agent(A).

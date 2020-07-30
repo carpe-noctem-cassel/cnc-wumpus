@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include <mutex>
 namespace reasoner
 {
 namespace asp
@@ -73,5 +73,7 @@ private:
     ::reasoner::asp::Term* createNewInquiryTerm(const std::string& inquiryString, int horizon) const;
 
     std::string wrapWithPrefixForHorizon(const std::string& predicate, int horizon);
+
+    static std::mutex incProblemMtx;
 };
 }

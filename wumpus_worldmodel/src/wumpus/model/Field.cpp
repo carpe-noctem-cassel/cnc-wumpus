@@ -44,11 +44,11 @@ void Field::updateStinky(bool stinky)
     }
 }
 
-void Field::updateVisited(bool visited)
+void Field::updateVisited(bool visited, int id)
 {
     if (this->visited != visited) {
         this->visited = visited;
-        this->ch->handleChangedVisited(shared_from_this());
+        this->ch->handleChangedVisited(shared_from_this(), id, visited);
     }
 }
 
@@ -69,10 +69,12 @@ void Field::updateShotAt(int whoShot, bool shotAt)
 
 void Field::updateIsPossibleNext(bool possible)
 {
-    if(this->possibleNextCandidate != possible) {
-        this->possibleNextCandidate = possible;
-        this->ch->handleChangedPossibleNext(shared_from_this());
-    }
+    std::cout << "updateIsPossibleNext is to be removed" << std::endl;
+    throw std::exception();
+    //    if(this->possibleNextCandidate != possible) {
+    //        this->possibleNextCandidate = possible;
+    //        this->ch->handleChangedPossibleNext(shared_from_this(), );
+    //    }
 }
 
 Field::~Field() = default;

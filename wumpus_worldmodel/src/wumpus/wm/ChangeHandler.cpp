@@ -10,14 +10,15 @@ namespace wm
 {
 
 ChangeHandler::ChangeHandler(wumpus::WumpusWorldModel* wm, aspkb::Integrator* integrator)
-        : wm(wm), integrator(integrator)
+        : wm(wm)
+        , integrator(integrator)
 {
-//    this->integrator = new aspkb::Integrator();
+    //    this->integrator = new aspkb::Integrator();
 }
 
 ChangeHandler::~ChangeHandler()
 {
-//    delete this->integrator;
+    //    delete this->integrator;
 }
 
 void ChangeHandler::registerNewAgent(int id, bool me)
@@ -49,9 +50,14 @@ void ChangeHandler::handleChangedPosition(int id, std::shared_ptr<wumpus::model:
         this->integrator->integrateInformationAsExternal(ss.str(), "position", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     }
     if (id != essentials::SystemConfig::getOwnRobotID()) {
-        std::stringstream s2; // TOOD reuse other stream
-        s2 << "position(" << id << "," << field->x << "," << field->y << ")" << std::endl;
-        this->integrator->integrateInformationAsExternal(s2.str(), "otherAgentPos", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        if (field) {
+
+            std::stringstream s2; // TOOD reuse other stream
+            s2 << "position(" << id << "," << field->x << "," << field->y << ")" << std::endl;
+            this->integrator->integrateInformationAsExternal(s2.str(), "otherAgentPos" + std::to_string(id), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        } else {
+            this->integrator->integrateInformationAsExternal("", "otherAgentPos" + std::to_string(id), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        }
     }
 }
 
@@ -113,7 +119,7 @@ void ChangeHandler::handleChangedArrow(int agentId, bool arrow)
         ss << "arrow(" << agentId << ")";
     }
 
-    this->integrator->integrateInformationAsExternal(ss.str(), "arrow", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    this->integrator->integrateInformationAsExternal(ss.str(), "arrow" + std::to_string(agentId), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
 }
 
 void ChangeHandler::handleSetDiedOn(std::shared_ptr<wumpus::model::Field> field)
@@ -122,6 +128,9 @@ void ChangeHandler::handleSetDiedOn(std::shared_ptr<wumpus::model::Field> field)
     ss << "otherAgentDiedOn(" << field->x << "," << field->y << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "diedOn", true, aspkb::Strategy::INSERT_TRUE);
     this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
+    std::cout << "CHECK IF HANDLE SET DIED ON WAS SUCCESSFUL" << std::endl;
+    this->integrator->applyChanges();
+    //    throw std::exception();
 }
 
 void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective objective)
@@ -130,9 +139,9 @@ void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective obje
     ss << "objective(" << id << ", ";
     ss << objective;
     ss << ")";
-    this->integrator->integrateInformationAsExternal(ss.str(), "objective", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    this->integrator->integrateInformationAsExternal(ss.str(), "objective" + std::to_string(id), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
     if (id == essentials::SystemConfig::getOwnRobotID()) {
-        this->wm->playground->getAgentById(id)->replanNecessary = true;
+        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
     }
 }
 
@@ -149,7 +158,7 @@ void ChangeHandler::handleChangedBlockedByWumpus(const std::shared_ptr<wumpus::m
 void ChangeHandler::handleChangedBlockedByTrap(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue)
 {
     std::stringstream ss;
-    ss << "blockedByTrap(" << id << ", " << std::to_string(field->x) << ", " << std::to_string(field->y) << ")";
+    ss << "trapBlocksAgent(" << std::to_string(field->x) << ", " << std::to_string(field->y) << ", " << id << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "trapBlocksAgent", truthValue, aspkb::Strategy::INSERT_TRUE);
     if (id == essentials::SystemConfig::getOwnRobotID()) {
         this->wm->playground->getAgentById(id)->replanNecessary = true;
@@ -187,13 +196,18 @@ void ChangeHandler::handleGoalReached(int id)
     this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
 }
 
-void ChangeHandler::handleChangedVisited(std::shared_ptr<wumpus::model::Field> field)
+void ChangeHandler::handleChangedVisited(std::shared_ptr<wumpus::model::Field> field, int id, bool truthValue)
 {
-    this->integrator->integrateInformationAsExternal(
-            "visited(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "visited", true, aspkb::Strategy::INSERT_TRUE);
+    std::stringstream ss;
+    if (id == essentials::SystemConfig::getOwnRobotID()) {
+        ss << "visited(" << std::to_string(field->x) << "," << std::to_string(field->y) << ")";
+        // unsafe moves are no longer allowed when an unvisited field has been vistied
+        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
 
-    // unsafe moves are no longer allowed when an unvisited field has been vistied TODO only when own agent explored it?
-    this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
+    } else {
+        ss << "visitedByOther(" << std::to_string(field->x) << "," << std::to_string(field->y) << ", " << std::to_string(id) << ")";
+    }
+    this->integrator->integrateInformationAsExternal(ss.str(), "visited" + std::to_string(id), truthValue, aspkb::Strategy::INSERT_TRUE);
 }
 
 void ChangeHandler::handleChangedShotAt(int id, std::shared_ptr<wumpus::model::Field> field)
@@ -226,27 +240,27 @@ void ChangeHandler::handleScream()
     std::cout << "CHANGEHANDLER : HANDLE SCREAM ************************************" << std::endl;
 
     this->handleShotAtFields();
-    this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-    this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    if (localAgent->shot) {
+        std::cout << "local agent shot! resetting goal" << std::endl;
+        this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
     // TODO does this make sense?
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+//    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
     localAgent->updateExhausted(false);
     localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    std::cout << "handle scream: updated agent stuff" << std::endl;
 
-    for (const auto& fieldsById : *this->wm->playground->getFieldsShotAtByAgentIds()) {
-        if (this->wm->playground->getAgentById(fieldsById.first)->shot) {
-            for (const auto& shotAt : fieldsById.second) {
-                //            iff agent actually shot
-                std::cout << "shotAt: " << shotAt->x << "," << shotAt->y << std::endl;
-                // FIXME don't consider shot at fields
-                for (const auto& affected : this->wm->playground->getAdjacentFields(shotAt->x, shotAt->y)) {
-                    std::cout << "affected: " << affected->x << ", " << affected->y << std::endl;
-                    this->wm->playground->getField(affected->x, affected->y)->updateExplored(false);
-                    this->wm->playground->getField(affected->x, affected->y)->updateVisited(false);
-                    // FIXME ?
-                    //                    this->wm->playground->getField(affected->x, affected->y)->updateStinky(false);
-                }
+    for (auto f : localAgent->shotAtFields) {
+        auto adj = this->wm->playground->getAdjacentFields(f->x, f->y);
+        for (auto a : adj) {
+            std::cout << "handle scream: adj explored" << std::endl;
+            a->updateExplored(false);
+            for (auto i : *this->wm->playground->getAgents(false)) {
+                std::cout << "handle scream: adj visited by other" << std::endl;
+                a->updateVisited(false, i.second->id);
             }
         }
     }
@@ -256,40 +270,53 @@ void ChangeHandler::handleSilence()
 {
     std::cout << "CHANGEHANDLER : HANDLE SILENCE ************************************" << std::endl;
     this->handleShotAtFields();
-    this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-    this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+
     // TODO does this make sense?
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
     auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    if (localAgent->shot) {
+        std::cout << "local agent shot! resetting goal" << std::endl;
+        this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
+    std::cout << "handleSilence: exhausted, blocking wumpi" << std::endl;
     localAgent->updateExhausted(false);
     localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    std::cout << "handle silence done" << std::endl;
 }
 
 void ChangeHandler::handleShotAtFields() const
 {
-    std::stringstream ss;
-
-    bool integratedAll = false;
-    while (!integratedAll) {
-        auto agentsWhoShot = this->wm->playground->getAgentsWhoShot();
-        for (const auto& agent : agentsWhoShot) {
-            std::cout << "In handle Shot at Fields " << std::endl;
-            auto shotAtFields = this->wm->playground->getFieldsShotAtByAgentIds();
-            integratedAll = true;
-            if (shotAtFields->find(agent->id) == shotAtFields->end()) {
-                std::cout << "No shooting targets for id " << agent->id << "!" << std::endl;
-                integratedAll = false;
-                //                throw std::exception(); // FIXME remove, only for debugging
-                //                return;
-            } else {
-                for (const auto& shotAt : shotAtFields->at(agent->id)) {
-                    ss << "shotAt(" << std::to_string(shotAt->x) << "," << std::to_string(shotAt->y) << ")";
-                    wm->changeHandler->integrator->integrateInformationAsExternal(ss.str(), "shotAt", true, aspkb::INSERT_TRUE);
-                    ss.str("");
-                }
-            }
-        }
+    for (auto field : this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->shotAtFields) {
+        std::cout << "handle shot at fields" << std::endl;
+        field->updateShotAt(essentials::SystemConfig::getOwnRobotID(), true);
     }
+    std::cout << "handle shot at fields done" << std::endl;
+
+    //    std::stringstream ss;
+    //    auto start = alica::AlicaClock().now().inMilliseconds();
+    //    bool integratedAll = false;
+    //    long timeElapsed = 0;
+    //    while (!integratedAll && timeElapsed <= 3000) {
+    ////        std::cout << "Handle shot at fields: timeElapsed " << timeElapsed << std::endl;
+    //        timeElapsed = alica::AlicaClock().now().inMilliseconds() - start;
+    //        auto agentsWhoShot = this->wm->playground->getAgentsWhoShot();
+    //        for (const auto& agent : agentsWhoShot) {
+    ////            std::cout << "In handle Shot at Fields " << std::endl;
+    //            auto shotAtFields = this->wm->playground->getFieldsShotAtByAgentIds();
+    //            integratedAll = true;
+    //            if (shotAtFields->find(agent->id) == shotAtFields->end()) {
+    //                std::cout << "No shooting targets for id " << agent->id << "!" << std::endl;
+    //                integratedAll = false;
+    //                //                throw std::exception(); // FIXME remove, only for debugging
+    //                //                return;
+    //            } else {
+    //                for (const auto& shotAt : shotAtFields->at(agent->id)) {
+    //                    shotAt->updateShotAt(agent->id, true);
+    //                }
+    //            }
+    //        }
+    //    }
 }
 
 void ChangeHandler::handleTurn(long turn)
@@ -326,11 +353,15 @@ void ChangeHandler::handleChangedWumpusBlocksMoves(bool blocks)
     this->integrator->integrateInformationAsExternal("wumpusBlocksMoves", "wumpusMoves", blocks, aspkb::Strategy::INSERT_TRUE);
 }
 
-void ChangeHandler::handleChangedPossibleNext(const std::shared_ptr<model::Field>& field)
+void ChangeHandler::handleChangedPossibleNext(const std::shared_ptr<model::Field>& field, int id, bool truthValue)
 {
     std::stringstream ss;
-    ss << "possibleNext(" << field->x << ", " << field->y << ")";
-    this->integrator->integrateInformationAsExternal(ss.str(), "possibleNext", field->possibleNextCandidate, aspkb::Strategy::INSERT_TRUE);
+    if (id == essentials::SystemConfig::getOwnRobotID()) {
+        ss << "possibleNext(" << field->x << ", " << field->y << ")";
+    } else {
+        ss << "possibleNextForOther(" << field->x << ", " << field->y << ", " << std::to_string(id) << ")";
+    }
+    this->integrator->integrateInformationAsExternal(ss.str(), "possibleNext" + std::to_string(id), truthValue, aspkb::Strategy::INSERT_TRUE);
 }
 
 } /* namespace wm*/

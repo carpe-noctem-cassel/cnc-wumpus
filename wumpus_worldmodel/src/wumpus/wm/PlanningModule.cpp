@@ -23,46 +23,6 @@ namespace wumpus
 namespace wm
 {
 std::mutex PlanningModule::planningMtx;
-// static std::vector<std::string> blockedByWumpusRules = {
-//        "wumpusPossibleOrDefinite(X,Y) :- wumpusPossible(X,Y).", "wumpusPossibleOrDefinite(X,Y) :- wumpus(X,Y).",
-//        "trapPossibleOrDefinite(X,Y) :- trapPossible(X,Y).", "trapPossibleOrDefinite(X,Y) :- trap(X,Y).", "exploredOrVisited(X,Y) :- explored(X,Y).",
-//        "exploredOrVisited(X,Y) :- visited(X,Y).", "blockWumpus(X,Y) :- wumpusPossibleOrDefinite(X,Y), possibleNext(X,Y).",
-//
-//        "notAllPathsBlockedByWumpus :- possibleNext(X,Y), not blockWumpus(X,Y), not objective(A, fetchOtherAgent), me(A), not trapPossible(X,Y), not
-//        trap(X,Y).",
-//        "notAllPathsBlockedByWumpus :- me(A), objective(A,fetchOtherAgent), not blockWumpus(X,Y) : possibleNext(X,Y).", // FIXME review
-//
-//        "notAllPathsBlocked :- field(_,_), notAllPathsBlockedByWumpus.",
-//
-//        "notAllPathsBlocked :- objective(A,shoot), me(A).", // rules only make sense in certain objectives. these have to be considered here because
-//        // the objective depends on the result of this operation
-//        "notAllPathsBlocked :- objective(A,collectGold), me(A).",
-//        "notAllPathsBlocked :- objective(A,idle), me(A).", // FIXME idle here correct?
-//        "notAllPathsBlocked :- not possibleNext(_,_)", "notAllPathsBlocked :- objective(A,leave), me(A).",
-//        "allPathsBlocked :- field(_,_), not notAllPathsBlocked." // field(_,_) is a hack because parsing fails for some reason TODO investigate
-//                                                                 // why, probably expandRuleMP
-//};
-//
-// static std::vector<std::string> blockedByTrapRules = {
-//        "wumpusPossibleOrDefinite(X,Y) :- wumpusPossible(X,Y).", "wumpusPossibleOrDefinite(X,Y) :- wumpus(X,Y).",
-//        "trapPossibleOrDefinite(X,Y) :- trapPossible(X,Y).", "trapPossibleOrDefinite(X,Y) :- trap(X,Y).", "exploredOrVisited(X,Y) :- explored(X,Y).",
-//        "exploredOrVisited(X,Y) :- visited(X,Y).", "blockTrap(X,Y) :- trapPossibleOrDefinite(X,Y), possibleNext(X,Y).",
-//
-//        "notAllPathsBlockedByTrap :- possibleNext(X,Y), not blockTrap(X,Y), not objective(A, fetchOtherAgent), me(A).",
-//        "notAllPathsBlockedByTrap :- me(A), objective(A,fetchOtherAgent), not blockTrap(X,Y) : possibleNext(X,Y).", // FIXME review
-//
-//        "notAllPathsBlocked :- field(_,_), notAllPathsBlockedByTrap.",
-//
-//        "notAllPathsBlocked :- objective(A,shoot), me(A).", // rules only make sense in certain objectives. these have to be considered here because
-//        // the objective depends on the result of this operation
-//        "notAllPathsBlocked :- objective(A,collectGold), me(A).",
-////        "notAllPathsBlocked :- objective(A,idle), me(A).", // FIXME idle here correct?
-//        "notAllPathsBlocked :- not possibleNext(_,_)", "notAllPathsBlocked :- objective(A,leave), me(A).",
-//        "allPathsBlocked :- field(_,_), not notAllPathsBlocked." // field(_,_) is a hack because parsing fails for some reason TODO investigate
-//        // why, probably expandRuleMP
-//
-//};
-
 PlanningModule::PlanningModule(wumpus::WumpusWorldModel* wm, aspkb::Extractor* extractor, aspkb::Integrator* integrator)
         : wm(wm)
         , integrator(integrator)
@@ -73,12 +33,12 @@ PlanningModule::PlanningModule(wumpus::WumpusWorldModel* wm, aspkb::Extractor* e
 {
 
     this->isPlanning = false;
+    auto sc = essentials::SystemConfig::getInstance();
+    this->communicationAllowed = (*sc)["WumpusWorldModel"]->get<bool>("Agents.allowCommunication", NULL);
 }
 
 PlanningModule::~PlanningModule()
 {
-    //    delete this->extractor;
-    //    delete this->integrator;
 }
 
 /**
@@ -104,23 +64,48 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
 
     //    if(!this->wm->playground->goldFieldKnown) {
     auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
-    if (localAgent->isBlockedByWumpus() && localAgent->hasGold) { // TODO gold hack as this breaks hunting wumpi for other agents
-#ifdef PM_DEBUG
-        std::cout << "PlanningModule: Checking if Wumpus still blocks safe moves!" << std::endl;
-#endif
+    //    std::cout << "PlanningModule: isBlocked: " << localAgent->isBlockedByWumpus() << ", hasgold: " << localAgent->hasGold << std::endl;
+
+    if (this->communicationAllowed) {
+        bool foundUnidling = false;
+        for (const auto& id : this->wm->getAgentIDsForExperiment()) {
+            auto otherAgent = this->wm->playground->getAgentById(id);
+            if(otherAgent) {
+                if (otherAgent->objective != wumpus::model::Objective::IDLE) {
+                    foundUnidling = true;
+                }
+            }
+
+        }
+        if (localAgent->objective == wumpus::model::Objective::IDLE && !localAgent->replanNecessary && foundUnidling) {
+            std::cout << "Agent was idling before and no new insights have happened!" << std::endl;
+            actions.emplace_back(WumpusEnums::turnLeft);
+            return std::make_pair(localAgent->id, actions);
+        }
+    }
+
+    if (localAgent->replanNecessary && (localAgent->isBlockedByTrap() || localAgent->isBlockedByWumpus())) { //  &&
+        // localAgent->hasGold /TODO gold hack as this breaks hunting wumpi for other agents
         this->blockEval.determineBlockingElementsForSelf();
     }
     //    }
 
     // determine objective - might cause replan necessary to be set
-    this->exhaustionEval.determineAllAgentsExhausted(); // experimental TODO
+    //    if (agent->replanNecessary) {
+    if (this->wm->wumpusSimData.communicationAllowed) {
+
+        this->exhaustionEval.determineAllAgentsExhausted(); // experimental TODO
+    }
 
     auto obj = this->objEval.determineObjective();
+    //    }
+
     // determine actions
     if (agent->replanNecessary || this->lastPathAndActions.second.empty()) { // FIXME this seems to be problematic. make sure replan necessary is set
         //    correctly for all occasions
         do {
             std::cout << "~~~~~~~~~~~~~~~~~~~ PLANNING " << std::endl;
+            this->pathActionsPlanner.timePlanningStart = this->wm->getEngine()->getAlicaClock()->now();
             fieldsActionsPair = this->pathActionsPlanner.tryDetermineActionsByObjective(agent);
 
         } while (fieldsActionsPair.second.empty());
@@ -157,6 +142,8 @@ std::pair<int, std::vector<WumpusEnums::actions>> PlanningModule::processNextAct
             actionArray[index] = WumpusEnums::pickUpGold;
         } else if (tmp.find("leave") != std::string::npos) {
             actionArray[index] = WumpusEnums::leave;
+            this->pathActionsPlanner.extractor->writeGetSolutionStatsReusable("", -1, -1);
+            this->pathActionsPlanner.extractor->timesWritten++;
         } else {
             std::cout << "KM: UNKNOWN ACTION! " << tmp << std::endl;
             // TODO REMOVE

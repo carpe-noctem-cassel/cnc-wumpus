@@ -15,6 +15,7 @@ namespace planning
 GoalPlanner::GoalPlanner(aspkb::Extractor* extractor, aspkb::Integrator* integrator)
         : Planner(extractor)
         , integrator(integrator)
+        , blockEval(extractor,integrator)
 {
     auto sc = essentials::SystemConfig::getInstance();
     auto filePath = (*sc)[KB_CONFIG_NAME]->get<std::string>("goalGenerationRulesFilePath", NULL);
@@ -27,9 +28,20 @@ GoalPlanner::GoalPlanner(aspkb::Extractor* extractor, aspkb::Integrator* integra
  */
 std::string GoalPlanner::determineGoal()
 {
-    std::string goalQueryHeadValue = "suggestedGoal(wildcard,wildcard)";
 
+    //only consider safely reachable fields
+    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    std::unordered_set<std::shared_ptr<wumpus::model::Field>> possibleNextFields;
+    if(localAgent->objective == wumpus::model::Objective::FETCH_OTHER_AGENT) {
+        possibleNextFields = this->blockEval.generatePossibleNextFieldsAlternative();
+    }
+
+    std::string goalQueryHeadValue = "suggestedGoal(wildcard,wildcard)";
     auto result = this->extractor->extractReusableTemporaryQueryResult({goalQueryHeadValue}, "goal", this->goalGenerationRules);
+//    for(auto field : possibleNextFields) {
+//        field->updateIsPossibleNext(false);
+//    }
+    this->integrator->applyChanges();
     if (!result.empty()) {
         if (result.size() > 1) {
             std::cerr << "PlanningModule: More than one suggested goal found. Using first entry. " << std::endl;

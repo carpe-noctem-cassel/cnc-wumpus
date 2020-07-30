@@ -56,6 +56,8 @@ public:
     void resetIntegratedFromAgents();
     bool isIntegratedFromAllAgents();
 
+    int timesCompletionStatusApplied;
+
     //should be called when action was performed
     void raiseTurnCounter();
     std::map<int, bool> integratedFromOtherAgentsForTurnNr; // FIXME
@@ -63,9 +65,20 @@ public:
     // needed for evaluation (restarting of Base)
     void clearBuffers();
 
-    void setAwaitingScreamOrSilence(bool b);
+    void incrementAwaitingScreamOrSilence();
 
-    bool getAwaitingScreamOrSilence();
+    void decrementAwaitingScreamOrSilence();
+
+    bool completionStatusApplied();
+
+    int getAwaitingScreamOrSilence();
+
+    bool communicationAllowed;
+
+    bool getIsAwaitingShootingFeedback() const;
+
+    void setIsAwaitingShootingFeedback(bool isAwaitingShootingFeedback);
+
 
 private:
     WumpusWorldModel* wm;
@@ -82,8 +95,8 @@ private:
     std::mutex respMtx;
     std::mutex awaitingMtx;
     bool integratedFromSimulatorForTurnNumber;
-    bool awaitingScreamOrSilence;
-
+    int awaitingScreamOrSilence;
+    bool isAwaitingShootingFeedback;
 
     bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };
 

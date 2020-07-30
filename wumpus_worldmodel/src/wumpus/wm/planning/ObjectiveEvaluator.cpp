@@ -1,20 +1,27 @@
 #include "wumpus/wm/planning/ObjectiveEvaluator.h"
+#include <aspkb/Integrator.h>
 #include <wumpus/WumpusWorldModel.h>
 #include <wumpus/model/Objective.h>
 #include <wumpus/wm/util/PlannerUtils.h>
-#include <aspkb/Integrator.h>
 namespace wumpus
 {
 namespace wm
 {
 namespace planning
 {
-ObjectiveEvaluator::ObjectiveEvaluator(aspkb::Extractor* extractor,aspkb::Integrator* integrator)
-        : Planner(extractor),integrator(integrator), safePathExistsPlanner(extractor, integrator)
+ObjectiveEvaluator::ObjectiveEvaluator(aspkb::Extractor* extractor, aspkb::Integrator* integrator)
+        : Planner(extractor)
+        , integrator(integrator)
+        , safePathExistsPlanner(extractor, integrator)
 {
     auto sc = essentials::SystemConfig::getInstance();
     auto filePath = (*sc)[KB_CONFIG_NAME]->get<std::string>("objectiveRulesFilePath", NULL);
     util::PlannerUtils::loadAdditionalRules(filePath, this->objectiveRules);
+}
+
+ObjectiveEvaluator::~ObjectiveEvaluator()
+{
+    this->safePathExistsPlanner.clearProblemsMap();
 }
 
 // TODO
@@ -83,12 +90,12 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
         auto sol2 = this->extractor->extractReusableTemporaryQueryResult({"objective(wildcard)"}, "objective", this->objectiveRules);
         if (sol2.empty()) {
             std::cout << "PlanningModule: Should have a posible objective by now!" << std::endl;
-            if(this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->isBlockedByTrap()) {
+            if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->isBlockedByTrap()) {
                 return wumpus::model::Objective::IDLE;
             } else {
-                std::cout << "PlanningModule: Should have a posible objective by now!" << std::endl;
-                throw std::exception();
-
+                std::cout << "PlanningModule: Should have a posible objective by now! Using explore as fallback" << std::endl;
+                //                throw std::exception();
+                return wumpus::model::Objective::EXPLORE;
             }
             //            this->wm->playground->getAgentById(essentials::SystemConfig::getInstance()->getOwnRobotID())->updateObjective(obj);
             //            this->wm->integrateChanges();
@@ -121,8 +128,7 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
 #ifdef PM_DEBUG
             std::cout << "PlanningModule: objective changed -> setting unsafe moves allowed to false" << std::endl;
 #endif
-            this->integrator->integrateInformationAsExternal(
-                    "unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::FALSIFY_OLD_VALUES);
+            this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::FALSIFY_OLD_VALUES);
             this->integrator->applyChanges();
         }
 

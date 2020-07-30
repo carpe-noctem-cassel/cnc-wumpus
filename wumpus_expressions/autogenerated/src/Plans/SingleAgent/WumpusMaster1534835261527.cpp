@@ -259,7 +259,8 @@ bool TransitionCondition1574260002562::evaluate(shared_ptr<RunningPlan> rp)
         ++agentsInStateCount;
     }
 
-    return this->wm->isTimeout() || (rp->areAllChildrenStatus(PlanStatus::Success) && agentsInStateCount == this->wm->getPresetAgentCount() - 1);
+//    return (rp->areAllChildrenStatus(PlanStatus::Success) && agentsInStateCount == this->wm->getPresetAgentCount() - 1);
+    return (rp->areAllChildrenStatus(PlanStatus::Success) && agentsInStateCount == this->wm->getPresetAgentCount() - 1);
     /*PROTECTED REGION END*/
 }
 }

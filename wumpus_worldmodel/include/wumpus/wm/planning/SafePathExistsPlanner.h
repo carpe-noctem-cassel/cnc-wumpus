@@ -15,9 +15,10 @@ class SafePathExistsPlanner : public Planner
 public:
     SafePathExistsPlanner(aspkb::Extractor* extractor, aspkb::Integrator* integrator);
     void checkSafePathsExistsForOtherAgents(std::pair<int, int> from, const std::map<int, std::pair<int, int>>& tos);
+    void clearProblemsMap();
 
 private:
-    std::map<std::pair<int, int>, std::map<std::pair<int, int>, std::shared_ptr<aspkb::IncrementalProblem>>> safePathExistsForOtherAgentProblems;
+    static std::map<std::pair<int, int>, std::map<std::pair<int, int>, std::shared_ptr<aspkb::IncrementalProblem>>> safePathExistsForOtherAgentProblems;
     aspkb::Integrator* integrator;
     int maxHorizonFactor;
 };

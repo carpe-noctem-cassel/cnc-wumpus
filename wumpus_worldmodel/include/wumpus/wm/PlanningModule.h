@@ -51,6 +51,7 @@ public:
     bool getIsPlanning();
     void setIsPlanning(bool planning);
 
+    static std::mutex planningMtx;
 private:
     wumpus::WumpusWorldModel* wm;
 
@@ -61,10 +62,9 @@ private:
     aspkb::Integrator* integrator;
     std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> lastPathAndActions;
 
-    static std::mutex planningMtx;
-
     bool isPlanning;
 
+    bool communicationAllowed;
 };
 } /*namespace wm */
 } /*namespace wumpus*/

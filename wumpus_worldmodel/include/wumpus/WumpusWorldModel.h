@@ -51,6 +51,9 @@ public:
 
     std::string getAgentName();
 
+    bool isPerformActionSuccess();
+    void setPerformActionSuccess(bool success);
+
     // Public Data Access Classes
     wm::WumpusSimData wumpusSimData;
     model::Playground* playground;
@@ -105,6 +108,7 @@ public:
         return wumpus::model::Objective::UNDEFINED;
     }
 
+    aspkb::Extractor* extractor;
 private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
     std::string agentName;
@@ -112,7 +116,8 @@ private:
     std::vector<int> agentIDs;
     bool isTimedOut;
     aspkb::Integrator* integrator;
-    aspkb::Extractor* extractor;
+    bool performActionSuccess;
+    std::mutex mtx;
 };
 
 } /* namespace wumpus */

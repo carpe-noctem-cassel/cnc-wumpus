@@ -32,6 +32,8 @@ namespace alica
 
 	protected:
 		essentials::SystemConfig* sc;
+		wumpus_msgs::AgentPerception createAgentPerception(int ownId) const;
+
 
 	private:
 		std::string wumpusActionRequestTopic;
@@ -46,7 +48,7 @@ namespace alica
         ros::Publisher multiAgentPoseRequestPublisher;
         ros::Publisher loadWorldRequestPublisher;
 
-	};
+    };
 } /* namespace alica */
 
 #endif /* DomainBehaviour_H_ */

@@ -17,11 +17,6 @@ class Agent;
 class Field;
 class Playground : public wumpus::model::DomainElement
 {
-    struct FieldPtrComparator {
-        bool operator() (const std::shared_ptr<wumpus::model::Field>& a, const std::shared_ptr<wumpus::model::Field>& b) {
-            return a->x < b->x || (a->x == b->x && a->y <= b->y);
-        }
-    };
 public:
     Playground(wumpus::wm::ChangeHandler* ch);
     virtual ~Playground();
@@ -43,9 +38,10 @@ public:
     int getNumberOfFields();
     std::vector<std::shared_ptr<wumpus::model::Agent>> getAgentsWhoShot();
 
+    static std::map<int, std::shared_ptr<wumpus::model::Agent>> agentsForExperiment;
 
 
-    std::shared_ptr<std::map<int,std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>>> getFieldsShotAtByAgentIds();
+    std::shared_ptr<std::map<int,std::unordered_set<std::shared_ptr<wumpus::model::Field>>>> getFieldsShotAtByAgentIds();
     void addShootingTarget(const int id, const std::pair<std::string, std::string>& shotAt);
 
     //this is a convenience flag and set to true when a field's glitter flag is set
@@ -58,9 +54,8 @@ private:
     //currently active agents
     std::map<int, std::shared_ptr<wumpus::model::Agent>> agents;
     //all agents who ever participated in the experiment
-    std::map<int, std::shared_ptr<wumpus::model::Agent>> agentsForExperiment;
     std::map<std::pair<int, int>, std::shared_ptr<wumpus::model::Field>> fields;
-    std::shared_ptr<std::map<int, std::set<std::shared_ptr<wumpus::model::Field>, FieldPtrComparator>>> shootingTargets;
+    std::shared_ptr<std::map<int, std::unordered_set<std::shared_ptr<wumpus::model::Field>>>> shootingTargets;
     static std::mutex agentMtx;
     static std::mutex fieldMtx;
     std::mutex shotAtMtx;

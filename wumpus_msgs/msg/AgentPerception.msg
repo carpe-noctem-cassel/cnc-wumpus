@@ -16,6 +16,9 @@ Coordinates diedOn
 bool exhausted
 Coordinates[] shootingTargets
 bool shot
+bool receivedScream
+bool receivedSilence
 Coordinates[] blockingWumpi
 Coordinates[] blockingTraps
+Coordinates[] possibleNextFields
 

@@ -2,7 +2,7 @@
 #include <aspkb/Integrator.h>
 #include <wumpus/WumpusWorldModel.h>
 #include <wumpus/wm/util/PlannerUtils.h>
-#define BE_DEBUG
+//#define BE_DEBUG
 namespace wumpus
 {
 namespace wm
@@ -19,17 +19,21 @@ static std::vector<std::string> blockedByAnyRules = {
         "blockWumpus(X,Y) :- wumpusPossibleOrDefinite(X,Y), possibleNext(X,Y), allPathsBlocked.",
         "blockTrap(X,Y) :- trapPossibleOrDefinite(X,Y), possibleNext(X,Y), allPathsBlocked.",
 
+        "blockWumpus(X,Y) :- wumpusPossibleOrDefinite(X,Y), not possibleNext(_,_), allPathsBlocked.",
+        "blockTrap(X,Y) :- trapPossibleOrDefinite(X,Y), not possibleNext(_,_), allPathsBlocked.",
+
         "notAllPathsBlocked :- possibleNext(X,Y), not dangerPossibleOrDefinite(X,Y).",
 
         "notAllPathsBlocked :- objective(A,shoot), me(A).", // rules only make sense in certain objectives. these have to be considered here because
         // the objective depends on the result of this operation
+        "notAllPathsBlocked :- me(A), haveGold(A).", // FIXME added late
         "notAllPathsBlocked :- objective(A,collectGold), me(A).",
-        "notAllPathsBlocked :- objective(A,idle), me(A).", // FIXME idle here correct?
-        "notAllPathsBlocked :- not possibleNext(_,_)", "notAllPathsBlocked :- objective(A,leave), me(A).",
+        //        "notAllPathsBlocked :- objective(A,idle), me(A).", // FIXME idle here correct?
+        //        "notAllPathsBlocked :- not possibleNext(_,_)", //FIXME correct?
+        "notAllPathsBlocked :- objective(A,leave), me(A).",
         "allPathsBlocked :- field(_,_), not notAllPathsBlocked." // field(_,_) is a hack because parsing fails for some reason TODO investigate
                                                                  // why, probably expandRuleMP
 };
-
 static std::vector<std::string> blockedByWumpusRules = {
         "wumpusPossibleOrDefinite(X,Y) :- wumpusPossible(X,Y).", "wumpusPossibleOrDefinite(X,Y) :- wumpus(X,Y).",
         "trapPossibleOrDefinite(X,Y) :- trapPossible(X,Y).", "trapPossibleOrDefinite(X,Y) :- trap(X,Y).", "exploredOrVisited(X,Y) :- explored(X,Y).",
@@ -69,10 +73,21 @@ static std::vector<std::string> blockedByTrapRules = {
                                                                  // why, probably expandRuleMP
 
 };
+
+std::map<std::pair<int, int>, std::shared_ptr<aspkb::PossibleNextFieldGenerationProblem>> BlockageEvaluator::possibleNextFromProblems =
+        std::map<std::pair<int, int>, std::shared_ptr<aspkb::PossibleNextFieldGenerationProblem>>();
 BlockageEvaluator::BlockageEvaluator(aspkb::Extractor* extractor, aspkb::Integrator* integrator)
         : Planner(extractor)
         , integrator(integrator)
 {
+    auto sc = essentials::SystemConfig::getInstance();
+    auto filePath = (*sc)[KB_CONFIG_NAME]->get<std::string>("possibleNextAlternativeRules", NULL);
+    util::PlannerUtils::loadAdditionalRules(filePath, this->possibleNextAlternativeRules);
+}
+
+BlockageEvaluator::~BlockageEvaluator()
+{
+    wumpus::wm::planning::BlockageEvaluator::possibleNextFromProblems.clear();
 }
 /**
  * the feedback of this has been moved into the knowledge base
@@ -80,7 +95,8 @@ BlockageEvaluator::BlockageEvaluator(aspkb::Extractor* extractor, aspkb::Integra
  */
 bool BlockageEvaluator::determineWumpusBlocksSafeMovesForSelf()
 {
-    this->generatePossibleNextFields();
+    //    TODO no objective when havegold and other agent finds safe path
+    this->generatePossibleNextFieldsAlternative();
 
     auto ret = this->extractor->extractReusableTemporaryQueryResult(
             {"allPathsBlocked", "blockWumpus(wildcard,wildcard)"}, "blockingWumpusExists", blockedByWumpusRules);
@@ -116,17 +132,24 @@ bool BlockageEvaluator::determineWumpusBlocksSafeMovesForSelf()
 }
 std::unordered_set<std::shared_ptr<wumpus::model::Field>> BlockageEvaluator::generatePossibleNextFields()
 {
+    //    if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective == wumpus::model::Objective::GO_HOME) {
+    //        std::cout << "Agent wants to go home but still checks blockage" << std::endl;
+    //        throw std::exception();
+    //    }
     auto playground = this->wm->playground;
 
     auto visitedFields = std::vector<std::shared_ptr<model::Field>>();
-    for (int i = 0; i < playground->getPlaygroundSize(); ++i) {
-        for (int j = 0; j < playground->getPlaygroundSize(); ++j) {
-            auto field = playground->getField(i, j);
-            if (field->visited) {
-                visitedFields.emplace_back(field);
-            }
-        }
-    }
+    //    for (int i = 0; i < playground->getPlaygroundSize(); ++i) {
+    //        for (int j = 0; j < playground->getPlaygroundSize(); ++j) {
+    //            auto field = playground->getField(i, j);
+    //            if (field->visited) {
+    //                visitedFields.emplace_back(field);
+    //            }
+    //        }
+    //    }
+
+    visitedFields.emplace_back(
+            playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->currentPosition); // FIXME should cover all possibilities by itself??
 
     std::set<std::string> possibleNextFields;
     for (auto visited : visitedFields) {
@@ -145,15 +168,18 @@ std::unordered_set<std::shared_ptr<wumpus::model::Field>> BlockageEvaluator::gen
         }
         auto possibleNextFieldsForIteration = problem->doIncrementalSolving();
         for (auto field : possibleNextFieldsForIteration) {
-            possibleNextFields.insert(field);
+            if (field.find("possibleNext") != std::string::npos) {
+                possibleNextFields.insert(field);
+            }
         }
     }
 
     std::unordered_set<std::shared_ptr<wumpus::model::Field>> actualFields;
     for (auto elem : possibleNextFields) {
+        std::cout << "POSSIBLENEXTFIELDS: ELEM " << elem << std::endl;
         auto params = util::PlannerUtils::extractBinaryPredicateParameters(elem, "possibleNextCandidate");
         auto affectedField = playground->getField(std::stoi(params.first), std::stoi(params.second));
-        affectedField->updateIsPossibleNext(true);
+        //        affectedField->updateIsPossibleNext(true);
         integrator->applyChanges();
         actualFields.insert(affectedField);
     }
@@ -200,7 +226,11 @@ bool BlockageEvaluator::determineTrapBlocksSafeMovesForSelf()
 
 BlockageStatus BlockageEvaluator::determineBlockingElementsForSelf()
 {
-    auto possibleNextFields = this->generatePossibleNextFields();
+
+    if (wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->hasGold) {
+        return BlockageStatus(std::unordered_set<std::shared_ptr<wumpus::model::Field>>(), std::unordered_set<std::shared_ptr<wumpus::model::Field>>(), false);
+    }
+    auto possibleNextFields = this->generatePossibleNextFieldsAlternative();
 
     auto ret = this->extractor->extractReusableTemporaryQueryResult(
             {"allPathsBlocked", "blockWumpus(wildcard,wildcard)", "blockTrap(wildcard,wildcard)"}, "blockingElements", blockedByAnyRules);
@@ -218,8 +248,11 @@ BlockageStatus BlockageEvaluator::determineBlockingElementsForSelf()
             auto coords = util::PlannerUtils::extractBinaryPredicateParameters(r, "blockWumpus");
             possiblyBlockingWumpi.insert(this->wm->playground->getField(std::stoi(coords.first), std::stoi(coords.second)));
         } else if (r.find("blockTrap") != std::string::npos) {
+            std::cout << "blocktrap found " << std::endl;
             auto coords = util::PlannerUtils::extractBinaryPredicateParameters(r, "blockTrap");
             possiblyBlockingTraps.insert(this->wm->playground->getField(std::stoi(coords.first), std::stoi(coords.second)));
+        } else {
+            std::cout << r << std::endl;
         }
     }
 #ifdef BE_DEBUG
@@ -237,10 +270,29 @@ BlockageStatus BlockageEvaluator::determineBlockingElementsForSelf()
     this->integrator->applyChanges();
 
     // reset possible Next fields
-    for (const auto& field : possibleNextFields) {
-        field->updateIsPossibleNext(false);
-    }
+    //    for (const auto& field : possibleNextFields) {
+    //        field->updateIsPossibleNext(false);
+    //    }
     return wumpus::wm::planning::BlockageStatus(possiblyBlockingWumpi, possiblyBlockingTraps, found);
+}
+
+std::unordered_set<std::shared_ptr<wumpus::model::Field>> BlockageEvaluator::generatePossibleNextFieldsAlternative()
+{
+    auto ret =
+            this->extractor->extractReusableTemporaryQueryResult({"newPossibleNext(wildcard,wildcard)"}, "newPossibleNext", this->possibleNextAlternativeRules);
+    std::unordered_set<std::shared_ptr<wumpus::model::Field>> possibleNextFields;
+    for (auto r : ret) {
+        if (r.find("newPossibleNext") != std::string::npos) {
+            auto coords = util::PlannerUtils::extractBinaryPredicateParameters(r, "newPossibleNext");
+            possibleNextFields.insert(this->wm->playground->getField(std::stoi(coords.first), std::stoi(coords.second)));
+        }
+    }
+    //    for(auto field : possibleNextFields) {
+    //        field->updateIsPossibleNext(true);
+    //    }
+    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updatePossibleNextFields(possibleNextFields);
+    this->integrator->applyChanges();
+    return possibleNextFields;
 }
 }
 }

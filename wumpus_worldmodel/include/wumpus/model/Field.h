@@ -21,7 +21,7 @@ public:
     void updateShiny(bool shiny);
     void updateDrafty(bool drafty);
     void updateStinky(bool stinky);
-    void updateVisited(bool visited);
+    void updateVisited(bool visited, int id);
     void updateShotAt(int whoShot, bool shotAt);
     void updateExplored(bool explored);
     void updateIsPossibleNext(bool possible);
@@ -33,7 +33,7 @@ public:
     bool visited;
     bool explored;
     bool shotAt;
-    bool possibleNextCandidate;
+//    bool possibleNextCandidate;
 };
 
 } /* namespace wm */

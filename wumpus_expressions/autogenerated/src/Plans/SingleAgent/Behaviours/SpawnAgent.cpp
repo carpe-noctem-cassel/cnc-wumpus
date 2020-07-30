@@ -2,12 +2,13 @@ using namespace std;
 #include "Plans/SingleAgent/Behaviours/SpawnAgent.h"
 
 /*PROTECTED REGION ID(inccpp1534835348868) ENABLED START*/ // Add additional includes here
+#include <engine/IRoleAssignment.h>
+#include <eval/AgentInfo.h>
 #include <wumpus/model/Field.h>
 #include <wumpus_simulator/AgentPosition.h>
 #include <wumpus_simulator/InitialPoseRequest.h>
 #include <wumpus_simulator/LoadWorldRequest.h>
 #include <wumpus_simulator/MultiInitialPoseRequest.h>
-#include <engine/IRoleAssignment.h>
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -65,6 +66,7 @@ void SpawnAgent::run(void* msg)
     if (status == eval::SpawnRequestStatus::FAILED) {
         this->wm->experiment->getCurrentRun()->completionStatus = eval::CompletionStatus::REJECTED;
         // this will advance the starting positions encoding
+        std::lock_guard<std::mutex> lock(eval::Experiment::runMtx);
         this->nextStartPositions = wm->experiment->getCurrentRun()->getNextStartPositions();
     }
 
@@ -76,6 +78,12 @@ void SpawnAgent::run(void* msg)
         //        std::cout << "Sending load World request2 " << std::endl;
         send(loadWorldRequest);
         worldRequestSent = true;
+        std::lock_guard<std::mutex> lock(eval::Experiment::runMtx);
+//        if (wm->getPresetAgentCount() > 1) {
+//            while (wm->experiment->getCurrentRun()->getCurrentResult()->getAgentInfos().size() != wm->getPresetAgentCount()) {
+//                std::cout << "wait for agent infos!" << std::endl;
+//            }
+//        }
         this->nextStartPositions = this->wm->experiment->getCurrentRun()->getNextStartPositions();
         return;
     }
@@ -89,6 +97,13 @@ void SpawnAgent::run(void* msg)
 void SpawnAgent::initialiseParameters()
 {
     /*PROTECTED REGION ID(initialiseParameters1534835348868) ENABLED START*/ // Add additional options here
+    std::lock_guard<std::mutex> lock(eval::Experiment::runMtx);
+
+    if (wm->experiment && wm->experiment->getCurrentRun() && wm->experiment->getCurrentRun()->getCurrentResult()) {
+        while (wm->experiment->getCurrentRun()->getCurrentResult()->getAgentInfos().size() != wm->getPresetAgentCount()) {
+        }
+    }
+
     this->nextStartPositions = wm->experiment->getCurrentRun()->getNextStartPositions();
     this->worldRequestSent = false;
     /*PROTECTED REGION END*/
@@ -100,8 +115,8 @@ void SpawnAgent::onMultiInitialPoseResponse(wumpus_simulator::MultiInitialPoseRe
     if (!response->success) {
         std::cout << "Pose request failed!" << std::endl;
         auto id = this->wm->getEngine()->getTeamManager()->getLocalAgentID();
-        if(this->wm->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->wm->spawnRequestHandlerRoleName) {
-        this->wm->experiment->getCurrentRun()->getCurrentResult()->completionStatus = eval::CompletionStatus::REJECTED;
+        if (this->wm->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->wm->spawnRequestHandlerRoleName) {
+            this->wm->experiment->getCurrentRun()->getCurrentResult()->completionStatus = eval::CompletionStatus::REJECTED;
         }
 
         this->wm->experiment->getCurrentRun()->setSpawnRequestStatus(

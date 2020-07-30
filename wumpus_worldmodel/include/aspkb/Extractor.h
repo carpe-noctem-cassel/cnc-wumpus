@@ -27,17 +27,22 @@ public:
     std::vector<std::string> extractReusableTemporaryQueryResult(
             const std::vector<std::string>& inquiryPredicates, const std::string& queryIdentifier, const std::vector<std::string>& additionalRules);
 
-    std::vector<std::string> solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc);
+    std::vector<std::string> solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc, int overrideHorizon = -1);
 
+    void writeGetSolutionStatsReusable(const std::string& queryIdentifier, long timeElapsed, int horizon = -1);
+
+    int timesWritten;
 private:
     ::reasoner::asp::Solver* solver;
 
     std::map<int, std::shared_ptr<::reasoner::asp::ReusableExtensionQuery>> checkQueries; // TODO make list and imply ordering by horizon?
     std::map<int, ::reasoner::asp::Term*> checkTerms;
 
-    void writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime timeElapsed);
-    void writeGetSolutionStatsReusable(const std::string& queryIdentifier, alica::AlicaTime timeElapsed);
+    void writeGetSolutionStatsIncremental(int horizon, long timeElapsed);
+
     inline void writeHeader(bool incremental);
+
+    std::unordered_set<int> alreadyHandledQueries;
 
     static std::mutex mtx;
 
@@ -51,6 +56,7 @@ private:
     static bool wroteHeaderIncremental;
 
     static bool wroteHeaderReusable;
+
 };
 
 } /* namespace wm */

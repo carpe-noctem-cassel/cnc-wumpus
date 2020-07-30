@@ -1,32 +1,45 @@
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,A), not exhausted(A).
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,A),  not objective(goHome), not exhausted(A), not objective(moveToGoldField), not objective(collectGold), not objective(idle), not objective(huntWumpus), not objective(shoot), not objective(leave), not objective(fetchOtherAgent).
 
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), wumpusBlocksAgent(_,_,_), everyAgentExhausted, not arrow(A), not objective(B, huntWumpus), not me(B), agent(B).
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), wumpusBlocksAgent(_,_,A),  not objective(goHome), exhausted(A), not objective(moveToGoldField), not objective(collectGold), not objective(idle), not objective(huntWumpus), not objective(shoot), not objective(leave), not objective(fetchOtherAgent).
 
-objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,_), everyAgentExhausted.
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), wumpusBlocksAgent(_,_,_), everyAgentExhausted,  not objective(goHome), not objective(moveToGoldField), not objective(idle), not arrow(A), not objective(huntWumpus), not objective(B, huntWumpus), not me(B), agent(B), not objective(collectGold), not objective(shoot), not objective(leave), not objective(fetchOtherAgent).
 
-objective(fetchOtherAgent) :- me(A), haveGold(A), agent(B), not haveGold(B), not hasSafePathToGold(B), field(X,Y), field(C,D), not position(B,U,V), glitter(U,V), not objective(huntWumpus), not objective(shoot).
+objective(explore) :- not glitter(_,_), not haveGold(A), me(A), not wumpusBlocksAgent(_,_,_), everyAgentExhausted,  not objective(goHome),  not objective(moveToGoldField), not objective(idle), not objective(collectGold), not objective(huntWumpus), not objective(shoot), not objective(leave), not objective(fetchOtherAgent).
+
+objective(explore) :- unsafeMovesAllowed, not objective(idle), not objective(collectGold), not objective(huntWumpus),  not objective(goHome), not objective(shoot), not objective(leave), not objective(moveToGoldField), not objective(fetchOtherAgent).
+
+objective(explore) :- field(_,_), not objective(huntWumpus), N == M, agentsCount(N), blockedByTrapCount(M), not objective(goHome), not objective(moveToGoldField), not objective(idle), not objective(collectGold), not objective(shoot), not objective(leave), not objective(fetchOtherAgent).
+blockedByTrapCount(N) :- N = #count{1, B : trapBlocksAgent(_,_,B), agent(B)}.
+
+objective(fetchOtherAgent) :- me(A), haveGold(A), agent(B), not haveGold(B), not hasSafePathToGold(B), field(X,Y), field(C,D), not position(B,U,V), glitter(U,V), not objective(huntWumpus), not objective(shoot), not objective(leave).
+
+objective(huntWumpus) :- wumpusBlocksAgent(_,_,_), arrow(A), not trapBlocksAgent(_,_,A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
 
 objective(huntWumpus) :- wumpusBlocksAgent(_,_,A), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold), allOthersExhausted.
+
+objective(huntWumpus) :- wumpusBlocksAgent(_,_,_), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
 
 othersExhaustedCount(N) :- N = #count{1, B : exhausted(B), not me(B)}.
 agentsCount(N) :- N = #count{1, A : agent(A)}.
 allOthersExhausted :- N == M - 1, othersExhaustedCount(N), agentsCount(M).
 
-objective(huntWumpus) :- me(A), haveGold(A), arrow(A), agent(B), not me(B), not haveGold(B), wumpusBlocksAgent(_,_,B), not objective(collectGold), not objective(shoot).
+objective(huntWumpus) :- me(A), haveGold(A), arrow(A), agent(B), not me(B), not haveGold(B), wumpusBlocksAgent(_,_,B), not objective(collectGold), not objective(shoot), exhausted(B), not hasSafePathToGold(B).
 
 objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A), not shot(A).
 
 objective(goHome) :- haveGold(A), me(A), not on(X,Y), initial(X,Y), not objective(fetchOtherAgent), not objective(huntWumpus), not objective(shoot).
 
-objective(leave) :- haveGold(A), me(A), on(X,Y), initial(X,Y), not objective(fetchOtherAgent), not objective(huntWumpus), not objective(shoot).
+objective(leave) :- haveGold(A), me(A), on(X,Y), initial(X,Y), not objective(huntWumpus), not objective(shoot).
 
 objective(moveToGoldField) :- glitter(X,Y), not on(X,Y), not haveGold(A), me(A), not objective(huntWumpus), not objective(shoot), not objective(idle).
 
-objective(collectGold) :- glitter(X,Y), on(X,Y), not haveGold(A), me(A).
+objective(collectGold) :- glitter(X,Y), on(X,Y), not haveGold(A), me(A), not objective(shoot).
 
-objective(idle) :- me(A), exhausted(A), not everyAgentExhausted, not objective(fetchOtherAgent), not objective(huntWumpus), not objective(shoot), not objective(collectGold), not objective(goHome), not objective(leave).
+idlingAgents(N) :- N = #count{1, A : objective(A, idle)}.
+deadlock :- N == M, idlingAgents(N), agentsCount(M).
 
-objective(idle) :- me(A), exhausted(A), wumpusBlocksAgent(_,_,_), not everyAgentExhausted, not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).
+objective(idle) :- me(A), not deadlock, not agentsCount(1), exhausted(A), not everyAgentExhausted, not objective(fetchOtherAgent), not objective(huntWumpus), not objective(shoot), not objective(collectGold), not objective(goHome), not objective(leave).
 
-objective(idle) :- me(A), exhausted(A), trapBlocksAgent(_,_,A), agent(B), not me(B), not trapBlocksAgent(_,_,B), not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).
+objective(idle) :- me(A), not deadlock, not agentsCount(1), exhausted(A), wumpusBlocksAgent(_,_,_), not everyAgentExhausted, not objective(explore), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave), not objective(fetchOtherAgent).
 
+objective(idle) :- me(A), not deadlock, not agentsCount(1), exhausted(A), trapBlocksAgent(_,_,A), agent(B), not me(B), not trapBlocksAgent(_,_,B), not objective(shoot), not objective(huntWumpus), not objective(collectGold), not objective(goHome), not objective(leave).

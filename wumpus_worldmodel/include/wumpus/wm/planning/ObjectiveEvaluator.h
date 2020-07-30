@@ -17,6 +17,7 @@ class ObjectiveEvaluator : public Planner
 {
 public:
     ObjectiveEvaluator(aspkb::Extractor* extractor,aspkb::Integrator* integrator);
+    ~ObjectiveEvaluator();
 
     wumpus::model::Objective determineObjective();
 
@@ -25,6 +26,8 @@ public:
     bool agentObjectiveRequiresGoal(const std::shared_ptr<wumpus::model::Agent>& agent) const;
 
     bool objectiveImpliesSimpleAction(const std::shared_ptr<wumpus::model::Agent>& agent) const;
+
+    void clearProblemsMap();
 
 private:
     std::vector<std::string> objectiveRules;

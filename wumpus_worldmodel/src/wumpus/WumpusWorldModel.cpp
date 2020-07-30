@@ -29,6 +29,7 @@ WumpusWorldModel::WumpusWorldModel()
         , localAgentExited(false)
         , localAgentDied(false)
         , isTimedOut(false)
+        , performActionSuccess(false)
 
 {
     auto sc = essentials::SystemConfig::getInstance();
@@ -71,8 +72,6 @@ void WumpusWorldModel::init()
     this->experiment = new eval::Experiment();
 }
 
-
-
 // used in plans to check if all agents have been spawned, only then are actions available
 int WumpusWorldModel::getPresetAgentCount()
 {
@@ -100,6 +99,7 @@ bool WumpusWorldModel::localAgentIsSpawnRequestHandler()
 void WumpusWorldModel::reset()
 {
     std::lock_guard<std::mutex> lock(this->resetMtx); // FIXME
+    this->setPerformActionSuccess(false);
     // delete this->communication;
     std::cout << "Resetting wm!" << std::endl;
     delete this->changeHandler; // FIXME only clear state
@@ -117,7 +117,7 @@ void WumpusWorldModel::reset()
 
     this->extractor = new aspkb::Extractor();
     this->integrator = new aspkb::Integrator();
-    this->changeHandler = new wumpus::wm::ChangeHandler(this,integrator);
+    this->changeHandler = new wumpus::wm::ChangeHandler(this, integrator);
     this->planningModule = new wumpus::wm::PlanningModule(this, extractor, integrator);
     std::cout << "Resetting wm!: New Playground" << std::endl;
 
@@ -145,10 +145,21 @@ void WumpusWorldModel::sendAgentPerception(wumpus_msgs::AgentPerception& msg)
     this->communication->sendAgentPerception(msg);
 }
 
+void WumpusWorldModel::setPerformActionSuccess(bool success)
+{
+    std::lock_guard<std::mutex> lock(this->mtx);
+    this->performActionSuccess = success;
+}
+bool WumpusWorldModel::isPerformActionSuccess()
+{
+    std::lock_guard<std::mutex> lock(this->mtx);
+    return this->performActionSuccess;
+}
+
 /**
  * FIXME weird structure because of refactoring...
  */
-//void WumpusWorldModel::integrateChanges()
+// void WumpusWorldModel::integrateChanges()
 //{
 //    this->changeHandler->integrator->applyChanges();
 //}

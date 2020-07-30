@@ -14,8 +14,8 @@ class Planner
 public:
     explicit Planner(aspkb::Extractor* extractor);
 
-protected:
     aspkb::Extractor* extractor;
+protected:
     wumpus::WumpusWorldModel* wm;
     const char* const KB_CONFIG_NAME = "KnowledgeManager";
 };

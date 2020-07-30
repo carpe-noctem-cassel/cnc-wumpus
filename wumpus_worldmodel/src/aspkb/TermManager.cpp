@@ -130,7 +130,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     checkTerm->addRule(rule);
 
     //    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke
-    rule = ":- movedInDanger(t), not unsafeMovesAllowed.";
+    rule = ":- movedInDanger(t), not unsafeMovesAllowed."; //FIXME deal with uncertainty when planning a path to a goal
     checkTerm->addRule(rule);
     //    rule = ":- movedInDanger(t) , not shot.";
     //    checkTerm->addRule(rule); FIXME review necessity
@@ -196,7 +196,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
     termInstance->setExternals(std::make_shared<std::map<std::string, bool>>());
     std::lock_guard<std::mutex> lock(this->mtx);
     this->managedTerms.push_back(termInstance);
-    termInstance->setLifeTime(-1); // TODO is this correct?
+//    termInstance->setLifeTime(-1); // TODO is this correct?
     //    checkTerm->setLifeTime(1); // TODO is this correct?
     termInstance->setType(reasoner::asp::QueryType::ReusableExtension);
     //    checkTerm->setType(reasoner::asp::QueryType::Extension);
@@ -217,6 +217,7 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
 ::reasoner::asp::Term* TermManager::requestPossibleNextCheckTerm(std::string externalPrefix, int horizon)
 {
     auto term = this->requestTerm();
+    term->setType(::reasoner::asp::QueryType::ReusableExtension);
     term->addProgramSectionParameter("t", std::to_string(horizon));
     std::stringstream ss;
     //    ss << ":- " << externalPrefix << "incquery" << std::to_string(horizon) << "(newFieldsCount(0,t)"

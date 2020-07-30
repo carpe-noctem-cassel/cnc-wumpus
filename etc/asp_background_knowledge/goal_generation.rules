@@ -1,14 +1,12 @@
-{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y)} = 1 :- not definitiveGoal(_,_), not objective(A,fetchOtherAgent), me(A).
-{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y), not trapPossible(X,Y), not wumpusPossible(X,Y)} = 1 :- not definitiveGoal(_,_), objective(A, fetchOtherAgent), me(A), not me(B), not haveGold(B), exhausted(B).
+{suggestedGoal(X,Y) : field(X,Y), not explored(X,Y), possibleNext(X,Y)} = 1 :- not definitiveGoal(_,_), not objective(A,fetchOtherAgent), me(A).
+{suggestedGoal(X,Y) : field(X,Y), not trapPossible(X,Y), not wumpusPossible(X,Y), possibleNext(X,Y)} = 1 :- not definitiveGoal(_,_), objective(A, fetchOtherAgent), me(A), not me(B), not haveGold(B), exhausted(B).
 definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A), not objective(A, fetchOtherAgent).
-definitiveGoal(X,Y) :- objective(A, fetchOtherAgent), me(A), position(B,X,Y), not me(B), not haveGold(B), not exhausted(B).
+definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A), objective(A, fetchOtherAgent), not possibleNext(_,_).
+definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A), objective(A, fetchOtherAgent), wumpusPossible(X,Y) : possibleNext(X,Y).
+definitiveGoal(X,Y) :- initial(X,Y), haveGold(A), agent(A), me(A), objective(A, fetchOtherAgent), trapPossible(X,Y) : possibleNext(X,Y).
 definitiveGoal(X,Y) :- glitter(X,Y), not haveGold(A), agent(A), me(A).
 suggestedGoal(X,Y) :- definitiveGoal(X,Y).
 
-:~ suggestedGoal(X,Y) : goal(X,Y). [1@2]
-:~ suggestedGoal(X,Y) : wumpusPossible(X,Y). [5@1]
-:~ suggestedGoal(X,Y) : trapPossible(X,Y). [5@1]
-:~ suggestedGoal(X,Y) : not visited(A,B), fieldAdjacent(A,B,X,Y). [2@2]
-
+:~ not suggestedGoal(X,Y), goal(X,Y). [2@2]
 
 

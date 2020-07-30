@@ -21,12 +21,13 @@ bool Extractor::wroteHeaderReusable = false;
 bool Extractor::wroteHeaderIncremental = false;
 
 Extractor::Extractor()
+        : timesWritten(0)
 {
     this->solver = TermManager::getInstance().getSolver();
     // TODO only for getSolution stats
     this->resultsDirectory = (*essentials::SystemConfig::getInstance())["WumpusEval"]->get<std::string>("TestRun.resultsDirectory", NULL);
-    this->filenameIncremental = "getSolutionStatsIncremental.csv";
-    this->filenameReusable = "getSolutionStatsReusable.csv";
+    this->filenameIncremental = std::to_string(essentials::SystemConfig::getOwnRobotID()) + "_getSolutionStatsIncremental.csv";
+    this->filenameReusable = std::to_string(essentials::SystemConfig::getOwnRobotID()) + "_getSolutionStatsReusable.csv";
 }
 
 Extractor::~Extractor()
@@ -34,10 +35,10 @@ Extractor::~Extractor()
     //    reasoner::asp::IncrementalExtensionQuery::clear();
 }
 
-//TODO this should be moved into the query itself as different incremental queries might require different solving strategies
-std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc)
+// TODO this should be moved into the query itself as different incremental queries might require different solving strategies
+std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std::shared_ptr<aspkb::IncrementalProblem>& inc, int overrideHorizon)
 {
-
+//    std::cout << "Extractor: SOlve with incremental extension query override horizon is " << overrideHorizon << std::endl;
     std::vector<std::string> ret;
     auto vars = std::vector<reasoner::asp::Variable*>();
     auto tmpVar = std::make_shared<::reasoner::asp::Variable>();
@@ -45,14 +46,13 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
     bool sat = false;
-    alica::AlicaTime timeElapsed = alica::AlicaTime::zero();
+    long timeElapsed = 0;
     int horizon = inc->startHorizon;
-
     if (!inc->keepBase) {
         inc->activateBase();
     }
 
-    while (!sat && horizon <= inc->maxHorizon) {
+    while (!sat && (overrideHorizon > 0 ? horizon <= overrideHorizon : horizon <= inc->maxHorizon)) {
         std::lock_guard<std::mutex> lock(TermManager::queryMtx);
         auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
         terms.clear();
@@ -152,16 +152,16 @@ std::vector<std::string> Extractor::solveWithIncrementalExtensionQuery(const std
         }
 
         // add terms to terms passed in getSolution
-        auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now();
+        auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now().inMilliseconds();
         sat = this->solver->getSolution(vars, terms, results);
-        auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
+        auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now().inMilliseconds() - timeBefore;
         timeElapsed = timeElapsed + solveTime;
+
+        this->writeGetSolutionStatsReusable("pathActionsIncQuery" + std::to_string(horizon), solveTime, horizon);
 
         //        std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << std::endl; // inquiryTerm->getQueryRule() << std::endl;
         ++horizon;
     }
-
-    this->writeGetSolutionStatsIncremental(horizon, timeElapsed);
 
     // FIXME loop in reverse
     std::lock_guard<std::mutex> lock(TermManager::queryMtx);
@@ -218,11 +218,12 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     vars.push_back(tmpVar.get());
     auto terms = std::vector<reasoner::asp::Term*>();
     std::vector<reasoner::asp::AnnotatedValVec*> results;
-    alica::AlicaTime timeElapsed = alica::AlicaTime::zero();
+    long timeElapsed = 0;
 
     int id = TermManager::getInstance().activateReusableExtensionQuery(queryIdentifier, additionalRules);
 
     // TODO make reusable as well
+    //    if (alreadyHandledQueries.find(id) == alreadyHandledQueries.end()) {
     for (auto inquiry : inquiryPredicates) {
         auto inquiryTerm = TermManager::getInstance().requestTerm();
         inquiryTerm->setLifeTime(1);
@@ -231,11 +232,13 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
         auto wrappedQueryRule = std::string("query") + std::to_string(id) + "(" + inquiry + ")";
         inquiryTerm->setQueryRule(wrappedQueryRule);
         terms.push_back(inquiryTerm);
+        alreadyHandledQueries.insert(id);
     }
+    //    }
 
-    auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now();
+    auto timeBefore = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now().inMilliseconds();
     auto sat = this->solver->getSolution(vars, terms, results);
-    auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now() - timeBefore;
+    auto solveTime = wumpus::WumpusWorldModel::getInstance()->getEngine()->getAlicaClock()->now().inMilliseconds() - timeBefore;
     timeElapsed = timeElapsed + solveTime;
     this->writeGetSolutionStatsReusable(queryIdentifier, timeElapsed);
     //    std::cout << "PROBLEM IS " << (sat ? "SATISFIABLE" : "NOT SATISFIABLE") << ", " << std::endl; // inquiryTerm->getQueryRule() << std::endl;
@@ -253,63 +256,77 @@ std::vector<std::string> Extractor::extractReusableTemporaryQueryResult(
     return ret;
 }
 
-void Extractor::writeGetSolutionStatsIncremental(int horizon, alica::AlicaTime timeElapsed)
+void Extractor::writeGetSolutionStatsIncremental(int horizon, long timeElapsed)
 {
-    std::lock_guard<std::mutex> lock(Extractor::incrementalMtx);
-    std::ofstream fileWriter;
-    std::string separator = ";";
-    if (!aspkb::Extractor::wroteHeaderIncremental) {
-        aspkb::Extractor::wroteHeaderIncremental = true;
-        this->writeHeader(true);
-    }
-
-    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
-    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameIncremental), std::ios_base::app);
-    fileWriter << std::to_string(horizon);
-    fileWriter << separator;
-    fileWriter << timeElapsed.inMilliseconds();
-    fileWriter << std::endl;
-    fileWriter.close();
+    //    if(this->timesWritten >= 5) {
+    //        return;
+    //    }
+//    std::lock_guard<std::mutex> lock(Extractor::incrementalMtx);
+//    std::ofstream fileWriter;
+//    std::string separator = ";";
+//    if (!aspkb::Extractor::wroteHeaderIncremental) {
+//        aspkb::Extractor::wroteHeaderIncremental = true;
+//        this->writeHeader(true);
+//    }
+//
+//    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+//    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameIncremental), std::ios_base::app);
+//    fileWriter << std::to_string(horizon);
+//    fileWriter << separator;
+//    fileWriter << std::to_string(timeElapsed);
+//    fileWriter << std::endl;
+//    //    this->timesWritten++;
+//    fileWriter.close();
 }
 
-void Extractor::writeGetSolutionStatsReusable(const std::string& queryIdentifier, alica::AlicaTime timeElapsed)
+void Extractor::writeGetSolutionStatsReusable(const std::string& queryIdentifier, long timeElapsed, int horizon)
 {
-    std::lock_guard<std::mutex> lock(Extractor::reusableMtx);
-    std::ofstream fileWriter;
-    std::string separator = ";";
-
-    if (!aspkb::Extractor::wroteHeaderReusable) {
-        aspkb::Extractor::wroteHeaderReusable = true;
-        this->writeHeader(false);
+    if (this->timesWritten >= 5) {
+        return;
     }
-
-    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
-    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameReusable), std::ios_base::app);
-
-    fileWriter << queryIdentifier;
-    fileWriter << separator;
-    fileWriter << timeElapsed.inMilliseconds();
-    fileWriter << std::endl;
-    fileWriter.close();
+//    std::lock_guard<std::mutex> lock(Extractor::reusableMtx);
+//    std::ofstream fileWriter;
+//    std::string separator = ";";
+//
+//    if (!aspkb::Extractor::wroteHeaderReusable) {
+//        aspkb::Extractor::wroteHeaderReusable = true;
+//        this->writeHeader(false);
+//    }
+//
+//    auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
+//    fileWriter.open(essentials::FileSystem::combinePaths(folder, this->filenameReusable), std::ios_base::app);
+//
+//    fileWriter << queryIdentifier;
+//    fileWriter << separator;
+//    fileWriter << std::to_string(timeElapsed);
+//    fileWriter << separator;
+//    if (horizon != -1) {
+//        fileWriter << horizon;
+//    }
+//    fileWriter << std::endl;
+//    fileWriter.close();
 }
 
 inline void Extractor::writeHeader(bool incremental)
 {
+
     std::ofstream fileWriter;
     std::string separator = ";";
     std::string fileName;
-    if (incremental) {
-        fileName = this->filenameIncremental;
-    } else {
-        fileName = this->filenameReusable;
-    }
+    //    if (incremental) {
+    //        fileName = this->filenameIncremental;
+    //    } else {
+    fileName = this->filenameReusable;
+    //    }
 
     auto folder = essentials::FileSystem::combinePaths(getenv("HOME"), this->resultsDirectory);
     fileWriter.open(essentials::FileSystem::combinePaths(folder, fileName), std::ios_base::app);
 
-    fileWriter << (incremental ? "MaxHorizon" : "QueryIdentifier");
+    fileWriter << "QueryIdentifier";
     fileWriter << separator;
     fileWriter << "TimeElapsed";
+    fileWriter << separator;
+    fileWriter << "Horizon";
     fileWriter << std::endl;
     fileWriter.close();
 }

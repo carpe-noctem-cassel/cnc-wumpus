@@ -9,7 +9,10 @@
 namespace eval
 {
 
-Experiment::Experiment()
+
+    std::mutex Experiment::runMtx;
+
+    Experiment::Experiment()
 {
     auto sc = essentials::SystemConfig::getInstance();
     this->wm = wumpus::WumpusWorldModel::getInstance();
@@ -18,13 +21,13 @@ Experiment::Experiment()
     this->agentCount = (*sc)["WumpusWorldModel"]->get<int>("Agents.number", NULL);
     this->testRunDirectory = (*sc)["WumpusEval"]->get<std::string>("TestRun.worldsDirectory", NULL);
     this->worlds = getFilenamesFromDirectory(testRunDirectory);
-    this->currentWorldIdx = 0;
+    this->currentWorldIdx = (*sc)["WumpusEval"]->get<int>("TestRun.worldIdxStart", NULL);;
     for (auto& world : this->worlds) {
         std::cout << "Experiment: " << world << std::endl;
         this->worldInfo.emplace(world, std::make_shared<eval::Run>(world));
     }
 
-    this->run = std::make_shared<eval::Run>(this->worlds.at(currentWorldIdx));
+    this->run = std::make_shared<eval::Run>(this->worlds.at(currentWorldIdx), false);
 }
 
 /**
@@ -33,12 +36,13 @@ Experiment::Experiment()
  */
 std::string Experiment::advanceWorld()
 {
-    std::cout << "Experiment: Advancing world! " << std::endl;
 
-    if (this->currentWorldIdx < this->worlds.size() - 1) {
-        //this->run->saveToDiskAndClearResult();
-        this->run = std::make_shared<eval::Run>(this->worlds.at(++this->currentWorldIdx)); //FIXME cleaner increasing
-        //FIXME confusing. run is accessed from other places a lot, should be more visible here?
+    if (this->currentWorldIdx <= this->worlds.size() - 1) {
+        // this->run->saveToDiskAndClearResult();
+        std::lock_guard<std::mutex> lock(this->runMtx);
+        std::cout << "Experiment: Advancing world! " << std::endl;
+        this->run = std::make_shared<eval::Run>(this->worlds.at(++this->currentWorldIdx)); // FIXME cleaner increasing
+        // FIXME confusing. run is accessed from other places a lot, should be more visible here?
         return this->worlds.at(this->currentWorldIdx);
     }
 
@@ -51,7 +55,7 @@ std::string Experiment::advanceWorld()
  */
 bool Experiment::hasNextWorld()
 {
-    return this->currentWorldIdx < this->worlds.size() - 1;
+    return this->currentWorldIdx <= this->worlds.size() - 1;
 }
 
 /**
@@ -70,6 +74,7 @@ int Experiment::getPresetAgentCount()
  */
 std::shared_ptr<eval::Run> Experiment::getCurrentRun()
 {
+//    std::lock_guard<std::mutex> lock(this->runMtx);
     return this->run;
 }
 
@@ -78,7 +83,7 @@ std::shared_ptr<eval::Run> Experiment::getCurrentRun()
  * @param directory
  * @return
  */
- //TODO use FileSystem utils from essentials
+// TODO use FileSystem utils from essentials
 std::vector<std::string> Experiment::getFilenamesFromDirectory(const std::string& directory)
 {
     std::vector<std::string> ret;
@@ -96,6 +101,7 @@ std::vector<std::string> Experiment::getFilenamesFromDirectory(const std::string
     } else {
         std::cout << "WumpusEval: Error opening directory" << directory << std::endl;
     }
+    std::sort(ret.begin(), ret.end());
     return ret;
 }
 }

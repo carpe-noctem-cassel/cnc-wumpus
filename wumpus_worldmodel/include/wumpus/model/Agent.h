@@ -25,6 +25,8 @@ public:
     std::shared_ptr<Field> moveGoal;
     std::unordered_set<std::shared_ptr<Field>> fieldsWithBlockingWumpi;
     std::unordered_set<std::shared_ptr<Field>> fieldsWithBlockingTraps;
+    std::unordered_set<std::shared_ptr<Field>> possibleNextFields;
+    std::unordered_set<std::shared_ptr<Field>> shotAtFields;
     std::shared_ptr<wumpus::model::Field> diedOn;
     int currentHeading;
     int turn;
@@ -33,6 +35,8 @@ public:
     bool exited;
     bool shot;
     bool exhausted;
+    bool receivedSilenceForOwnShot;
+    bool receivedScreamForOwnShot;
     bool replanNecessary;
     bool unsafeMovesAllowed;
     bool hasSafePathToGold;
@@ -43,7 +47,7 @@ public:
     void unregisterAgent();
     void updateCurrentMoveGoal(std::shared_ptr<Field> goal);
     void updatePosition(std::shared_ptr<Field> field);
-    void updateInitialPosition(std::shared_ptr<Field> field);
+    void updateInitialPosition(std::shared_ptr<Field> field, bool integrate=true); // integrate flag needed to add info for logging without getting info into kb
     void updateObjective(Objective obj);
     void updateHeading(int heading);
     void updateArrow(bool arrow);
@@ -53,6 +57,8 @@ public:
     void updateShot();
     void updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingWumpi);
     void updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingTraps);
+    void updatePossibleNextFields(std::unordered_set<std::shared_ptr<wumpus::model::Field>> blockingTraps);
+    void updateShotAtFields(std::unordered_set<std::shared_ptr<wumpus::model::Field>> shotAt);
 
     bool isBlockedByTrap();
     bool isBlockedByWumpus();

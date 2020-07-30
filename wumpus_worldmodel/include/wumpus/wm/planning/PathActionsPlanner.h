@@ -27,6 +27,7 @@ public:
     std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> tryDetermineActionsByObjective(
             const std::shared_ptr<wumpus::model::Agent>& agent);
     GoalPlanner goalPlanner; // TODO needs to be exposed to wm
+    alica::AlicaTime timePlanningStart;
 
 private:
     ObjectiveEvaluator objEval;
@@ -40,7 +41,8 @@ private:
 
     std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> tryGetSafeActions(const std::shared_ptr<wumpus::model::Agent>& agent);
 
-    std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> determinePathAndActions();
+    std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> determinePathAndActions(
+            bool isGoingHome = false, bool isGoingToGold = false, bool isHuntingWumpus = false);
 
     std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> determineActionsNoMovement();
 

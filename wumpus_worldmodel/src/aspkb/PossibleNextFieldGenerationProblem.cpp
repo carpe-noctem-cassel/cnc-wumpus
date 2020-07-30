@@ -56,7 +56,7 @@ std::vector<std::string> PossibleNextFieldGenerationProblem::doIncrementalSolvin
     if (!this->keepBase) {
         this->activateBase();
     }
-    std::cout << "activated base, sat is " << sat << " and maxhorizon " << this->maxHorizon << std::endl;
+    //    std::cout << "activated base, sat is " << sat << " and maxhorizon " << this->maxHorizon << std::endl;
     while (!sat && horizon <= this->maxHorizon) {
         std::lock_guard<std::mutex> lock(TermManager::queryMtx);
         auto registeredQueries = this->solver->getRegisteredQueries(); // there are new queries added in each iteration
@@ -64,7 +64,7 @@ std::vector<std::string> PossibleNextFieldGenerationProblem::doIncrementalSolvin
 
         if (horizon > 0) {
             this->deactivateCheck(horizon - 1);
-            std::cout << "activate step for horizon" << horizon << std::endl;
+            //            std::cout << "activate step for horizon" << horizon << std::endl;
             //        std::cout << "SOLVING BEFORE STEP TERM ACTIVATION" << std::endl;
             //        bool test = this->solver->getSolution(vars, terms, results);
             //        std::cout << "SOLVING BEFORE STEP TERM ACTIVATION RETURNED " << test << std::endl;
@@ -72,7 +72,7 @@ std::vector<std::string> PossibleNextFieldGenerationProblem::doIncrementalSolvin
             //        if (horizon > 1) {
             //            this->deactivateStep(horizon - 1);
             //        }
-            std::cout << "activated step for horizon" << horizon << std::endl;
+            //            std::cout << "activated step for horizon" << horizon << std::endl;
             //                    std::cout << "SOLVING BEFORE CHECK TERM ACTIVATION" << std::endl;
             //                    bool test2 = this->solver->getSolution(vars, terms, results);
             //                    std::cout << "SOLVING BEFORE CHECK TERM ACTIVATION RETURNED " << test2 << std::endl;
@@ -112,7 +112,7 @@ std::vector<std::string> PossibleNextFieldGenerationProblem::doIncrementalSolvin
         for (auto& factQueryValue : res->factQueryValues) {
             for (auto elem : factQueryValue) {
                 if (std::find(ret.begin(), ret.end(), elem) == ret.end()) {
-                    std::cout << "Result return: adding " << elem << std::endl;
+                    //                    std::cout << "Result return: adding " << elem << std::endl;
                     ret.push_back(elem);
                 } else {
                 }
@@ -131,7 +131,7 @@ void PossibleNextFieldGenerationProblem::activateInquiries(std::vector<::reasone
                 bool found = false;
                 for (const auto& i : inquiryPredicates) {
                     if (i.find("Complete") != std::string::npos) { //|| i.find("Candidate") != std::string::npos) {
-                        std::cout << "found 'complete' in " << i << std::endl;
+                                                                   //                        std::cout << "found 'complete' in " << i << std::endl;
                         found = true;
                         break;
                     }
@@ -140,7 +140,7 @@ void PossibleNextFieldGenerationProblem::activateInquiries(std::vector<::reasone
                     continue;
                 }
             } // FIXME hack - review
-            std::cout << "activate inquiry term " << inquiry << "," << j << std::endl;
+              //            std::cout << "activate inquiry term " << inquiry << "," << j << std::endl;
 
             auto term = activateInquiryTerm(inquiry, j);
             // this should collect results - validate!

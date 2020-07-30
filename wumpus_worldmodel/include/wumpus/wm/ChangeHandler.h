@@ -36,7 +36,7 @@ public:
     void handleChangedArrow(int agentId, bool arrow);
     void handleChangedStench(std::shared_ptr<wumpus::model::Field> field);
     void handleChangedMoveGoal(int id, std::shared_ptr<wumpus::model::Field> goal);
-    void handleChangedVisited(std::shared_ptr<wumpus::model::Field> field);
+    void handleChangedVisited(std::shared_ptr<wumpus::model::Field> field, int id, bool truthValue);
     void handleChangedShotAt(int id, std::shared_ptr<wumpus::model::Field> field);
     void handleChangedExplored(std::shared_ptr<wumpus::model::Field> field);
     void handleTurn(long turn);
@@ -67,7 +67,7 @@ public:
 
     void handleChangedBlockedByTrap(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue);
 
-    void handleChangedPossibleNext(const std::shared_ptr<model::Field>& sharedPtr);
+    void handleChangedPossibleNext(const std::shared_ptr<model::Field>& sharedPtr, int id, bool truthValue);
 
 private:
     wumpus::WumpusWorldModel* wm;

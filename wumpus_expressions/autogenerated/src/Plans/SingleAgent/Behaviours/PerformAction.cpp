@@ -7,7 +7,7 @@ using namespace std;
 #include <wumpus/model/Agent.h>
 #include <wumpus/model/Field.h>
 #include <wumpus_msgs/Coordinates.h>
-//#define PERFORMACTION_DBG
+#define PERFORMACTION_DBG
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -22,14 +22,15 @@ PerformAction::PerformAction()
 PerformAction::~PerformAction()
 {
     /*PROTECTED REGION ID(dcon1534836764921) ENABLED START*/ // Add additional options here
-    this->lastInformationTime = alica::AlicaTime::zero();
-    this->planningQueryId = -1;
+    this->shotLastIteration = false;
     /*PROTECTED REGION END*/
 }
 void PerformAction::run(void* msg)
 {
     /*PROTECTED REGION ID(run1534836764921) ENABLED START*/ // Add additional options here
+
     // wait for wm to integrate all new information into knowledge base
+    //    std::this_thread::sleep_for(std::chrono::milliseconds(300));
     auto ownId = this->sc->getOwnRobotID();
 
     //        if(this->wm->wumpusSimData.getIntegratedFromSimulator() && !this->wm->wumpusSimData.isIntegratedFromAllAgents()) {
@@ -49,13 +50,29 @@ void PerformAction::run(void* msg)
     //            return;
     //        }
     auto integrated = this->wm->wumpusSimData.getIntegratedFromSimulator() && this->wm->wumpusSimData.isIntegratedFromAllAgents() &&
-                      !this->wm->wumpusSimData.getAwaitingScreamOrSilence();
+                      !this->wm->wumpusSimData.getIsAwaitingShootingFeedback(); // &&
+                                                                                //(this->wm->wumpusSimData.getAwaitingScreamOrSilence() == 0);
     if (!this->wm->wumpusSimData.isIntegratedFromAllAgents()) {
         std::cout << "PerformAction: Not integrated from all agents!" << std::endl;
     }
-    if (this->wm->wumpusSimData.getAwaitingScreamOrSilence()) {
-        std::cout << "PerformAction: Awaiting scream or silence" << std::endl;
+    //    if (this->wm->wumpusSimData.getAwaitingScreamOrSilence() != 0 || this->wm->wumpusSimData.communicationAllowed) {
+    //        std::cout << "PerformAction: Awaiting scream or silence" << this->wm->wumpusSimData.getAwaitingScreamOrSilence() << std::endl;
+    //    }
+    if (this->wm->wumpusSimData.getIsAwaitingShootingFeedback()) {
+        std::cout << "PerformAction: Is awaiting shooting feedback" << std::endl;
     }
+    if (!this->wm->wumpusSimData.getIntegratedFromSimulator()) {
+        std::cout << "PerformAction: Awaiting integrated from simulator" << std::endl;
+    }
+
+    if (this->shotLastIteration && !this->wm->wumpusSimData.getIsAwaitingShootingFeedback()) {
+        std::cout << "Agent shot last iteration and got the required feeback: returning!" << std::endl;
+        wumpus_msgs::AgentPerception perception = createAgentPerception(ownId);
+        send(perception);
+        this->shotLastIteration = false;
+        return;
+    }
+
     if (!integrated) {
 #ifdef PERFORMACTION_DBG
         std::cout << "PerformAction: Didn't integrate all sensory information yet!" << std::endl;
@@ -77,76 +94,56 @@ void PerformAction::run(void* msg)
 
     // TODO remove
     // sleep(0.3);
-    std::cout << "################PERFORMACTION: START PLANNING!" << std::endl;
-    this->currentActionSequence = this->wm->planningModule->processNextActionRequest(me).second;
-    this->executeNextAction();
-    // if (this->wm->wumpusSimData.getIntegratedFromSimulator()) {
-    auto localAgent = this->wm->playground->getAgentById(ownId);
-    auto currentPos = localAgent->currentPosition;
-    wumpus_msgs::AgentPerception perception;
-    wumpus_msgs::Coordinates coords;
-    coords.x = currentPos->x;
-    coords.y = currentPos->y;
-    perception.position = coords;
-    if (this->wm->localAgentIsSpawnRequestHandler()) {
-        perception.encoding = this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding();
-    }
-    perception.stinky = currentPos->stinky;
-    perception.glitter = currentPos->shiny;
-    perception.drafty = currentPos->drafty;
-    perception.senderID = ownId;
-    perception.exited = this->wm->localAgentExited;
-    perception.died = this->wm->localAgentDied;
-    perception.haveGold = localAgent->hasGold;
-    perception.exhausted = localAgent->exhausted;
-    std::stringstream obj;
-    obj << localAgent->objective;
-    perception.objective = obj.str();
-    std::cout << "PerformAction: set exhausted " << localAgent->exhausted << std::endl;
-    perception.shot = localAgent->shot;
-    auto shotAtFields = this->wm->playground->getFieldsShotAtByAgentIds();
-    if (shotAtFields->find(essentials::SystemConfig::getOwnRobotID()) != shotAtFields->end()) {
-        for (const auto& field : shotAtFields->at(essentials::SystemConfig::getOwnRobotID())) {
-            wumpus_msgs::Coordinates coordinates;
-            coordinates.x = field->x;
-            coordinates.y = field->y;
-            std::cout << "Perform Action: Agent " << essentials::SystemConfig::getOwnRobotID() << "shot at " << coordinates.x << ", " << coordinates.y
-                      << std::endl;
-            perception.shootingTargets.push_back(coordinates);
+    if (!this->shotLastIteration) { // one iteration is just for sending the complete perception
+#ifdef PERFORMACTION_DBG
+        std::cout << "################PERFORMACTION: START PLANNING!" << std::endl;
+#endif
+        this->currentActionSequence = this->wm->planningModule->processNextActionRequest(me).second;
+        auto shot = this->executeNextAction();
+        if (shot) {
+            std::cout << "PerformAction: Agent shot, returning!" << std::endl;
+            return;
         }
     }
-    for (const auto& blockingWumpus : localAgent->fieldsWithBlockingWumpi) {
-        wumpus_msgs::Coordinates coordinates;
-        coordinates.x = blockingWumpus->x;
-        coordinates.y = blockingWumpus->y;
-        perception.blockingWumpi.emplace_back(coordinates);
-    }
-    for (const auto& blockingTrap : localAgent->fieldsWithBlockingTraps) {
-        wumpus_msgs::Coordinates coordinates;
-        coordinates.x = blockingTrap->x;
-        coordinates.y = blockingTrap->y;
-        perception.blockingWumpi.emplace_back(coordinates);
-    }
+
+#ifdef PERFORMACTION_DBG
+
+    std::cout << "################PERFORMACTION: send agent perception!" << std::endl;
+
+#endif
+    wumpus_msgs::AgentPerception perception = createAgentPerception(ownId);
 
     send(perception);
-    //            return;
-    //}
-    this->wm->wumpusSimData.setIntegratedFromSimulator(false);
-    this->wm->wumpusSimData.resetIntegratedFromAgents();
 
-    this->setSuccess();
+//    if (this->shotLastIteration || (!this->shotLastIteration && !this->wm->wumpusSimData.getIsAwaitingShootingFeedback())) {
+    if (!this->shotLastIteration && !this->wm->wumpusSimData.getIsAwaitingShootingFeedback()) {
+#ifdef PERFORMACTION_DBG
+        std::cout << "PerformAction: set Success" << std::endl;
+#endif
+//        this->setSuccess();
+        this->wm->setPerformActionSuccess(true);
+        this->wm->wumpusSimData.setIntegratedFromSimulator(false);
+        this->wm->wumpusSimData.resetIntegratedFromAgents();
+        this->shotLastIteration = false;
+    }
+
     /*PROTECTED REGION END*/
 }
+
 void PerformAction::initialiseParameters()
 {
     /*PROTECTED REGION ID(initialiseParameters1534836764921) ENABLED START*/ // Add additional options here
     // TODO can re-entry happen?
     // this->currentActionSequence.clear();
-    this->lastInformationTime = alica::AlicaTime::zero();
+    this->wm->setPerformActionSuccess(false);
     /*PROTECTED REGION END*/
 }
 /*PROTECTED REGION ID(methods1534836764921) ENABLED START*/ // Add additional methods here
-void PerformAction::executeNextAction()
+                                                            /**
+                                                             *
+                                                             * @return true if agent shot
+                                                             */
+bool PerformAction::executeNextAction()
 {
     if (!this->currentActionSequence.empty()) {
         wumpus_simulator::ActionRequest req;
@@ -160,13 +157,18 @@ void PerformAction::executeNextAction()
                     essentials::SystemConfig::getOwnRobotID()); // TODO rename result class?
         }
 
-        std::cout << "PERFORM ACTION: " << req.action << std::endl;
+        //        std::cout << "PERFORM ACTION: " << req.action << std::endl;
         send(req);
         this->currentActionSequence.erase(action);
         if (req.action == WumpusEnums::actions::shoot) {
+            this->wm->wumpusSimData.setIsAwaitingShootingFeedback(true);
+            this->shotLastIteration = true;
+            //            this->wm->wumpusSimData.incrementAwaitingScreamOrSilence();
             this->wm->playground->getAgentById(ownId)->updateArrow(false);
         }
+        return req.action == WumpusEnums::actions::shoot;
     }
+    return false;
 }
 /*PROTECTED REGION END*/
 } /* namespace alica */

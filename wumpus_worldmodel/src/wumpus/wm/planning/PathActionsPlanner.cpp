@@ -26,6 +26,12 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 {
     std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> fieldsActionsPair;
 
+    if ((this->wm->getEngine()->getAlicaClock()->now() - this->timePlanningStart).inSeconds() > this->wm->timeoutDurationSeconds) {
+        std::vector<std::string> dummy = {"move", "turnLeft", "turnRight"};
+        return std::make_pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>>(
+                std::vector<std::pair<std::string, std::string>>(), {dummy.at(rand() % dummy.size())});
+    }
+
     if (this->objEval.agentObjectiveRequiresMovement(agent)) {
 
         if (this->objEval.agentObjectiveRequiresGoal(agent)) {
@@ -52,7 +58,8 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
             auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
             if (!target.first.first.empty() && localAgent->currentPosition->x == std::stoi(target.first.first) &&
                     localAgent->currentPosition->y == std::stoi(target.first.second) && localAgent->currentHeading == std::stoi(target.second)) {
-                std::cout << "PathActionsPlanner: TARGET " << target.first.first << ", " << target.first.second << " with heading " << target.second << std::endl;
+                std::cout << "PathActionsPlanner: TARGET " << target.first.first << ", " << target.first.second << " with heading " << target.second
+                          << std::endl;
                 return std::make_pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>>({}, {"shoot"});
             }
         }
@@ -94,17 +101,31 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> PathActionsPlanner::tryGetSafeActions(
         const std::shared_ptr<wumpus::model::Agent>& agent)
 {
-    auto fieldsActionsPair = determinePathAndActions();
+    auto fieldsActionsPair =
+            determinePathAndActions(agent->objective == wumpus::model::Objective::GO_HOME, agent->objective == wumpus::model::Objective::MOVE_TO_GOLD_FIELD);
 
     // Incremental approach couldn't find a solution - try to shoot wumpus or allow unsafe moves
     if (fieldsActionsPair.second.empty()) {
 #ifdef PAP_DEBUG
         std::cout << "PathActionsPlanner: Could not determine Path and Actions" << std::endl;
 #endif
-        auto blockStatus = blockEval.determineBlockingElementsForSelf();
-        if(!blockStatus.allPathsBlocked) {
-            std::cout << "Could not determine actions but blockage evaluator indicates safe moves should still be possible!" << std::endl;
+        if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective == wumpus::model::Objective::IDLE) {
+            std::cout << "Agent should idle but is determining blockage status instead! " << std::endl;
             throw std::exception();
+        }
+
+        auto blockStatus = blockEval.determineBlockingElementsForSelf();
+        if (!blockStatus.allPathsBlocked) {
+            std::cout << "Could not determine actions but blockage evaluator indicates safe moves should still be possible! (might be when trying to move to a "
+                         "goal) "
+                      << std::endl; // TODO move goal to a safe field which, if explored might rule out danger, if possible?
+            if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective == wumpus::model::Objective::EXPLORE ||
+                    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective == wumpus::model::Objective::MOVE_TO_GOLD_FIELD) {
+                this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", true, aspkb::Strategy::INSERT_TRUE);
+                this->integrator->applyChanges();
+            }
+
+            //            throw std::exception();
         }
 
         if (!blockStatus.blockingWumpi.empty()) {
@@ -123,14 +144,14 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
                 }
 
                 if (agent->objective == wumpus::model::Objective::HUNT_WUMPUS && !possibleShootingPosition.second.empty()) { // might idle instead
-                    fieldsActionsPair = determinePathAndActions();
+                    fieldsActionsPair = determinePathAndActions(false, false, true);
 //                    fieldsActionsPair = tryDetermineActionsByObjective(agent);
 #ifdef PAP_DEBUG
                     if (fieldsActionsPair.second.empty()) {
                         std::cout << "PathActionsPlanner: Could not determine Path and Actions to shooting position but this should never fail as only visited "
                                      "fiedls are considered as possible goals "
                                   << fieldsActionsPair.second.size() << std::endl;
-                        throw std::exception();
+                        //                        throw std::exception();
                     }
 
 #endif
@@ -146,8 +167,8 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
                         this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", true, aspkb::Strategy::INSERT_TRUE);
                     } else {
                         std::cout << "integrator is at " << this->integrator << std::endl;
-                        this->integrator->integrateInformationAsExternal(
-                                "unsafeMovesAllowed", "unsafeMoves", this->exhaustionEval.determineAllAgentsExhausted(), aspkb::Strategy::INSERT_TRUE);
+                        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves",
+                                this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->exhausted, aspkb::Strategy::INSERT_TRUE);
                     }
 
                     this->integrator->applyChanges();
@@ -164,8 +185,8 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 #endif
                 this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(true);
                 this->integrator->applyChanges();
-                this->integrator->integrateInformationAsExternal(
-                        "unsafeMovesAllowed", "unsafeMoves", this->exhaustionEval.determineAllAgentsExhausted(), aspkb::Strategy::INSERT_TRUE);
+                this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves",
+                        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->exhausted, aspkb::Strategy::INSERT_TRUE);
                 this->integrator->applyChanges();
 #ifdef PAP_DEBUG
                 std::cout << "PathActionsPlanner: Determining objective after setting unsafeMoves and try to find actions by objective!" << std::endl;
@@ -184,14 +205,20 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 
             bool foundUntrappedAgent = false;
             for (const auto& entry : *this->wm->playground->getAgents(false)) {
-                if (!entry.second->isBlockedByTrap()) {
+                if (!entry.second->isBlockedByTrap() && this->wm->wumpusSimData.communicationAllowed) {
                     foundUntrappedAgent = true;
+                    std::cout << "Found untrapped agent with id " << entry.second->id << "!" << std::endl;
                     break;
                 }
             }
 
-            this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves",
-                    this->exhaustionEval.determineAllAgentsExhausted() && !foundUntrappedAgent, aspkb::Strategy::INSERT_TRUE);
+            if (!foundUntrappedAgent) {
+                std::cout << "Couldn't find an untrapped agent!" << std::endl;
+            }
+
+//            this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", true, aspkb::Strategy::INSERT_TRUE);
+            this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", !foundUntrappedAgent, aspkb::Strategy::INSERT_TRUE);
+            //            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
             this->integrator->applyChanges();
 
 #ifdef PAP_DEBUG
@@ -201,13 +228,24 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
             fieldsActionsPair = tryDetermineActionsByObjective(agent); // tryGetSafeActions(agent);
         } else {
             std::cout << "All safe paths are blocked but no problematic wumpi or traps have been found!" << std::endl;
-            throw std::exception(); // FIXME evaluate - this was only other branch before
+            //            throw std::exception(); // FIXME evaluate - this was only other branch before
         }
     }
+    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+
+    // agent moved out of a blocking situation and should consider itself unblocked
+    //    if (std::find(fieldsActionsPair.second.begin(), fieldsActionsPair.second.end(), "move") != fieldsActionsPair.second.end() &&
+    //            (localAgent->isBlockedByWumpus() || localAgent->isBlockedByWumpus())) {
+    //        localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    //        localAgent->updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    //        this->integrator->applyChanges();
+    //    }
+
     return fieldsActionsPair;
 }
 
-std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> PathActionsPlanner::determinePathAndActions()
+std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>> PathActionsPlanner::determinePathAndActions(
+        bool isGoingHome, bool isGoingToGold, bool isHuntingWumpus)
 {
     std::string pathPredicate = "on";
     std::string actionsPredicate = "occurs";
@@ -233,7 +271,16 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
 //    this->determineAllAgentsExhausted();
 #endif
 
-    auto result = this->extractor->solveWithIncrementalExtensionQuery(this->pathAndActionsProblem);
+    int overrideHorizon;
+    if (isGoingHome || isGoingToGold) {
+        overrideHorizon = 4 * this->wm->playground->getPlaygroundSize();
+    } else if (isHuntingWumpus) {
+        overrideHorizon = 2 * this->wm->playground->getPlaygroundSize();
+    } else {
+        overrideHorizon = -1;
+    }
+
+    auto result = this->extractor->solveWithIncrementalExtensionQuery(this->pathAndActionsProblem, overrideHorizon);
 
     auto path = std::vector<std::pair<std::string, std::string>>();
     auto actions = std::vector<std::string>();
@@ -280,7 +327,7 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
     rules.emplace_back(rule);
     rule = "occurs(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H)";
     rules.emplace_back(rule);
-    rule = "occurs(leave) :- on(X,Y), haveGold(A), me(A), initial(X,Y)";
+    rule = "occurs(leave) :- on(X,Y), haveGold(A), me(A), initial(X,Y), not occurs(shoot)";
     rules.emplace_back(rule);
 
     result = this->extractor->extractReusableTemporaryQueryResult({inquiry}, "simpleAction", rules);

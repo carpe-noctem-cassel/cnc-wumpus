@@ -11,10 +11,11 @@ namespace eval
 /**
 * Experiment Run contains information of the progress of one world
 */
+class Experiment;
 class Run
 {
 public:
-    Run(std::string worldName);
+    Run(std::string worldName, bool wroteHeader=true);
 
     std::string worldName;
     eval::CompletionStatus completionStatus;
@@ -39,10 +40,34 @@ private:
 
     std::shared_ptr<eval::Result> currentResult;
     int determineFieldSizeFromFilename(const std::string& filename);
+    bool determineHasNextPermutation();
     size_t findFieldsizeEndIdx(const std::string& filename);
     bool wroteHeader;
 
+    std::string getNextPermutationVisitAll();
 
-    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositionsFromEncoding() const;
+    bool performedLastRun;
+    bool hasNextPermutation;
+    bool permutateRandomly;
+
+    int encodingsIdx;
+
+    std::set<int> openIndices;
+
+    int runsPerformed;
+    int maxRuns;
+    std::vector<std::string> encodingsList;
+
+    std::unordered_set<std::string> handledPermutations;
+
+
+    std::vector<std::shared_ptr<wumpus::model::Field>> agentPositionsFromEncoding(std::string encoding) const;
+
+    std::string spawnConfig;
+
+//    std::mutex<
+        int getRandomSetElement() const;
+
+    std::string getEncodingBySpawnConfig();
 };
 }

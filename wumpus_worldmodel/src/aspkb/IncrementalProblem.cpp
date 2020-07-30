@@ -6,6 +6,7 @@
 
 namespace aspkb
 {
+std::mutex IncrementalProblem::incProblemMtx;
 IncrementalProblem::IncrementalProblem(::reasoner::asp::Solver* solver, std::vector<std::string> inquiryPredicates,
         const std::map<std::string, std::string>& baseTermProgramSectionParameters, const std::string& configFilename, const std::string& configSection,
         int startHorizon, int maxHorizon, bool keepBase, std::shared_ptr<::reasoner::asp::IncrementalQueryWrapper> wrapper)
@@ -41,8 +42,16 @@ IncrementalProblem::IncrementalProblem(::reasoner::asp::Solver* solver, std::vec
     for (const auto& str : baseRules) {
         baseTerm->addRule(str);
     }
-    auto query = std::make_shared<::reasoner::asp::IncrementalExtensionQuery>(this->solver, baseTerm, this->incWrapper->getQueryExternalPrefix(), 0);
-    this->solver->registerQuery(query);
+    std::cout << "incproblem: base term has id " << baseTerm->getQueryId()  << " for inqueries " << std::endl;
+    for(auto in : this->inquiryPredicates) {
+        std::cout << in << std::endl;
+        std::cout << this->incWrapper->getQueryExternalPrefix() << std::endl;
+    }
+
+    std::lock_guard<std::mutex> lock(incProblemMtx);
+    this->incWrapper->addQueryForHorizon(0, baseTerm);
+    //    auto query = std::make_shared<::reasoner::asp::IncrementalExtensionQuery>(this->solver, baseTerm, this->incWrapper->getQueryExternalPrefix(), 0);
+    //    this->solver->registerQuery(query);
     //    this->incWrapper->addQueryForHorizon(0, baseTerm);
 }
 
@@ -80,9 +89,10 @@ void IncrementalProblem::addStep(int horizon)
     if (this->incWrapper->getQueryExternalPrefix() == "pathActions") {
         stepTerm->addRule("{occurs(A,t-1) : moveAction(A)} = 1.");
     } else if (this->incWrapper->getQueryExternalPrefix().find("possibleNext") != std::string::npos) {
-//        auto rule = "lastField(X,Y) :- " + wrapWithPrefixForHorizon("genPath(X,Y,t-1)", horizon - 1) + ".";
-//        stepTerm->addRule(rule);
-        auto rule = "{genPath(X, Y, t) : fieldAdjacent(X, Y, A, B), explored(X, Y)," + wrapWithPrefixForHorizon("genPath(A, B, t - 1)", horizon - 1) + "} <= 1. ";
+        //        auto rule = "lastField(X,Y) :- " + wrapWithPrefixForHorizon("genPath(X,Y,t-1)", horizon - 1) + ".";
+        //        stepTerm->addRule(rule);
+        auto rule =
+                "{genPath(X, Y, t) : fieldAdjacent(X, Y, A, B), explored(X, Y)," + wrapWithPrefixForHorizon("genPath(A, B, t - 1)", horizon - 1) + "} <= 1. ";
         // FIXME >= and weak constraint????
         stepTerm->addRule(rule);
         //        rule = "genPathEndpoint(X,Y) :- lastField(X,Y), not explored(A,B) : fieldAdjacent(X,Y,A,B), lastField(X,Y).";
@@ -124,6 +134,7 @@ void IncrementalProblem::activateStep(int horizon)
 
 void IncrementalProblem::activateCheckTerm(int horizon)
 {
+    std::lock_guard<std::mutex> lock(incProblemMtx);
 
     if (this->checkTermsByHorizon.find(horizon) != this->checkTermsByHorizon.end()) {
         auto registeredQueries = this->solver->getRegisteredQueries();
@@ -141,6 +152,8 @@ void IncrementalProblem::activateCheckTerm(int horizon)
 
 void IncrementalProblem::deactivateCheck(int horizon)
 {
+    std::lock_guard<std::mutex> lock(incProblemMtx);
+
     auto registeredQueries = this->solver->getRegisteredQueries();
     for (const auto& query : registeredQueries) {
         if (query->getTerm()->getQueryId() == this->checkTermsByHorizon.at(horizon)->getQueryId()) {
@@ -170,7 +183,6 @@ void IncrementalProblem::addCheck(int horizon)
     }
     std::cout << "adding check term for horizon " << std::to_string(horizon) << "!" << std::endl;
     this->checkTermsByHorizon.emplace(horizon, checkTerm);
-
     auto query = std::make_shared<::reasoner::asp::ReusableExtensionQuery>(this->solver, checkTerm);
     std::cout << "made query" << std::endl;
     solver->registerQuery(query);
@@ -226,25 +238,34 @@ void IncrementalProblem::deactivateAllChecks()
 
 void IncrementalProblem::activateBase()
 {
+    std::lock_guard<std::mutex> lock(incProblemMtx);
+    std::cout << "activate base " << this->baseTerm->getQueryId() << ", " << this->incWrapper->getQueryExternalPrefix() << std::endl;
+    this->incWrapper->activate(0);
     //    this->incWrapper->activate(0);
-    auto registeredQueries = this->solver->getRegisteredQueries();
-    for (const auto& query : registeredQueries) {
-        if (query->getTerm()->getQueryId() == this->baseTerm->getQueryId()) {
-            this->solver->assignExternal(*std::dynamic_pointer_cast<::reasoner::asp::IncrementalExtensionQuery>(query)->external, Clingo::TruthValue::True);
-            break;
-        }
-    }
+    //    std::cout << "Activate base: get registered queries" << std::endl;
+    //    auto registeredQueries = this->solver->getRegisteredQueries2();
+    //    std::cout << "Activate base: queryid" << this->baseTerm->getQueryId() << std::endl;
+    //    for (auto query : registeredQueries) {
+    //        std::cout << "Activate base: queryId in query: " << query->getTerm()->getQueryId() << std::endl;
+    //        if (query->getTerm()->getQueryId() == this->baseTerm->getQueryId()) {
+    //            this->solver->assignExternal(*(std::dynamic_pointer_cast<::reasoner::asp::IncrementalExtensionQuery>(query)->external),
+    //            Clingo::TruthValue::True);
+    //            break;
+    //        }
+    //    }
 }
 
 void IncrementalProblem::deactivateBase()
 {
-    auto registeredQueries = this->solver->getRegisteredQueries();
-    for (const auto& query : registeredQueries) {
-        if (query->getTerm()->getQueryId() == this->baseTerm->getQueryId()) {
-            query->removeExternal();
-            break;
-        }
-    }
+    this->incWrapper->deactivate(0);
+    //    std::lock_guard<std::mutex> lock(incProblemMtx);
+    //    auto registeredQueries = this->solver->getRegisteredQueries();
+    //    for (const auto& query : registeredQueries) {
+    //        if (query->getTerm()->getQueryId() == this->baseTerm->getQueryId()) {
+    //            query->removeExternal();
+    //            break;
+    //        }
+    //    }
 }
 
 std::string IncrementalProblem::wrapWithPrefixForHorizon(const std::string& predicate, int horizon)
