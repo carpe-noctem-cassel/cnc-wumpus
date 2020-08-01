@@ -140,9 +140,9 @@ void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective obje
     ss << objective;
     ss << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "objective" + std::to_string(id), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-    if (id == essentials::SystemConfig::getOwnRobotID()) {
+//    if (id == essentials::SystemConfig::getOwnRobotID()) {
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
-    }
+//    }
 }
 
 void ChangeHandler::handleChangedBlockedByWumpus(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue)

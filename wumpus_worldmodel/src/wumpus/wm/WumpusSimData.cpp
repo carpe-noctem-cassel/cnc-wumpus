@@ -295,17 +295,21 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     }
 
     if (this->wm->resettedForEncoding.find(agentPerception->encoding) != this->wm->resettedForEncoding.end()) {
-        //        std::cout << "Already resetted for encoding " << agentPerception->encoding << std::endl;
+                std::cout << "Already resetted for encoding " << agentPerception->encoding << std::endl;
+
         return;
     } else {
         //        std::cout << "not resetted for encoding " << agentPerception->encoding << std::endl;
     }
 
     if (this->wm->localAgentExited || this->wm->localAgentDied) {
+        std::cout << "LOCAL AGENT EXITED/DIED!" << std::endl;
+
         return;
     }
 
     if (!this->communicationAllowed) {
+        std::cout << "COMMUNIACTION NOT ALLOWED!" << std::endl;
         return;
     }
 
@@ -325,7 +329,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
     auto agent = this->wm->playground->getAgentById(agentPerception->senderID);
     if (!agent) {
         std::cout << "Cant access agent from model with id " << agentPerception->senderID << std::endl;
-        //        throw std::exception(); //FIXME remove
+                throw std::exception(); //FIXME remove
         return;
         // TODO this might not be a good idea in case one agent already exited
         //        if (!(agentPerception->died || agentPerception->exited)) {
@@ -428,12 +432,14 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
             (agentPerception->exited || agentPerception->died)) {
         if (agentPerception->died) {
             agent->setDead(this->wm->playground->getField(agentPerception->position.x, agentPerception->position.y));
+            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
             std::cout << "WSD: Agent Dead!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
             this->wm->playground->removeAgent(agent->id);
             return;
         } else if (agentPerception->exited) {
             agent->setExited();
+            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
             std::cout << "Agent " << agentPerception->senderID << " exited!" << std::endl;
             this->integratedFromOtherAgentsForTurnNr.erase(agentPerception->senderID);
             this->wm->playground->removeAgent(agent->id);

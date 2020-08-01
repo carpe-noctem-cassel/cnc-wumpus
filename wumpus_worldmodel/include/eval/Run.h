@@ -15,7 +15,7 @@ class Experiment;
 class Run
 {
 public:
-    Run(std::string worldName, bool wroteHeader=true);
+    Run(std::string worldName, int worldIdx , bool wroteHeader=true);
 
     std::string worldName;
     eval::CompletionStatus completionStatus;
@@ -33,6 +33,7 @@ public:
     bool isCompleted();
     void saveToDiskAndClearResult();
 
+    static std::mutex runMtx;
 private:
     std::string currentPermutation;
     int fieldSize;
@@ -59,6 +60,7 @@ private:
     std::vector<std::string> encodingsList;
 
     std::unordered_set<std::string> handledPermutations;
+    std::string spawnPlacesFilePath;
 
 
     std::vector<std::shared_ptr<wumpus::model::Field>> agentPositionsFromEncoding(std::string encoding) const;

@@ -9,10 +9,9 @@
 namespace eval
 {
 
+std::mutex Experiment::runMtx;
 
-    std::mutex Experiment::runMtx;
-
-    Experiment::Experiment()
+Experiment::Experiment()
 {
     auto sc = essentials::SystemConfig::getInstance();
     this->wm = wumpus::WumpusWorldModel::getInstance();
@@ -21,13 +20,15 @@ namespace eval
     this->agentCount = (*sc)["WumpusWorldModel"]->get<int>("Agents.number", NULL);
     this->testRunDirectory = (*sc)["WumpusEval"]->get<std::string>("TestRun.worldsDirectory", NULL);
     this->worlds = getFilenamesFromDirectory(testRunDirectory);
-    this->currentWorldIdx = (*sc)["WumpusEval"]->get<int>("TestRun.worldIdxStart", NULL);;
-    for (auto& world : this->worlds) {
+    this->currentWorldIdx = (*sc)["WumpusEval"]->get<int>("TestRun.worldIdxStart", NULL);
+    ;
+    for (int i = 0; i < this->worlds.size(); ++i) {
+        auto world = this->worlds.at(i);
         std::cout << "Experiment: " << world << std::endl;
-        this->worldInfo.emplace(world, std::make_shared<eval::Run>(world));
+        this->worldInfo.emplace(world, std::make_shared<eval::Run>(world, i));
     }
 
-    this->run = std::make_shared<eval::Run>(this->worlds.at(currentWorldIdx), false);
+    this->run = std::make_shared<eval::Run>(this->worlds.at(currentWorldIdx), currentWorldIdx, false);
 }
 
 /**
@@ -40,8 +41,9 @@ std::string Experiment::advanceWorld()
     if (this->currentWorldIdx <= this->worlds.size() - 1) {
         // this->run->saveToDiskAndClearResult();
         std::lock_guard<std::mutex> lock(this->runMtx);
+        std::lock_guard<std::mutex> lock2(eval::Run::runMtx);
         std::cout << "Experiment: Advancing world! " << std::endl;
-        this->run = std::make_shared<eval::Run>(this->worlds.at(++this->currentWorldIdx)); // FIXME cleaner increasing
+        this->run = std::make_shared<eval::Run>(this->worlds.at(++this->currentWorldIdx), this->currentWorldIdx); // FIXME cleaner increasing
         // FIXME confusing. run is accessed from other places a lot, should be more visible here?
         return this->worlds.at(this->currentWorldIdx);
     }
@@ -74,7 +76,7 @@ int Experiment::getPresetAgentCount()
  */
 std::shared_ptr<eval::Run> Experiment::getCurrentRun()
 {
-//    std::lock_guard<std::mutex> lock(this->runMtx);
+    //    std::lock_guard<std::mutex> lock(this->runMtx);
     return this->run;
 }
 

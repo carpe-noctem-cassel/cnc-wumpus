@@ -1,7 +1,7 @@
 #include "eval/Run.h"
 #include <algorithm>
-#include <random>
 #include <eval/AgentInfo.h>
+#include <random>
 #include <vector>
 #include <wumpus/WumpusWorldModel.h>
 #include <wumpus/model/Field.h>
@@ -12,16 +12,17 @@ static const std::string PG = "pg";
 static const std::string PERMUTATE = "permutate";
 static const std::string VISIT_ALL_FIELDS = "visit_all";
 static const std::string PERMUTATEUNTIL = "permutate_until";
+static const std::string READ_FROM_FILE = "read_from_file";
 static const std::string EXISTING = "existing";
 
-Run::Run(std::string worldName, bool wroteHeader)
+std::mutex Run::runMtx;
+Run::Run(std::string worldName, int worldIdx, bool wroteHeader)
         : completionStatus(CompletionStatus::UNDEFINED)
         , worldName(worldName)
         , currentResult(nullptr)
         , hasNextPermutation(true)
         , performedLastRun(false)
         , runsPerformed(0)
-        , encodingsIdx(0)
 
 //        , encodingsList(nonstd::nullopt)
 {
@@ -33,10 +34,13 @@ Run::Run(std::string worldName, bool wroteHeader)
 
     this->encodingsList = std::vector<std::string>();
 
-    auto sc = essentials::SystemConfig::getInstance();
 
-    this->spawnConfig = (*essentials::SystemConfig::getInstance())["WumpusEval"]->get<std::string>("TestRun.spawnConfig", NULL);
+    auto sc = essentials::SystemConfig::getInstance();
+//    this->encodingsIdx = (*sc)["WumpusEval"]->get<int>("TestRun.encodingIdxStart", NULL); // should be same as worldIdx for nRuns == 1
+    this->encodingsIdx = worldIdx; // TODO add multiplier for multiple worlds
+    this->spawnConfig = (*sc)["WumpusEval"]->get<std::string>("TestRun.spawnConfig", NULL);
     this->maxRuns = (*sc)["KnowledgeManager"]->get<int>("nSamples", NULL);
+    this->spawnPlacesFilePath = (*sc)["WumpusEval"]->get<std::string>("TestRun.spawnPlacesFilename", NULL);
     this->permutateRandomly = (*sc)["WumpusEval"]->get<bool>("TestRun.permutateRandomly", NULL);
 
     if (this->permutateRandomly) {
@@ -59,11 +63,12 @@ Run::Run(std::string worldName, bool wroteHeader)
 */
 std::vector<std::shared_ptr<wumpus::model::Field>> Run::getNextStartPositions()
 {
+    std::lock_guard<std::mutex> lock(this->runMtx);
     std::cout << "get next start positions" << std::endl;
     if (this->currentResult) {
-//        while (this->currentResult->getAgentInfos().size() != wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount()) {
-//            std::cout << "wait for agent infos!" << std::endl;
-//        }
+        //        while (this->currentResult->getAgentInfos().size() != wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount()) {
+        //            std::cout << "wait for agent infos!" << std::endl;
+        //        }
 
         // previous run should be completed
         if (!this->wroteHeader) { // TODO check permutation for initial state instead of flag?
@@ -211,7 +216,7 @@ bool Run::isCompleted()
     if (this->spawnConfig == PERMUTATE) {
         return !this->hasNextPermutation && this->performedLastRun;
     }
-    if (this->spawnConfig == PERMUTATEUNTIL) {
+    if (this->spawnConfig == PERMUTATEUNTIL || this->spawnConfig == READ_FROM_FILE) {
         return this->runsPerformed >= this->maxRuns;
     }
     if (this->spawnConfig == EXISTING) {
@@ -369,7 +374,7 @@ bool Run::determineHasNextPermutation()
     if (this->spawnConfig == PERMUTATE) { // && !this->permutateRandomly) {
         return this->hasNextPermutation;
     }
-    if (this->spawnConfig == PERMUTATEUNTIL) {
+    if (this->spawnConfig == PERMUTATEUNTIL || this->spawnConfig == READ_FROM_FILE) {
         return this->runsPerformed != this->maxRuns;
     }
     if (spawnConfig == EXISTING) {
@@ -378,6 +383,7 @@ bool Run::determineHasNextPermutation()
     if (spawnConfig == VISIT_ALL_FIELDS) {
         return !this->openIndices.empty();
     }
+
     std::cout << "RUN: INVALID SPAWN CONFIG 2 " << std::endl;
     throw std::exception();
     return false;
@@ -395,6 +401,24 @@ std::string Run::getEncodingBySpawnConfig()
     }
     if (spawnConfig == VISIT_ALL_FIELDS) {
         return getNextPermutationVisitAll();
+    }
+    if (spawnConfig == READ_FROM_FILE) {
+        std::string line;
+        std::ifstream myfile;
+        myfile.open(this->spawnPlacesFilePath);
+
+        if (!myfile.is_open()) {
+            perror("Error open");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i < this->encodingsIdx; ++i) {
+            std::getline(myfile, line);
+
+        }
+        std::getline(myfile, line);
+
+        return line;
     }
 
     return "";

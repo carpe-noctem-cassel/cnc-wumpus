@@ -166,6 +166,8 @@ void Agent::updateExhausted(bool exhausted)
         //                  << (exhausted ? "True" : "False") << std::endl;
         this->exhausted = exhausted;
         this->ch->handleChangedExhausted(this->id, exhausted);
+        wumpus::WumpusWorldModel::getInstance()->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
+
     }
 }
 
