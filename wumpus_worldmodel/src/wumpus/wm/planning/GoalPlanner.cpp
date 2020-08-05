@@ -110,9 +110,14 @@ std::pair<std::pair<std::string, std::string>, std::string> GoalPlanner::determi
                 this->wm->playground->getFieldsShotAtByAgentIds()->end()) {
             this->wm->playground->getFieldsShotAtByAgentIds()->at(essentials::SystemConfig::getOwnRobotID()).clear();
         }
+        std::unordered_set<std::shared_ptr<wumpus::model::Field>> shotAtFields;
         for (const auto& field : shotAt) {
             this->wm->playground->addShootingTarget(essentials::SystemConfig::getOwnRobotID(), field);
+            auto actualField = this->wm->playground->getField(std::stoi(field.first),std::stoi(field.second));
+            shotAtFields.insert(actualField);
         }
+        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateShotAtFields(shotAtFields);
+
 
         this->integrator->applyChanges();
 #ifdef PM_DEBUG

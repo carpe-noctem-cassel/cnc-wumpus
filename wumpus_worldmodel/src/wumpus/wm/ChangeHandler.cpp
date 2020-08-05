@@ -215,9 +215,9 @@ void ChangeHandler::handleChangedShotAt(int id, std::shared_ptr<wumpus::model::F
     this->integrator->integrateInformationAsExternal(
             "shotAt(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "shotAt", true, aspkb::Strategy::INSERT_TRUE);
 
-    if (id == essentials::SystemConfig::getOwnRobotID()) {
+//    if (id == essentials::SystemConfig::getOwnRobotID()) {
         this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-    }
+//    }
 
     // a blocking wumpus for the local agent might have been shot
     // TODO check if shot at field contained a blocking wumpus for the local agent
@@ -287,6 +287,11 @@ void ChangeHandler::handleSilence()
 
 void ChangeHandler::handleShotAtFields() const
 {
+
+    if(this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->shotAtFields.empty()) {
+        std::cout << "Local agent has no shot at fields!" << std::endl;
+        throw std::exception();
+    }
     for (auto field : this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->shotAtFields) {
         std::cout << "handle shot at fields" << std::endl;
         field->updateShotAt(essentials::SystemConfig::getOwnRobotID(), true);
