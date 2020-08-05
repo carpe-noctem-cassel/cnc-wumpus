@@ -18,6 +18,7 @@ Playground::Playground(wumpus::wm::ChangeHandler* ch)
         , wumpusBlocksSafeMoves(false)
         , goldFieldKnown(false)
         , shootingTargets(std::make_shared<std::map<int, std::unordered_set<std::shared_ptr<wumpus::model::Field>>>>())
+        , agents(std::map<int,std::shared_ptr<wumpus::model::Agent>>())
 {
     this->playgroundSize = -1;
     this->turnCounter = 0;
@@ -27,7 +28,12 @@ Playground::~Playground() = default;
 
 void Playground::addAgent(std::shared_ptr<wumpus::model::Agent> agent)
 {
-    //    std::lock_guard<std::mutex> lock(this->agentMtx);
+        std::lock_guard<std::mutex> lock(this->agentMtx);
+        std::cout << "ADD AGENT: " << agent->id << std::endl;
+        if(agent->id < 0) {
+            std::cout << "INVALID AGENT ID!" << std::endl;
+            throw std::exception();
+        }
     this->agents[agent->id] = agent;
 }
 void Playground::addAgentForExperiment(std::shared_ptr<wumpus::model::Agent> agent)
@@ -38,7 +44,7 @@ void Playground::addAgentForExperiment(std::shared_ptr<wumpus::model::Agent> age
 
 void Playground::removeAgent(int id)
 {
-    //    std::lock_guard<std::mutex> lock(this->agentMtx);
+        std::lock_guard<std::mutex> lock(this->agentMtx);
     if (this->agents.find(id) != this->agents.end()) {
         std::cout << "Playground: Removing agent with id " << id << std::endl;
         this->agents.erase(id);
@@ -46,7 +52,7 @@ void Playground::removeAgent(int id)
 }
 std::shared_ptr<wumpus::model::Agent> Playground::getAgentById(int id)
 {
-    //    std::lock_guard<std::mutex> lock(this->agentMtx);
+        std::lock_guard<std::mutex> lock(this->agentMtx);
     auto it = this->agents.find(id);
     if (it != this->agents.end()) {
         return it->second;
@@ -59,15 +65,20 @@ std::shared_ptr<wumpus::model::Agent> Playground::getAgentById(int id)
  * @param expectAll If true, the list of agents is only returned if it contains as many elements as agents are expected to be part of the experiment
  * @return
  */
-std::shared_ptr<std::map<int, std::shared_ptr<wumpus::model::Agent>>> Playground::getAgents(bool expectAll)
+std::map<int, std::shared_ptr<wumpus::model::Agent>> Playground::getAgents(bool expectAll)
 {
-    if (expectAll) {
+    std::lock_guard<std::mutex> lock(this->agentMtx);
 
+    if (expectAll) {
         if (this->agents.size() < wumpus::WumpusWorldModel::getInstance()->getPresetAgentCount()) {
-            return nullptr;
+            std::cout << "EXPECTALL NOT IMPLEMENTED" << std::endl;
+            throw std::exception();
         }
     }
-    return std::make_shared<std::map<int, std::shared_ptr<wumpus::model::Agent>>>(this->agents);
+    for(auto a : this->agents) {
+        std::cout << "GET AGENTS: " << a.first << ", " << a.second->id << std::endl;
+    }
+    return this->agents;
 }
 
 //std::shared_ptr<std::map<int, std::shared_ptr<wumpus::model::Agent>>> Playground::getAgentsForExperiment()
@@ -189,7 +200,7 @@ void updatePossibleNextFields()
 std::vector<std::shared_ptr<wumpus::model::Agent>> Playground::getAgentsWhoShot()
 {
     std::vector<std::shared_ptr<wumpus::model::Agent>> ret;
-    for (const auto& a : *this->getAgents(false)) {
+    for (const auto& a : this->getAgents(false)) {
         if (a.second->shot) {
             ret.push_back(a.second);
         }

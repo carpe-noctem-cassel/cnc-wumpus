@@ -32,6 +32,8 @@ ObjectiveEvaluator::~ObjectiveEvaluator()
 wumpus::model::Objective ObjectiveEvaluator::determineObjective()
 {
 
+
+
     // go home is the final objective and the safe path should definitely exist if agent managed to get to the gold field safely
     //    if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective != model::Objective::GO_HOME &&
     //            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective != model::Objective::COLLECT_GOLD &&
@@ -55,7 +57,7 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
         auto positionsOfOtherAgents = std::map<int, std::pair<int, int>>();
         auto goldField = std::pair<int, int>();
         auto allAgents = this->wm->playground->getAgents(false);
-        for (const auto& agent : *allAgents) {
+        for (const auto& agent : allAgents) {
             if (agent.first != essentials::SystemConfig::getOwnRobotID() && agent.second && agent.second->currentPosition && !agent.second->hasSafePathToGold) {
                 std::cout << "PlanningModule: Adding position of other agent for safePathExistsQuery" << std::to_string(agent.second->currentPosition->x)
                           << ", " << std::to_string(agent.second->currentPosition->y) << std::endl;

@@ -23,11 +23,11 @@ void Integrator::integrateInformationAsExternal(
         const std::string& value, const std::string& identifier, bool truthValue, Strategy strategy = Strategy::INSERT_TRUE)
 {
 //    this->setIsIntegrating(true);
-
     std::lock_guard<std::mutex> lock(aspkb::Integrator::mtx);
-    // FIXME use truthvalue and strategy toggle instead of using empty values!
+
+        // FIXME use truthvalue and strategy toggle instead of using empty values!
     if (!value.empty()) {
-//        std::cout << "Integrator: " << this << " adding changed external " << value << ", " << truthValue << std::endl;
+        std::cout << "Integrator: " << this << " adding changed external " << value << ", " << truthValue << std::endl;
         this->changedExternals->emplace(value, truthValue);
     }
 
@@ -45,7 +45,9 @@ void Integrator::integrateInformationAsExternal(
             }
         }
     }
-}
+
+
+    }
 
 void Integrator::applyChanges()
 {

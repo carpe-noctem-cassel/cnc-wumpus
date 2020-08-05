@@ -128,7 +128,6 @@ void ChangeHandler::handleSetDiedOn(std::shared_ptr<wumpus::model::Field> field)
     ss << "otherAgentDiedOn(" << field->x << "," << field->y << ")";
     this->integrator->integrateInformationAsExternal(ss.str(), "diedOn", true, aspkb::Strategy::INSERT_TRUE);
     this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
-    std::cout << "CHECK IF HANDLE SET DIED ON WAS SUCCESSFUL" << std::endl;
     this->integrator->applyChanges();
     //    throw std::exception();
 }
@@ -231,7 +230,10 @@ void ChangeHandler::handleChangedExplored(std::shared_ptr<wumpus::model::Field> 
 
     // a new field has been explored. if local agent is exhausted, this might open up new possibilities
     // TODO: improve this by only considering "problematic" fields
+    this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
+
     this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
+
 }
 
 // RESET GOAL
@@ -253,17 +255,25 @@ void ChangeHandler::handleScream()
     localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
     std::cout << "handle scream: updated agent stuff" << std::endl;
 
+    for(const auto& field : localAgent->shotAtFields) {
+        std::cout << "field is" << field->x << ", " << field->y << std::endl;
+    }
     for (auto f : localAgent->shotAtFields) {
         auto adj = this->wm->playground->getAdjacentFields(f->x, f->y);
+        for(const auto& field : adj) {
+            std::cout << "adjacent field is" << field->x << ", " << field->y << std::endl;
+        }
         for (auto a : adj) {
-            std::cout << "handle scream: adj explored" << std::endl;
+            std::cout << "handle scream: adj explored " << a->x << ", " << a->y << std::endl;
             a->updateExplored(false);
-            for (auto i : *this->wm->playground->getAgents(false)) {
-                std::cout << "handle scream: adj visited by other" << std::endl;
+            for (const auto& i : this->wm->playground->getAgents(false)) {
+                std::cout << "handle scream: adj visited by other " << i.first << std::endl;
                 a->updateVisited(false, i.second->id);
             }
         }
+        std::cout << "Shot at fields loop iteration done" << std::endl;
     }
+    std::cout << "handle SCREAM done" << std::endl;
 }
 
 void ChangeHandler::handleSilence()

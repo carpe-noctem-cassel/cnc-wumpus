@@ -24,7 +24,6 @@ void WaitForTurn::run(void* msg)
 {
     /*PROTECTED REGION ID(run1534835364093) ENABLED START*/ // Add additional options here
     // TODO experimental...
-    std::cout << "In wait for turn!" << std::endl;
     if (this->wm->localAgentDied || this->wm->localAgentExited) {
         auto perception = this->createAgentPerception(essentials::SystemConfig::getOwnRobotID());
         send(perception);

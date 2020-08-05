@@ -362,7 +362,7 @@ void WumpusSimData::processAgentPerception(wumpus_msgs::AgentPerceptionPtr agent
                         auto adj = this->wm->playground->getAdjacentFields(f->x, f->y);
                         for (auto a : adj) {
                             a->updateExplored(false);
-                            for (auto i : *this->wm->playground->getAgents(false)) {
+                            for (auto i : this->wm->playground->getAgents(false)) {
                                 a->updateVisited(false, i.second->id);
                             }
                         }

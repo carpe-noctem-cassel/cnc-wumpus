@@ -28,7 +28,7 @@ public:
     void handleScream();
     void updateWumpusBlocksMoves(bool blocks);
     std::shared_ptr<wumpus::model::Agent> getAgentById(int id);
-    std::shared_ptr<std::map<int,std::shared_ptr<wumpus::model::Agent>>> getAgents(bool expectAll);
+    std::map<int,std::shared_ptr<wumpus::model::Agent>> getAgents(bool expectAll);
     std::shared_ptr<std::map<int,std::shared_ptr<wumpus::model::Agent>>> getAgentsForExperiment();
     std::shared_ptr<wumpus::model::Field> getField(int x, int y);
     std::vector<std::shared_ptr<wumpus::model::Field>> getAdjacentFields(int x, int y);

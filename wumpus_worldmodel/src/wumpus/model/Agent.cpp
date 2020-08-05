@@ -138,6 +138,7 @@ void Agent::setDead(const std::shared_ptr<wumpus::model::Field>& field)
     std::cout << "Agent: set dead " << std::endl;
     this->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
     this->updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
+    this->updatePossibleNextFields(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
     //        throw std::exception();
     if (!this->diedOn || this->diedOn != field) {
         this->diedOn = field;
@@ -249,16 +250,16 @@ void Agent::updateBlockingTraps(std::unordered_set<std::shared_ptr<wumpus::model
 void Agent::updatePossibleNextFields(std::unordered_set<std::shared_ptr<wumpus::model::Field>> possibleNext)
 {
 
-    // remove traps that disappeared
+    // remove possible next fiedls that disappeared
     for (const auto& oldPossibleNext : this->possibleNextFields) {
         if (possibleNext.find(oldPossibleNext) == possibleNext.end()) {
             this->ch->handleChangedPossibleNext(oldPossibleNext, this->id, false);
         }
     }
 
-    // add new wumpi if they're not known already
+    // add new possible next if they're not known already
     for (const auto& newPossibleNext : possibleNext) {
-        if (std::find(this->fieldsWithBlockingTraps.begin(), this->fieldsWithBlockingTraps.end(), newPossibleNext) == this->fieldsWithBlockingTraps.end()) {
+        if (std::find(this->possibleNextFields.begin(), this->possibleNextFields.end(), newPossibleNext) == this->possibleNextFields.end()) {
             this->ch->handleChangedPossibleNext(newPossibleNext, this->id, true);
         }
     }

@@ -59,7 +59,7 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
             if (!target.first.first.empty() && localAgent->currentPosition->x == std::stoi(target.first.first) &&
                     localAgent->currentPosition->y == std::stoi(target.first.second) && localAgent->currentHeading == std::stoi(target.second)) {
                 std::cout << "PathActionsPlanner: TARGET " << target.first.first << ", " << target.first.second << " with heading " << target.second
-                          << std::endl;
+                          << "already aligned!" << std::endl;
                 return std::make_pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::string>>({}, {"shoot"});
             }
         }
@@ -204,7 +204,7 @@ std::pair<std::vector<std::pair<std::string, std::string>>, std::vector<std::str
             // FIXME experimental - 24.06.20 - unsafe moves should only be allowed if all other agents are blocked by traps as well
 
             bool foundUntrappedAgent = false;
-            for (const auto& entry : *this->wm->playground->getAgents(false)) {
+            for (const auto& entry : this->wm->playground->getAgents(false)) {
                 if (!entry.second->isBlockedByTrap() && this->wm->wumpusSimData.communicationAllowed) {
                     foundUntrappedAgent = true;
                     std::cout << "Found untrapped agent with id " << entry.second->id << "!" << std::endl;
