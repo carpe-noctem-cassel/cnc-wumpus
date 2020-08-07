@@ -1,4 +1,4 @@
-newPossibleNext(X,Y) :- fieldAdjacent(A,B,C,D), visitedByOther(A,B,P), agent(P), not me(P), visited(C,D), possibleNextForOther(X,Y,P).
+newPossibleNext(X,Y) :- fieldAdjacent(A,B,C,D), visitedByOther(A,B,P), agent(P), not me(P), visited(C,D), possibleNextForOther(X,Y,P), not explored(X,Y), not visited(X,Y).
 
 newPossibleNext(X,Y) :- possibleNext(X,Y), not explored(X,Y).
 

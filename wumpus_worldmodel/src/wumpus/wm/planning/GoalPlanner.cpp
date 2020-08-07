@@ -3,9 +3,9 @@
 //
 
 #include "wumpus/wm/planning/GoalPlanner.h"
-#include <wumpus/wm/util/PlannerUtils.h>
 #include <aspkb/Integrator.h>
 #include <wumpus/WumpusWorldModel.h>
+#include <wumpus/wm/util/PlannerUtils.h>
 namespace wumpus
 {
 namespace wm
@@ -15,7 +15,7 @@ namespace planning
 GoalPlanner::GoalPlanner(aspkb::Extractor* extractor, aspkb::Integrator* integrator)
         : Planner(extractor)
         , integrator(integrator)
-        , blockEval(extractor,integrator)
+        , blockEval(extractor, integrator)
 {
     auto sc = essentials::SystemConfig::getInstance();
     auto filePath = (*sc)[KB_CONFIG_NAME]->get<std::string>("goalGenerationRulesFilePath", NULL);
@@ -29,18 +29,18 @@ GoalPlanner::GoalPlanner(aspkb::Extractor* extractor, aspkb::Integrator* integra
 std::string GoalPlanner::determineGoal()
 {
 
-    //only consider safely reachable fields
+    // only consider safely reachable fields
     auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
     std::unordered_set<std::shared_ptr<wumpus::model::Field>> possibleNextFields;
-    if(localAgent->objective == wumpus::model::Objective::FETCH_OTHER_AGENT) {
-        possibleNextFields = this->blockEval.generatePossibleNextFieldsAlternative();
-    }
+    //    if(localAgent->objective == wumpus::model::Objective::FETCH_OTHER_AGENT) {
+    possibleNextFields = this->blockEval.generatePossibleNextFieldsAlternative();
+    //    }
 
     std::string goalQueryHeadValue = "suggestedGoal(wildcard,wildcard)";
     auto result = this->extractor->extractReusableTemporaryQueryResult({goalQueryHeadValue}, "goal", this->goalGenerationRules);
-//    for(auto field : possibleNextFields) {
-//        field->updateIsPossibleNext(false);
-//    }
+    //    for(auto field : possibleNextFields) {
+    //        field->updateIsPossibleNext(false);
+    //    }
     this->integrator->applyChanges();
     if (!result.empty()) {
         if (result.size() > 1) {
@@ -113,11 +113,10 @@ std::pair<std::pair<std::string, std::string>, std::string> GoalPlanner::determi
         std::unordered_set<std::shared_ptr<wumpus::model::Field>> shotAtFields;
         for (const auto& field : shotAt) {
             this->wm->playground->addShootingTarget(essentials::SystemConfig::getOwnRobotID(), field);
-            auto actualField = this->wm->playground->getField(std::stoi(field.first),std::stoi(field.second));
+            auto actualField = this->wm->playground->getField(std::stoi(field.first), std::stoi(field.second));
             shotAtFields.insert(actualField);
         }
         this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateShotAtFields(shotAtFields);
-
 
         this->integrator->applyChanges();
 #ifdef PM_DEBUG
@@ -134,7 +133,7 @@ std::pair<std::pair<std::string, std::string>, std::string> GoalPlanner::determi
         return std::make_pair(std::make_pair("", ""), "");
     }
 }
-//void GoalPlanner::addShootingTarget(const int id, const std::pair<std::string, std::string>& shotAt)
+// void GoalPlanner::addShootingTarget(const int id, const std::pair<std::string, std::string>& shotAt)
 //{
 //    std::lock_guard<std::mutex> lock(this->shotAtMtx);
 //    if (this->shootingTargets->find(id) != this->shootingTargets->end()) {
@@ -142,7 +141,7 @@ std::pair<std::pair<std::string, std::string>, std::string> GoalPlanner::determi
 //    }
 //    this->shootingTargets->emplace(id, std::set<std::pair<std::string, std::string>>({shotAt}));
 //}
-//std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> GoalPlanner::getShootingTargets()
+// std::shared_ptr<std::map<int, std::set<std::pair<std::string, std::string>>>> GoalPlanner::getShootingTargets()
 //{
 //    std::lock_guard<std::mutex> lock(this->shotAtMtx);
 //    return this->shootingTargets;
