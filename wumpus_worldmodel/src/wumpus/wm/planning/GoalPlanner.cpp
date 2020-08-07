@@ -71,6 +71,10 @@ std::pair<std::pair<std::string, std::string>, std::string> GoalPlanner::determi
     auto position = std::pair<std::string, std::string>();
     auto heading = std::string();
     auto shotAt = std::vector<std::pair<std::string, std::string>>();
+
+    if(this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->fieldsWithBlockingWumpi.empty()) {
+        this->blockEval.determineBlockingElementsForSelf();
+    }
     auto result = this->extractor->extractReusableTemporaryQueryResult(
             {"targetPos(wildcard,wildcard)", "targetHeading(wildcard)", "fieldIsAhead(wildcard,wildcard)"}, "shootFrom", this->shootFromRules);
 

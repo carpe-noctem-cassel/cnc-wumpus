@@ -16,7 +16,7 @@ wumpusUtilDefiniteSelf(X) :- X = #count{1,C,D : wumpusAhead(C,D), definitelyBloc
 
 
 nOther(N) :- N = #count{1,A : agent(A), not me(A)}.
-{chosenAgent(A) : agent(A)} = 1 :- nOther(N), N > 0.
+{chosenAgent(A) : agent(A), not me(A)} = 1 :- nOther(N), N > 0.
 wumpusUtilOther(N,A) :- N = #count{1,C,D,A : wumpusAhead(C,D), blockingWumpusForOther(C,D,A), chosenAgent(A)}, chosenAgent(A).
 
 wumpusUtilDefiniteOther(X,A) :- X = #count{1,C,D,A : wumpusAhead(C,D), definitelyBlockingWumpusOther(C,D,A)}, chosenAgent(A).
