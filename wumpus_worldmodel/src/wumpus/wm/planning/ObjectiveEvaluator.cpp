@@ -32,8 +32,6 @@ ObjectiveEvaluator::~ObjectiveEvaluator()
 wumpus::model::Objective ObjectiveEvaluator::determineObjective()
 {
 
-
-
     // go home is the final objective and the safe path should definitely exist if agent managed to get to the gold field safely
     //    if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective != model::Objective::GO_HOME &&
     //            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective != model::Objective::COLLECT_GOLD &&
@@ -163,6 +161,11 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
 
     //        std::cout << "OBJECTIVE: " << obj << std::endl;
 
+    if (obj == wumpus::model::Objective::EXPLORE &&
+            this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->objective == wumpus::model::Objective::HUNT_WUMPUS) {
+        this->integrator->integrateInformationAsExternal("", "goal", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+        this->integrator->integrateInformationAsExternal("", "goalHeading", true, aspkb::Strategy::FALSIFY_OLD_VALUES);
+    }
     this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateObjective(obj);
     this->integrator->applyChanges();
 

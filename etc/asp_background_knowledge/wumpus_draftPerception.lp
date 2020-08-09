@@ -9,4 +9,12 @@ trap(X,Y) :- trapPossible(X,Y), otherAgentDiedOn(X,Y).
 withoutTrap(X,Y) :- fieldAdjacent(A,B,X,Y), explored(A,B), not drafty(A,B).
 withoutTrap(X,Y) :- explored(X,Y).
 
+%generatesBreeze(X,Y,A,B) :- trapPossible(X,Y), drafty(A,B), fieldAdjacent(A,B,X,Y), field(X,Y), field(A,B).
+
+%allAdjacentExplored(X,Y) :- field(X,Y), explored(A,B) : fieldAdjacent(X,Y,A,B), field(A,B).
+
+%generatesBrezeCount(X,Y,A,B,N) :- field(X,Y), field(A,B), N = #count{1,X,Y,A,B : generatesBreeze(X,Y,A,B)}.
+
+%trap(X,Y) :- generatesBreeze(X,Y,A,B), allAdjacentExplored(X,Y), generatesBreezeCount(X,Y,A,B,1), field(X,Y), field(A,B).
+
 

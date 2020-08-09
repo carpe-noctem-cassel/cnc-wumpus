@@ -13,11 +13,13 @@ blockedByTrapCount(N) :- N = #count{1, B : trapBlocksAgent(_,_,B), agent(B)}.
 
 objective(fetchOtherAgent) :- me(A), haveGold(A), agent(B), not haveGold(B), not hasSafePathToGold(B), field(X,Y), field(C,D), not position(B,U,V), glitter(U,V), not objective(huntWumpus), not objective(shoot), not objective(leave).
 
-objective(huntWumpus) :- wumpusBlocksAgent(_,_,_), arrow(A), not trapBlocksAgent(_,_,A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
+
+wumpusReachableOther(B) :- wumpusBlocksAgent(X,Y,B), agent(B), not me(B), visited(X,_).
+wumpusReachableOther(B) :- wumpusBlocksAgent(X,Y,B), agent(B), not me(B), visited(_,Y).
+
+objective(huntWumpus) :- wumpusBlocksAgent(_,_,B), not me(B), wumpusReachableOther(B), arrow(A), not trapBlocksAgent(_,_,A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
 
 objective(huntWumpus) :- wumpusBlocksAgent(_,_,A), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold), allOthersExhausted.
-
-objective(huntWumpus) :- wumpusBlocksAgent(_,_,_), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
 
 othersExhaustedCount(N) :- N = #count{1, B : exhausted(B), not me(B)}.
 agentsCount(N) :- N = #count{1, A : agent(A)}.

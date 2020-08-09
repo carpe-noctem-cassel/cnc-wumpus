@@ -124,9 +124,13 @@ int TermManager::activateReusableExtensionQuery(std::string identifier, const st
                std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
                std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
         checkTerm->addRule(rule);
+        rule = "definitelyMovedInDanger(t) :- otherAgentDiedOn(X,Y), pathActionsincquery" +
+               std::to_string(i) /* + std::to_string(reasoner::asp::IncrementalExtensionQuery::queryId) */ +
+               std::string("(holds(on(X,Y)," + std::to_string(i) + ")).");
+        checkTerm->addRule(rule);
     }
 
-    rule = ":~ definitelyMovedInDanger(t). [1@1]";
+    rule = ":- definitelyMovedInDanger(t).";
     checkTerm->addRule(rule);
 
     //    rule = ":- not unsafeMovesAllowed, not shotAt(_,_) , movedInDanger(t)."; // FIXME check if agent actually shot and possibly revoke

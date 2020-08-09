@@ -138,10 +138,11 @@ void ChangeHandler::handleChangedObjective(int id, wumpus::model::Objective obje
     ss << "objective(" << id << ", ";
     ss << objective;
     ss << ")";
+
     this->integrator->integrateInformationAsExternal(ss.str(), "objective" + std::to_string(id), true, aspkb::Strategy::FALSIFY_OLD_VALUES);
-//    if (id == essentials::SystemConfig::getOwnRobotID()) {
-        this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
-//    }
+    //    if (id == essentials::SystemConfig::getOwnRobotID()) {
+    this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->replanNecessary = true;
+    //    }
 }
 
 void ChangeHandler::handleChangedBlockedByWumpus(const std::shared_ptr<wumpus::model::Field>& field, int id, bool truthValue)
@@ -214,9 +215,9 @@ void ChangeHandler::handleChangedShotAt(int id, std::shared_ptr<wumpus::model::F
     this->integrator->integrateInformationAsExternal(
             "shotAt(" + std::to_string(field->x) + "," + std::to_string(field->y) + ")", "shotAt", true, aspkb::Strategy::INSERT_TRUE);
 
-//    if (id == essentials::SystemConfig::getOwnRobotID()) {
-        this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-//    }
+    //    if (id == essentials::SystemConfig::getOwnRobotID()) {
+    this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
+    //    }
 
     // a blocking wumpus for the local agent might have been shot
     // TODO check if shot at field contained a blocking wumpus for the local agent
@@ -233,7 +234,6 @@ void ChangeHandler::handleChangedExplored(std::shared_ptr<wumpus::model::Field> 
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
 
     this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->updateExhausted(false);
-
 }
 
 // RESET GOAL
@@ -250,22 +250,23 @@ void ChangeHandler::handleScream()
     }
     // TODO does this make sense?
     this->integrator->integrateInformationAsExternal("unsafeMovesAllowed", "unsafeMoves", false, aspkb::Strategy::INSERT_TRUE);
-//    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
+    //    auto localAgent = this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID());
     localAgent->updateExhausted(false);
     localAgent->updateBlockingWumpi(std::unordered_set<std::shared_ptr<wumpus::model::Field>>());
     std::cout << "handle scream: updated agent stuff" << std::endl;
 
-    for(const auto& field : localAgent->shotAtFields) {
+    for (const auto& field : localAgent->shotAtFields) {
         std::cout << "field is" << field->x << ", " << field->y << std::endl;
     }
     for (auto f : localAgent->shotAtFields) {
         auto adj = this->wm->playground->getAdjacentFields(f->x, f->y);
-        for(const auto& field : adj) {
+        for (const auto& field : adj) {
             std::cout << "adjacent field is" << field->x << ", " << field->y << std::endl;
         }
         for (auto a : adj) {
             std::cout << "handle scream: adj explored " << a->x << ", " << a->y << std::endl;
             a->updateExplored(false);
+            a->updateStinky(false);
             for (const auto& i : this->wm->playground->getAgents(false)) {
                 std::cout << "handle scream: adj visited by other " << i.first << std::endl;
                 a->updateVisited(false, i.second->id);
@@ -298,7 +299,7 @@ void ChangeHandler::handleSilence()
 void ChangeHandler::handleShotAtFields() const
 {
 
-    if(this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->shotAtFields.empty()) {
+    if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->shotAtFields.empty()) {
         std::cout << "Local agent has no shot at fields!" << std::endl;
         throw std::exception();
     }
