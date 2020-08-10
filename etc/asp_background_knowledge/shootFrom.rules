@@ -6,20 +6,11 @@ fieldIsAhead(X,Y) :- field(A,B), field(X,Y), target(A,B,3), X=A, Y > B.
 wumpusAhead(X,Y) :- fieldIsAhead(X,Y), wumpusPossible(X,Y).
 
 blockingWumpusForSelf(X,Y) :- wumpusBlocksAgent(X,Y,A), wumpusPossible(X,Y), me(A).
-blockingWumpusForOther(X,Y,A) :- wumpusBlocksAgent(X,Y,A), wumpusPossible(X,Y), not me(A).
 
 definitelyBlockingWumpusSelf(X,Y) :- wumpusBlocksAgent(X,Y,A), wumpus(X,Y), me(A).
-definitelyBlockingWumpusOther(X,Y,A) :- wumpusBlocksAgent(X,Y,A), wumpus(X,Y), not me(A).
 
 wumpusUtilSelf(N) :- N = #count{1,C,D : wumpusAhead(C,D), blockingWumpusForSelf(C,D)}.
 wumpusUtilDefiniteSelf(X) :- X = #count{1,C,D : wumpusAhead(C,D), definitelyBlockingWumpusSelf(C,D)}.
-
-
-nOther(N) :- N = #count{1,A : agent(A), not me(A)}.
-{chosenAgent(A) : agent(A), not me(A)} = 1 :- nOther(N), N > 0, not trapBlocksAgent(_,_,C), me(C).
-wumpusUtilOther(N,A) :- N = #count{1,C,D,A : wumpusAhead(C,D), blockingWumpusForOther(C,D,A), chosenAgent(A)}, chosenAgent(A).
-
-wumpusUtilDefiniteOther(X,A) :- X = #count{1,C,D,A : wumpusAhead(C,D), definitelyBlockingWumpusOther(C,D,A)}, chosenAgent(A).
 
 duplicateShotAt(N) :- N= #count{1,X,Y : fieldIsAhead(X,Y), shotAt(X,Y)}.
 
@@ -30,10 +21,6 @@ duplicateShotAt(N) :- N= #count{1,X,Y : fieldIsAhead(X,Y), shotAt(X,Y)}.
 #maximize{N@1 : wumpusUtilDefiniteSelf(N)}.
 #minimize{N@2 : duplicateShotAt(N)}.
 #maximize{N@3 : wumpusUtilSelf(N)}.
-#maximize{N@4 : wumpusUtilDefiniteOther(N,_)}.
-#maximize{N@5 : wumpusUtilOther(N,_)}.
-
-
 
 targetPos(X,Y) :- target(X,Y,_).
 targetHeading(D) :- target(_,_,D).

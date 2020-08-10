@@ -54,7 +54,7 @@ WumpusSimData::~WumpusSimData()
 */
 void WumpusSimData::processInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse)
 {
-    //    std::cout << "WumpusSimData: in initial pose response " << std::endl;
+        std::cout << "WumpusSimData: in initial pose response " << std::endl;
     // avoid inconsistencies in knowledgebase and crashing of clingo
 
     std::lock_guard<std::mutex> lock(this->respMtx);
@@ -94,6 +94,7 @@ void WumpusSimData::processInitialPoseResponse(wumpus_simulator::InitialPoseResp
 
     // any other info should come from the agent itself
     if (initialPoseResponse->agentId != this->wm->getSystemConfig()->getOwnRobotID()) {
+        std::cout << "Info not for me" << std::endl;
         return;
     }
 

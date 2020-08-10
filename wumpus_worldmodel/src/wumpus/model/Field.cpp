@@ -46,6 +46,7 @@ void Field::updateStinky(bool stinky)
 
 void Field::updateVisited(bool visited, int id)
 {
+    std::cout << "Field: update visited" << std::endl;
     if (this->visited != visited) {
         this->visited = visited;
         this->ch->handleChangedVisited(shared_from_this(), id, visited);

@@ -17,15 +17,11 @@ objective(fetchOtherAgent) :- me(A), haveGold(A), agent(B), not haveGold(B), not
 wumpusReachableOther(B) :- wumpusBlocksAgent(X,Y,B), agent(B), not me(B), visited(X,_).
 wumpusReachableOther(B) :- wumpusBlocksAgent(X,Y,B), agent(B), not me(B), visited(_,Y).
 
-objective(huntWumpus) :- wumpusBlocksAgent(_,_,B), not me(B), wumpusReachableOther(B), arrow(A), not trapBlocksAgent(_,_,A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
-
-objective(huntWumpus) :- wumpusBlocksAgent(_,_,A), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold), allOthersExhausted.
+objective(huntWumpus) :- wumpusBlocksAgent(_,_,A), arrow(A), me(A), not shot(A), not objective(shoot), not objective(goHome), not objective(collectGold).
 
 othersExhaustedCount(N) :- N = #count{1, B : exhausted(B), not me(B)}.
 agentsCount(N) :- N = #count{1, A : agent(A)}.
 allOthersExhausted :- N == M - 1, othersExhaustedCount(N), agentsCount(M).
-
-objective(huntWumpus) :- me(A), haveGold(A), arrow(A), agent(B), not me(B), not haveGold(B), wumpusBlocksAgent(_,_,B), not objective(collectGold), not objective(shoot), exhausted(B), not hasSafePathToGold(B).
 
 objective(shoot) :- on(X,Y), goal(X,Y), heading(H), goalHeading(H), arrow(A), me(A), not shot(A).
 
