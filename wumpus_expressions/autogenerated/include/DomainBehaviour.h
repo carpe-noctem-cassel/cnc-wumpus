@@ -3,11 +3,7 @@
 
 #include "engine/BasicBehaviour.h"
 #include "wumpus/WumpusWorldModel.h"
-#include "wumpus_simulator/ActionRequest.h"
-#include "wumpus_simulator/InitialPoseRequest.h"
-#include <wumpus_msgs/AgentPerception.h>
-#include <wumpus_simulator/MultiInitialPoseRequest.h>
-#include <wumpus_simulator/LoadWorldRequest.h>
+#include <wumpus/model/communication/AgentPerceptions.h>
 
 namespace essentials
 {
@@ -22,31 +18,21 @@ namespace alica
 		DomainBehaviour(std::string name);
 		virtual ~DomainBehaviour();
 
-		void send(wumpus_simulator::InitialPoseRequest& msg);
-		void send(wumpus_simulator::ActionRequest& msg);
-        void send(wumpus_msgs::AgentPerception& msg);
-        void send(wumpus_simulator::MultiInitialPoseRequest& msg);
-        void send(wumpus_simulator::LoadWorldRequest& msg);
+		void send(wumpus::model::communication::InitialPoseRequestData data);
+		void send(wumpus::model::communication::ActionRequestData data);
+        void send(wumpus::model::communication::AgentPerceptions data);
+        void send(wumpus::model::communication::MultiInitialPoseRequestData msg);
+        void send(wumpus::model::communication::LoadWorldRequestData data);
 
 		wumpus::WumpusWorldModel* wm;
 
 	protected:
 		essentials::SystemConfig* sc;
-		wumpus_msgs::AgentPerception createAgentPerception(int ownId) const;
+        wumpus::model::communication::AgentPerceptions createAgentPerception(int ownId) const;
 
 
-	private:
-		std::string wumpusActionRequestTopic;
-		std::string wumpusPoseRequestTopic;
-        std::string agentPerceptionTopic;
-        std::string multiPoseRequestTopic;
-        std::string loadWorldRequestTopic;
+//	private:
 
-		ros::Publisher wumpusActionPublisher;
-		ros::Publisher wumpusPosePublisher;
-        ros::Publisher agentPerceptionPublisher;
-        ros::Publisher multiAgentPoseRequestPublisher;
-        ros::Publisher loadWorldRequestPublisher;
 
     };
 } /* namespace alica */

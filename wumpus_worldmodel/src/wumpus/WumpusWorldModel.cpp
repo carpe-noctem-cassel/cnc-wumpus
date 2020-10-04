@@ -139,11 +139,6 @@ bool WumpusWorldModel::isTimeout()
     return this->isTimedOut;
 }
 
-void WumpusWorldModel::sendAgentPerception(wumpus_msgs::AgentPerception& msg)
-{
-
-    this->communication->sendAgentPerception(msg);
-}
 
 void WumpusWorldModel::setPerformActionSuccess(bool success)
 {

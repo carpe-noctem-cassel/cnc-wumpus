@@ -70,8 +70,6 @@ public:
     void setIsTimeout();
     bool isTimeout();
 
-    void sendAgentPerception(wumpus_msgs::AgentPerception& msg);
-
     int getPresetAgentCount();
     bool localAgentExited;
     bool localAgentDied;
@@ -82,33 +80,8 @@ public:
     std::string currentEncoding; // TODO duplicate field
     std::mutex resetMtx;
 
-    static wumpus::model::Objective objectiveFromString(const std::string& objectiveString)
-    {
-        if (objectiveString == "goHome") {
-            return wumpus::model::Objective::GO_HOME;
-        } else if (objectiveString == "moveToGoldField")
-            return wumpus::model::Objective::MOVE_TO_GOLD_FIELD;
-        else if (objectiveString == "huntWumpus") {
-            return wumpus::model::Objective::HUNT_WUMPUS;
-        } else if (objectiveString == "fetchOtherAgent") {
-            return wumpus::model::Objective::FETCH_OTHER_AGENT;
-        } else if (objectiveString == "shoot") {
-            return wumpus::model::Objective::SHOOT;
-        } else if (objectiveString == "idle") {
-            return wumpus::model::Objective::IDLE;
-        } else if (objectiveString == "leave") {
-            return wumpus::model::Objective::LEAVE;
-        } else if (objectiveString == "collectGold") {
-            return wumpus::model::Objective::COLLECT_GOLD;
-        } else if (objectiveString == "explore") {
-            return wumpus::model::Objective::EXPLORE;
-        }
-        std::cout << "Unknown objective string!" << std::endl;
-        throw std::exception();
-        return wumpus::model::Objective::UNDEFINED;
-    }
-
     aspkb::Extractor* extractor;
+
 private:
     WumpusWorldModel(); /**< Private Singleton Constructor */
     std::string agentName;

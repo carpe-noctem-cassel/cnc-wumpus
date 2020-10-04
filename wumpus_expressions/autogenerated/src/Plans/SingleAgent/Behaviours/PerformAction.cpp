@@ -6,7 +6,6 @@ using namespace std;
 #include <engine/AlicaEngine.h>
 #include <wumpus/model/Agent.h>
 #include <wumpus/model/Field.h>
-#include <wumpus_msgs/Coordinates.h>
 #define PERFORMACTION_DBG
 /*PROTECTED REGION END*/
 namespace alica
@@ -35,7 +34,6 @@ void PerformAction::run(void* msg)
 
     //        if(this->wm->wumpusSimData.getIntegratedFromSimulator() && !this->wm->wumpusSimData.isIntegratedFromAllAgents()) {
     //            auto currentPos = this->wm->playground->getAgentById(ownId)->currentPosition;
-    //            wumpus_msgs::AgentPerception perception;
     //            wumpus_msgs::Coordinates coords;
     //            coords.x = currentPos->x;
     //            coords.y = currentPos->y;
@@ -67,7 +65,7 @@ void PerformAction::run(void* msg)
 
     if (this->shotLastIteration && !this->wm->wumpusSimData.getIsAwaitingShootingFeedback()) {
         std::cout << "Agent shot last iteration and got the required feeback: returning!" << std::endl;
-        wumpus_msgs::AgentPerception perception = createAgentPerception(ownId);
+        auto perception = createAgentPerception(ownId);
         send(perception);
         this->shotLastIteration = false;
         return;
@@ -111,7 +109,7 @@ void PerformAction::run(void* msg)
     std::cout << "################PERFORMACTION: send agent perception!" << std::endl;
 
 #endif
-    wumpus_msgs::AgentPerception perception = createAgentPerception(ownId);
+    auto perception = createAgentPerception(ownId);
 
     send(perception);
 
@@ -146,7 +144,7 @@ void PerformAction::initialiseParameters()
 bool PerformAction::executeNextAction()
 {
     if (!this->currentActionSequence.empty()) {
-        wumpus_simulator::ActionRequest req;
+        wumpus::model::communication::ActionRequestData req;
         auto ownId = this->sc->getOwnRobotID();
         req.agentId = ownId;
         auto action = this->currentActionSequence.begin();

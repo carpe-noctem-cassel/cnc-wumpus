@@ -10,9 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <depend>roscpp</depend>
   <depend>wumpus_worldmodel</depend>
-  <depend>wumpus_msgs</depend>
   <depend>alica_engine</depend>
   <depend>system_config</depend>
   <depend>system_util</depend>

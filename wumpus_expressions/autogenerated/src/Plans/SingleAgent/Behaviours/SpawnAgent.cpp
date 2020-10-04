@@ -2,13 +2,8 @@ using namespace std;
 #include "Plans/SingleAgent/Behaviours/SpawnAgent.h"
 
 /*PROTECTED REGION ID(inccpp1534835348868) ENABLED START*/ // Add additional includes here
-#include <engine/IRoleAssignment.h>
 #include <eval/AgentInfo.h>
 #include <wumpus/model/Field.h>
-#include <wumpus_simulator/AgentPosition.h>
-#include <wumpus_simulator/InitialPoseRequest.h>
-#include <wumpus_simulator/LoadWorldRequest.h>
-#include <wumpus_simulator/MultiInitialPoseRequest.h>
 /*PROTECTED REGION END*/
 namespace alica
 {
@@ -18,7 +13,6 @@ SpawnAgent::SpawnAgent()
         : DomainBehaviour("SpawnAgent")
 {
     /*PROTECTED REGION ID(con1534835348868) ENABLED START*/ // Add additional options here
-    this->multiAgentSpawnResponseSub = n.subscribe("wumpus_simulator/SpawnMultiAgentResponse", 10, &SpawnAgent::onMultiInitialPoseResponse, (SpawnAgent*) this);
     std::cout << "SpawnAgent Constructor" << std::endl;
     this->nextStartPositions = std::vector<std::shared_ptr<wumpus::model::Field>>(); // wm->experiment->getCurrentRun()->getNextStartPositions(); //already set
                                                                                      // in initialise parameters
@@ -40,7 +34,7 @@ void SpawnAgent::run(void* msg)
 
     if (this->loadedInitialWorld <= 10) {
         auto request = this->wm->experiment->getCurrentRun()->worldName;
-        wumpus_simulator::LoadWorldRequest loadWorldRequest;
+        wumpus::model::communication::LoadWorldRequestData loadWorldRequest;
         loadWorldRequest.worldPath = std::string(getenv("HOME")) + "/" + this->wm->experiment->testRunDirectory + "/" + request;
         send(loadWorldRequest);
         ++loadedInitialWorld;
@@ -73,17 +67,17 @@ void SpawnAgent::run(void* msg)
     // TODO make clearer - empty start positions mean that the  previous world has been completed
     if (this->nextStartPositions.empty() && !worldRequestSent) {
         auto request = this->wm->experiment->advanceWorld();
-        wumpus_simulator::LoadWorldRequest loadWorldRequest;
+        wumpus::model::communication::LoadWorldRequestData loadWorldRequest;
         loadWorldRequest.worldPath = std::string(getenv("HOME")) + "/" + this->wm->experiment->testRunDirectory + "/" + request;
         //        std::cout << "Sending load World request2 " << std::endl;
         send(loadWorldRequest);
         worldRequestSent = true;
         std::lock_guard<std::mutex> lock(eval::Experiment::runMtx);
-//        if (wm->getPresetAgentCount() > 1) {
-//            while (wm->experiment->getCurrentRun()->getCurrentResult()->getAgentInfos().size() != wm->getPresetAgentCount()) {
-//                std::cout << "wait for agent infos!" << std::endl;
-//            }
-//        }
+        //        if (wm->getPresetAgentCount() > 1) {
+        //            while (wm->experiment->getCurrentRun()->getCurrentResult()->getAgentInfos().size() != wm->getPresetAgentCount()) {
+        //                std::cout << "wait for agent infos!" << std::endl;
+        //            }
+        //        }
         this->nextStartPositions = this->wm->experiment->getCurrentRun()->getNextStartPositions();
         return;
     }
@@ -110,22 +104,7 @@ void SpawnAgent::initialiseParameters()
 }
 /*PROTECTED REGION ID(methods1534835348868) ENABLED START*/ // Add additional methods here
 // FIXME move into wumpusSimData
-void SpawnAgent::onMultiInitialPoseResponse(wumpus_simulator::MultiInitialPoseResponsePtr response)
-{
-    if (!response->success) {
-        std::cout << "Pose request failed!" << std::endl;
-        auto id = this->wm->getEngine()->getTeamManager()->getLocalAgentID();
-        if (this->wm->getEngine()->getRoleAssignment()->getRole(id)->getName() == this->wm->spawnRequestHandlerRoleName) {
-            this->wm->experiment->getCurrentRun()->getCurrentResult()->completionStatus = eval::CompletionStatus::REJECTED;
-        }
 
-        this->wm->experiment->getCurrentRun()->setSpawnRequestStatus(
-                this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding(), eval::SpawnRequestStatus::FAILED);
-    } else {
-        this->wm->experiment->getCurrentRun()->setSpawnRequestStatus(
-                this->wm->experiment->getCurrentRun()->getCurrentStartPositionsEncoding(), eval::SpawnRequestStatus::ACCEPTED);
-    }
-}
 
 void SpawnAgent::sendMultiInitialPoseRequest()
 {
@@ -136,15 +115,15 @@ void SpawnAgent::sendMultiInitialPoseRequest()
     for (auto a : agents) {
         agentIds.push_back(a);
     }
-    wumpus_simulator::MultiInitialPoseRequest multiInitialPoseRequest;
+    wumpus::model::communication::MultiInitialPoseRequestData multiInitialPoseRequest;
     for (int i = 0; i < this->nextStartPositions.size(); ++i) {
-        wumpus_simulator::AgentPosition agentPosition;
+        wumpus::model::communication::AgentPosition agentPosition;
         auto pos = this->nextStartPositions.at(i);
-        agentPosition.x = pos->x;
-        agentPosition.y = pos->y;
+        agentPosition.startX = pos->x;
+        agentPosition.startY = pos->y;
         agentPosition.agentId = agentIds.at(i);
         agentPosition.heading = -1;
-        multiInitialPoseRequest.requestedPositions.push_back(agentPosition);
+        multiInitialPoseRequest.agentPositions.push_back(agentPosition);
     }
 
     //    std::cout << "Sending initial pose request! " << std::endl;

@@ -71,7 +71,7 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
                 }
             }
         }
-        this->safePathExistsPlanner.checkSafePathsExistsForOtherAgents(goldField, positionsOfOtherAgents);
+//        this->safePathExistsPlanner.checkSafePathsExistsForOtherAgents(goldField, positionsOfOtherAgents);
     }
 
     // auto sol = this->extractor->extractTemporaryQueryResult({"objective(wildcard)"}, objectiveRules, {});
@@ -91,7 +91,7 @@ wumpus::model::Objective ObjectiveEvaluator::determineObjective()
         if (sol2.empty()) {
             std::cout << "PlanningModule: Should have a posible objective by now!" << std::endl;
             if (this->wm->playground->getAgentById(essentials::SystemConfig::getOwnRobotID())->isBlockedByTrap()) {
-                return wumpus::model::Objective::IDLE;
+                return wumpus::model::Objective::EXPLORE;
             } else {
                 std::cout << "PlanningModule: Should have a posible objective by now! Using explore as fallback" << std::endl;
                 //                throw std::exception();

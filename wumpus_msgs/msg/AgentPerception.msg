@@ -1,24 +1,24 @@
 int32 senderID
 string encoding
-int32 turn
 Coordinates initialPosition
 Coordinates position
+Coordinates diedOn
+Coordinates[] blockingWumpi
+Coordinates[] blockingTraps
+Coordinates[] possibleNextFields
+Coordinates[] shootingTargets
 int32 heading
+bool haveGold
 bool drafty
 bool stinky
 bool glitter
 bool arrow
-bool exited
-bool died
-bool haveGold
-string objective
-Coordinates diedOn
 bool exhausted
-Coordinates[] shootingTargets
 bool shot
 bool receivedScream
 bool receivedSilence
-Coordinates[] blockingWumpi
-Coordinates[] blockingTraps
-Coordinates[] possibleNextFields
+bool exited
+bool died
+string objective
+
 

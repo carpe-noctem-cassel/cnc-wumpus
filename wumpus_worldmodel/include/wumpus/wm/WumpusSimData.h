@@ -4,25 +4,13 @@
 #include <engine/AlicaClock.h>
 #include <supplementary/InfoBuffer.h>
 #include <supplementary/InformationElement.h>
-#include <wumpus_simulator/ActionResponse.h>
-#include <wumpus_simulator/InitialPoseResponse.h>
 
+#include <map>
 #include <mutex>
 #include <vector>
-#include <wumpus_msgs/AgentPerception.h>
+#include <algorithm>
 
 #include <chrono>
-
-namespace wumpus_msgs
-{
-ROS_DECLARE_MESSAGE(AgentPerception)
-ROS_DECLARE_MESSAGE(Coordinates)
-}
-namespace wumpus_simulator
-{
-ROS_DECLARE_MESSAGE(InitialPoseResponse)
-ROS_DECLARE_MESSAGE(ActionResponse)
-}
 
 namespace alica
 {
@@ -32,7 +20,15 @@ namespace wumpus
 {
 
 class WumpusWorldModel;
-
+namespace model
+{
+namespace communication
+{
+struct AgentPerceptions;
+struct InitialPosePerception;
+struct ActionResponsePerception;
+}
+}
 namespace wm
 {
 class WumpusSimData
@@ -42,12 +38,12 @@ public:
     virtual ~WumpusSimData();
 
     // methods for processing ROS messages from Wumpus Sim
-    void processInitialPoseResponse(wumpus_simulator::InitialPoseResponsePtr initialPoseResponse);
-    void processActionResponse(wumpus_simulator::ActionResponsePtr actionResponse);
-    void processAgentPerception(wumpus_msgs::AgentPerceptionPtr agentPerception);
+    void processInitialPoseResponse(wumpus::model::communication::InitialPosePerception initialPoseResponse);
+    void processActionResponse(wumpus::model::communication::ActionResponsePerception actionResponse);
+    void processAgentPerception(wumpus::model::communication::AgentPerceptions agentPerception);
 
     // data access through public buffers
-    const supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* getActionResponseBuffer();
+    const supplementary::InfoBuffer<wumpus::model::communication::ActionResponsePerception>* getActionResponseBuffer();
     // for Transition evaluation in Plans
     const supplementary::InfoBuffer<bool>* getIsMyTurnBuffer();
     void setIntegratedFromSimulator(bool integrated);
@@ -58,7 +54,7 @@ public:
 
     int timesCompletionStatusApplied;
 
-    //should be called when action was performed
+    // should be called when action was performed
     void raiseTurnCounter();
     std::map<int, bool> integratedFromOtherAgentsForTurnNr; // FIXME
 
@@ -79,14 +75,13 @@ public:
 
     void setIsAwaitingShootingFeedback(bool isAwaitingShootingFeedback);
 
-
 private:
     WumpusWorldModel* wm;
 
     alica::AlicaTime actionResponseValidityDuration;
     alica::AlicaTime turnInfoValidityDuration;
 
-    supplementary::InfoBuffer<wumpus_simulator::ActionResponse>* actionResponseBuffer;
+    supplementary::InfoBuffer<wumpus::model::communication::ActionResponsePerception>* actionResponseBuffer;
     supplementary::InfoBuffer<bool>* isMyTurnBuffer;
 
     int turn;
@@ -99,8 +94,6 @@ private:
     bool isAwaitingShootingFeedback;
 
     bool responsesContain(std::vector<int>& responses, int element) { return (std::find(responses.begin(), responses.end(), element) != responses.end()); };
-
-
 };
 } /* namespace wm */
 } /* namespace wumpus */
